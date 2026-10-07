@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Tôi</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;font-family:Montserrat,system-ui,-apple-system,"Segoe UI",sans-serif;background:#f5f7f3;color:#13201b}
+a{color:#0f7a3a}a:hover{color:#0b6630}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:none;box-shadow:0 0 0 2px #ffffff,0 0 0 4px #0f7a3a}
+</style>
+</helmet>
+<div style="width: 390px; height: 1080px; box-sizing: border-box; position: relative; display: flex; flex-direction: column; background: #f5f7f3; color: #13201b; font-family: Montserrat, system-ui, sans-serif; overflow: hidden">
+<header style="height: 64px; flex-shrink: 0; display: flex; align-items: center; padding: 0 20px"><h1 style="margin: 0; font-size: 22px; line-height: 28px; font-weight: 600">Tôi</h1></header>
+<main style="flex-grow: 1; display: grid; grid-template-columns: minmax(0, 1fr); grid-auto-rows: max-content; align-content: start; gap: 8px; padding: 0 20px 108px 20px; overflow: hidden">
+<section style="background: #f9faf7; border: 1px solid #e3e8e1; border-radius: 16px; box-shadow: 0 1px 2px rgba(19,32,27,0.06), 0 2px 8px rgba(19,32,27,0.05); overflow: hidden">
+<div style="padding: 16px; display: flex; align-items: center; gap: 12px">
+<span aria-hidden="true" style="width: 52px; height: 52px; border-radius: 999px; background: #e3f3e8; color: #0f7a3a; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; flex-shrink: 0">[AB]</span>
+<div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 16px; line-height: 22px; font-weight: 600">Michael Demo</span><span style="font-size: 12px; line-height: 16px; color: rgb(86, 98, 92)">demo@ggp.vn</span><span style="font-size: 12px; line-height: 16px; color: rgb(86, 98, 92)">0912 345 678</span></div>
+</div>
+<a href="Account.dc.html" style="border-top: 1px solid #e3e8e1; min-height: 52px; display: flex; align-items: center; gap: 12px; padding: 0 16px; text-decoration: none; color: #13201b"><span style="color: #56625c; display: flex"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><circle cx="12" cy="8.5" r="3.5"></circle><path d="M5 20c1-3.5 3.8-5.5 7-5.5s6 2 7 5.5"></path></svg></span><span style="flex-grow: 1; font-size: 14px; line-height: 20px; font-weight: 500">Thông tin tài khoản</span><span style="color: #56625c; display: flex"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M9 6l6 6-6 6"></path></svg></span></a>
+</section>
+<h2 style="margin: 4px 0 0; font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: 0.2em; color: #56625c">THÔNG BÁO</h2>
+<section style="background: #f9faf7; border: 1px solid #e3e8e1; border-radius: 16px; box-shadow: 0 1px 2px rgba(19,32,27,0.06), 0 2px 8px rgba(19,32,27,0.05); overflow: hidden">
+<div style="min-height: 56px; display: flex; align-items: center; gap: 12px; padding: 6px 16px; box-sizing: border-box"><span style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px"><span id="lbl-nAlert" style="font-size: 14px; line-height: 20px; font-weight: 500">Cảnh báo thiết bị</span><span style="font-size: 12px; line-height: 16px; color: #56625c">Lỗi, mất kết nối, nhiệt độ cao</span></span><button type="button" role="switch" aria-labelledby="lbl-nAlert" aria-checked="{{nAlert.checked}}" onClick="{{nAlert.flip}}" style="{{nAlert.track}}"><span style="{{nAlert.thumb}}"></span></button></div>
+<div style="border-top: 1px solid #e3e8e1; min-height: 56px; display: flex; align-items: center; gap: 12px; padding: 6px 16px; box-sizing: border-box"><span style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px"><span id="lbl-nDaily" style="font-size: 14px; line-height: 20px; font-weight: 500">Báo cáo hằng ngày</span><span style="font-size: 12px; line-height: 16px; color: #56625c">Sản lượng và tiền tiết kiệm lúc 20:00</span></span><button type="button" role="switch" aria-labelledby="lbl-nDaily" aria-checked="{{nDaily.checked}}" onClick="{{nDaily.flip}}" style="{{nDaily.track}}"><span style="{{nDaily.thumb}}"></span></button></div>
+<div style="border-top: 1px solid #e3e8e1; min-height: 56px; display: flex; align-items: center; gap: 12px; padding: 6px 16px; box-sizing: border-box"><span style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px"><span id="lbl-nNews" style="font-size: 14px; line-height: 20px; font-weight: 500">Thông báo từ GG Power</span><span style="font-size: 12px; line-height: 16px; color: #56625c">Tin tức, sản phẩm mới từ GG Power</span></span><button type="button" role="switch" aria-labelledby="lbl-nNews" aria-checked="{{nNews.checked}}" onClick="{{nNews.flip}}" style="{{nNews.track}}"><span style="{{nNews.thumb}}"></span></button></div>
+</section>
+<h2 style="margin: 4px 0 0; font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: 0.2em; color: #56625c">CÀI ĐẶT HỆ THỐNG</h2>
+<section style="background: #f9faf7; border: 1px solid #e3e8e1; border-radius: 16px; box-shadow: 0 1px 2px rgba(19,32,27,0.06), 0 2px 8px rgba(19,32,27,0.05); overflow: hidden">
+<div style="display: flex; flex-direction: column; gap: 6px; padding: 10px 16px"><span style="font-size: 14px; line-height: 20px; font-weight: 500">Đơn vị nhiệt độ</span><div role="group" aria-label="Đơn vị nhiệt độ" style="display: flex; gap: 4px; padding: 4px; border-radius: 12px; background: #eaeee8"><sc-for list="{{temp}}" as="o" hint-placeholder-count="3"><button type="button" aria-pressed="{{o.pressed}}" onClick="{{o.pick}}" style="{{o.style}}">{{o.label}}</button></sc-for></div></div>
+<div style="border-top: 1px solid #e3e8e1; display: flex; flex-direction: column; gap: 6px; padding: 10px 16px"><span style="font-size: 14px; line-height: 20px; font-weight: 500">Giao diện</span><div role="group" aria-label="Giao diện" style="display: flex; gap: 4px; padding: 4px; border-radius: 12px; background: #eaeee8"><sc-for list="{{theme}}" as="o" hint-placeholder-count="3"><button type="button" aria-pressed="{{o.pressed}}" onClick="{{o.pick}}" style="{{o.style}}">{{o.label}}</button></sc-for></div></div>
+<div style="border-top: 1px solid #e3e8e1"><button type="button" aria-haspopup="listbox" aria-expanded="{{lang.expanded}}" onClick="{{lang.toggle}}" style="width: 100%; min-height: 52px; display: flex; align-items: center; gap: 12px; padding: 0 16px; box-sizing: border-box; border: none; background: transparent; font-family: inherit; color: #13201b; text-align: left; cursor: pointer"><span style="color: #56625c; display: flex"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3c2.5 2.5 3.8 5.5 3.8 9S14.5 18.5 12 21c-2.5-2.5-3.8-5.5-3.8-9S9.5 5.5 12 3z"></path></svg></span><span style="flex-grow: 1; font-size: 14px; line-height: 20px; font-weight: 500">Ngôn ngữ</span><span style="font-size: 13px; line-height: 20px; color: #56625c">{{lang.label}}</span><span style="color: #56625c; display: flex"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="{{lang.chev}}"><path d="M6 9l6 6 6-6"></path></svg></span></button><sc-if value="{{lang.open}}" hint-placeholder-val="{{false}}"><div role="listbox" aria-label="Ngôn ngữ" style="margin: 0 12px 12px; padding: 6px; display: flex; flex-direction: column; gap: 2px; background: #ffffff; border: 1px solid #e3e8e1; border-radius: 12px; box-shadow: 0 8px 24px rgba(19,32,27,0.14), 0 1px 2px rgba(19,32,27,0.06)"><sc-for list="{{lang.opts}}" as="o" hint-placeholder-count="2"><button type="button" role="option" aria-selected="{{o.sel}}" onClick="{{o.pick}}" style="{{o.style}}"><span style="flex-grow: 1; font-size: 14px; line-height: 20px; font-weight: 600; text-align: left">{{o.name}}</span><span style="width: 20px; height: 20px; flex-shrink: 0; display: flex; color: #0f7a3a"><sc-if value="{{o.on}}" hint-placeholder-val="{{false}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></sc-if></span></button></sc-for></div></sc-if></div>
+</section>
+<a href="Login.dc.html" style="height: 48px; display: flex; align-items: center; justify-content: center; gap: 8px; border-radius: 10px; border: 1px solid #c62828; color: #c62828; font-size: 14px; font-weight: 600; text-decoration: none"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"></path><path d="M10 16l-4-4 4-4M6 12h10"></path></svg>Đăng xuất</a>
+</main>
+<nav aria-label="Điều hướng chính" style="position: absolute; left: 20px; right: 20px; bottom: 20px; height: 68px; box-sizing: border-box; padding: 6px; display: flex; gap: 4px; border-radius: 999px; background: #ffffff; border: 1px solid #e3e8e1; box-shadow: 0 8px 24px rgba(19,32,27,0.14), 0 1px 2px rgba(19,32,27,0.06)"><a href="Projects.dc.html" style="flex: 1 1 0; min-width: 0; height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border-radius: 999px; text-decoration: none; color: #56625c"><span style="position: relative; display: flex"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M3.5 7.5A2 2 0 0 1 5.5 5.5h4l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"></path></svg></span><span style="font-size: 11px; line-height: 14px; font-weight: 600; white-space: nowrap">Dự án</span></a><a href="Me.dc.html" aria-current="page" style="flex: 1 1 0; min-width: 0; height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border-radius: 999px; text-decoration: none; background: #e3f3e8; color: #0f7a3a"><span style="position: relative; display: flex"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><circle cx="12" cy="8.5" r="3.5"></circle><path d="M5 20c1-3.5 3.8-5.5 7-5.5s6 2 7 5.5"></path></svg></span><span style="font-size: 11px; line-height: 14px; font-weight: 600; white-space: nowrap">Tôi</span></a></nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview": {"width": 390, "height": 1080}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.state || {};
+    const on = (k, d) => (s[k] == null ? d : s[k]);
+    const sw = (k, d) => {
+      const v = on(k, d);
+      return {
+        checked: v ? 'true' : 'false',
+        flip: () => this.setState({ [k]: !v }),
+        track: 'position: relative; flex-shrink: 0; width: 52px; height: 32px; border-radius: 999px; padding: 0; cursor: pointer; transition: background 150ms ease; ' + (v ? 'background: #0f7a3a; border: 2px solid #0f7a3a' : 'background: #eaeee8; border: 2px solid #7f8b85'),
+        thumb: 'position: absolute; top: 3px; width: 22px; height: 22px; border-radius: 999px; background: #ffffff; box-shadow: 0 1px 3px rgba(19,32,27,0.3); transition: left 150ms ease; left: ' + (v ? '23px' : '3px')
+      };
+    };
+    const opts = (k, d, list) => list.map(([id, label]) => {
+      const sel = on(k, d) === id;
+      return {
+        label, pressed: sel ? 'true' : 'false',
+        pick: () => this.setState({ [k]: id }),
+        style: 'flex: 1 1 0; height: 36px; border: none; border-radius: 10px; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; ' + (sel ? 'background: #ffffff; color: #13201b; box-shadow: 0 1px 2px rgba(19,32,27,0.06), 0 2px 8px rgba(19,32,27,0.05)' : 'background: transparent; color: #56625c')
+      };
+    });
+    const langCur = s.lang || 'vi'; const langOpen = !!s.langOpen;
+    const LANGS = [['vi', 'Tiếng Việt'], ['en', 'English']];
+    const lang = { open: langOpen, expanded: langOpen ? 'true' : 'false', toggle: () => this.setState({ langOpen: !langOpen }),
+      label: LANGS.find((l) => l[0] === langCur)[1],
+      chev: 'flex-shrink: 0; transition: transform 150ms; transform: rotate(' + (langOpen ? 180 : 0) + 'deg)',
+      opts: LANGS.map(([id, name]) => { const on = id === langCur; return { name, on, sel: on ? 'true' : 'false', pick: () => this.setState({ lang: id, langOpen: false }),
+        style: 'display: flex; align-items: center; gap: 10px; width: 100%; box-sizing: border-box; min-height: 44px; padding: 10px; border: none; border-radius: 8px; font-family: inherit; color: #13201b; cursor: pointer; background: ' + (on ? '#e3f3e8' : 'transparent') }; }) };
+    return { lang,
+      nAlert: sw('nAlert', true), nDaily: sw('nDaily', true), nNews: sw('nNews', false),
+      temp: opts('temp', 'c', [['c', '°C'], ['f', '°F']]),
+      theme: opts('theme', 'auto', [['light', 'Sáng'], ['dark', 'Tối'], ['auto', 'Tự động']])
+    };
+  }
+}
+</script>
+</body>
+</html>

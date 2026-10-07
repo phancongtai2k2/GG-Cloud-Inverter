@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Bảo hành</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;font-family:Montserrat,system-ui,-apple-system,"Segoe UI",sans-serif;background:#f5f7f3;color:#13201b}
+a{color:#0f7a3a}a:hover{color:#0b6630}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:none;box-shadow:0 0 0 2px #ffffff,0 0 0 4px #0f7a3a}
+</style>
+</helmet>
+<div style="width: 390px; height: 1040px; box-sizing: border-box; display: flex; flex-direction: column; background: #f5f7f3; color: #13201b; font-family: Montserrat, system-ui, sans-serif; overflow: hidden">
+<header style="height: 64px; flex-shrink: 0; display: flex; align-items: center; gap: 4px; padding: 0 8px 0 4px"><a href="Service.dc.html" aria-label="Quay lại" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 999px; color: #13201b; text-decoration: none"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M19 12H5M11 6l-6 6 6 6"></path></svg></a><h1 style="margin: 0; flex-grow: 1; font-size: 22px; line-height: 28px; font-weight: 600">Bảo hành</h1></header>
+<main style="flex-grow: 1; display: grid; grid-template-columns: minmax(0, 1fr); grid-auto-rows: max-content; align-content: start; gap: 12px; padding: 0 20px 16px; overflow: hidden">
+<div style="display: flex; align-items: center; gap: 8px; font-size: 13px; line-height: 20px; color: #56625c"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M3 11l9-7 9 7"></path><path d="M5 9.5V20h14V9.5"></path><path d="M10 20v-5h4v5"></path></svg><span>Dự án <span style="font-weight: 600; color: #13201b">Nhà của bạn</span> · 3 thiết bị</span></div>
+<sc-for list="{{devices}}" as="d" hint-placeholder-count="3">
+<section style="background: #f9faf7; border: 1px solid #e3e8e1; border-radius: 16px; box-shadow: 0 1px 2px rgba(19,32,27,0.06), 0 2px 8px rgba(19,32,27,0.05); padding: 16px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: flex-start; gap: 12px"><div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><h2 style="margin: 0; font-size: 16px; line-height: 22px; font-weight: 600">{{d.name}}</h2><span style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 12px; line-height: 16px; color: #56625c">SN {{d.sn}}</span></div><span style="{{d.chip}}"><span style="{{d.dot}}"></span>{{d.status}}</span></div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px"><div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 12px; line-height: 16px; font-weight: 500; color: #56625c">Ngày kích hoạt</span><span style="font-size: 14px; line-height: 20px; font-weight: 600; font-variant-numeric: tabular-nums">{{d.start}}</span></div><div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 12px; line-height: 16px; font-weight: 500; color: #56625c">Hạn bảo hành</span><span style="font-size: 14px; line-height: 20px; font-weight: 600; font-variant-numeric: tabular-nums">{{d.end}}</span></div></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><div role="progressbar" aria-label="{{d.aria}}" aria-valuenow="{{d.pct}}" aria-valuemin="0" aria-valuemax="100" style="height: 8px; border-radius: 999px; background: #eaeee8; overflow: hidden"><div style="{{d.bar}}"></div></div><div style="display: flex; justify-content: space-between; font-size: 12px; line-height: 16px; color: #56625c"><span>{{d.term}}</span><span style="font-weight: 600; color: #13201b">{{d.left}}</span></div></div>
+</section>
+</sc-for>
+<h2 style="margin: 4px 0 0; font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: 0.2em; color: #56625c">LỊCH SỬ BẢO HÀNH</h2>
+<section style="background: #f9faf7; border: 1px solid #e3e8e1; border-radius: 16px; box-shadow: 0 1px 2px rgba(19,32,27,0.06), 0 2px 8px rgba(19,32,27,0.05); padding: 4px 16px">
+<div style="display: flex; gap: 12px; padding: 12px 0"><span style="width: 36px; height: 36px; border-radius: 999px; background: #e3f3e8; color: #0f7a3a; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span><span style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px; line-height: 20px; font-weight: 600">Thay cảm biến nhiệt độ pin</span><span style="font-size: 12px; line-height: 16px; color: #56625c">Pin S16 Pre · phiếu #BH-2606-0012</span><span style="font-size: 12px; line-height: 16px; color: #56625c">12/06/2026 · kỹ thuật viên tại nhà</span></span><span style="display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 6px; background: #e3f3e8; color: #0f7a3a; font-size: 12px; line-height: 16px; font-weight: 600; white-space: nowrap; flex-shrink: 0"><span style="width: 6px; height: 6px; border-radius: 999px; background: #0f7a3a"></span>Hoàn tất</span></div>
+<div style="border-top: 1px solid #e3e8e1; display: flex; gap: 12px; padding: 12px 0"><span style="width: 36px; height: 36px; border-radius: 999px; background: #eaeee8; color: #56625c; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M20 11a8 8 0 1 0-2.3 5.7"></path><path d="M20 5v6h-6"></path></svg></span><span style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px; line-height: 20px; font-weight: 600">Cập nhật firmware theo bảo hành</span><span style="font-size: 12px; line-height: 16px; color: #56625c">Inverter hybrid 5 kW · v1.3.1 → v1.3.2</span><span style="font-size: 12px; line-height: 16px; color: #56625c">03/04/2026 · từ xa</span></span><span style="display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 6px; background: #e3f3e8; color: #0f7a3a; font-size: 12px; line-height: 16px; font-weight: 600; white-space: nowrap; flex-shrink: 0"><span style="width: 6px; height: 6px; border-radius: 999px; background: #0f7a3a"></span>Hoàn tất</span></div>
+</section>
+<a href="Support.dc.html" style="height: 48px; display: flex; align-items: center; justify-content: center; gap: 8px; border-radius: 10px; border: 1px solid #7f8b85; background: #ffffff; color: #13201b; font-size: 14px; font-weight: 600; text-decoration: none"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3a2 2 0 0 0 0 4v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3a2 2 0 0 0 0-4z"></path><path d="M12 9v6M9 12h6"></path></svg>Yêu cầu bảo hành</a>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview": {"width": 390, "height": 1040}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const ST = {
+      ok: ['Còn bảo hành', '#0f7a3a', '#e3f3e8', '#149c4a'],
+      soon: ['Sắp hết hạn', '#8a6100', '#fdf3d6', '#c98a00'],
+      out: ['Hết bảo hành', '#c62828', '#fdecea', '#c62828']
+    };
+    const list = [
+      { name: 'Inverter hybrid 5 kW', sn: 'GGI5K-25031501', start: '15/03/2025', end: '15/03/2030', term: 'Bảo hành 5 năm', pct: 30, left: 'Còn 3 năm 6 tháng', st: 'ok' },
+      { name: 'Pin S16 Pre', sn: 'S16P-25031588', start: '15/03/2025', end: '15/03/2035', term: 'Bảo hành 10 năm', pct: 15, left: 'Còn 8 năm 6 tháng', st: 'ok' },
+      { name: 'Đồng hồ đo thông minh', sn: 'GGM-24110902', start: '09/11/2024', end: '09/11/2026', term: 'Bảo hành 2 năm', pct: 92, left: 'Còn 46 ngày', st: 'soon' }
+    ];
+    const devices = list.map((d) => { const s = ST[d.st]; return Object.assign({}, d, {
+      status: s[0], aria: 'Thời gian bảo hành đã dùng ' + d.pct + ' %',
+      chip: 'display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 6px; font-size: 12px; line-height: 16px; font-weight: 600; white-space: nowrap; color: ' + s[1] + '; background: ' + s[2],
+      dot: 'width: 6px; height: 6px; border-radius: 999px; background: ' + s[1],
+      bar: 'height: 8px; border-radius: 999px; width: ' + d.pct + '%; background: ' + s[3] }); });
+    return { devices };
+  }
+}
+</script>
+</body>
+</html>

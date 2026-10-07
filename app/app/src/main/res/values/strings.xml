@@ -1,0 +1,961 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="app_name">GG Power</string>
+
+    <!-- Chung -->
+    <string name="cd_back">Quay lại</string>
+    <!-- ADR-003: nút ← ở màn cấp dự án -->
+    <string name="cd_back_to_projects">Quay lại Dự án</string>
+    <string name="cd_main_navigation">Điều hướng chính</string>
+    <string name="placeholder_caption">Màn %1$s · chưa dựng</string>
+
+    <!-- Thanh thẻ nổi (html/Projects.dc.html, html/Main.dc.html) -->
+    <string name="tab_projects">Dự án</string>
+    <string name="tab_me">Tôi</string>
+    <string name="tab_main">Màn hình chính</string>
+    <string name="tab_devices">Thiết bị</string>
+    <string name="tab_service">Dịch vụ</string>
+
+    <!-- Tên màn (docs/design/screens.md) -->
+    <string name="screen_login">Đăng nhập</string>
+    <string name="screen_projects">Dự án</string>
+    <string name="screen_me">Tôi</string>
+    <string name="screen_account">Thông tin tài khoản</string>
+    <string name="screen_main">Màn hình chính</string>
+    <string name="screen_config">Cấu hình dự án</string>
+    <string name="screen_tou_schedule">Lịch theo khung giờ – Danh sách chiến lược</string>
+    <string name="screen_tou_strategy">Chi tiết chiến lược</string>
+    <string name="screen_alert_detail">Chi tiết cảnh báo</string>
+    <string name="screen_battery_energy">Nguồn năng lượng pin</string>
+    <string name="screen_devices">Thiết bị</string>
+    <string name="screen_service">Dịch vụ</string>
+    <string name="screen_explore">Khám phá</string>
+    <string name="screen_support">Yêu cầu hỗ trợ</string>
+    <string name="screen_ticket_detail">Chi tiết yêu cầu</string>
+    <string name="screen_warranty">Bảo hành</string>
+
+    <!-- 1 · Đăng nhập (html/Login.dc.html) -->
+    <string name="cd_logo">GG Power</string>
+    <string name="login_title">Đăng nhập</string>
+    <string name="login_subtitle">Theo dõi điện mặt trời, pin lưu trữ và tiền điện tiết kiệm của bạn.</string>
+    <string name="login_account_label">Email hoặc số điện thoại</string>
+    <string name="login_account_placeholder">0912 345 678</string>
+    <string name="login_password_label">Mật khẩu</string>
+    <string name="cd_show_password">Hiện mật khẩu</string>
+    <string name="cd_hide_password">Ẩn mật khẩu</string>
+    <string name="login_forgot_password">Quên mật khẩu?</string>
+    <string name="login_submit">Đăng nhập</string>
+    <string name="login_no_account">Chưa có tài khoản?</string>
+    <string name="login_register">Đăng ký</string>
+    <string name="slogan">GO GREEN GO GLOBAL</string>
+    <!-- Lỗi màn 1: chưa có trong thiết kế, theo docs/design/BO_SUNG_v3.md §6 (chờ duyệt) -->
+    <string name="login_error_account_empty">Vui lòng nhập email hoặc số điện thoại.</string>
+    <string name="login_error_account_invalid">Email hoặc số điện thoại không hợp lệ.</string>
+
+    <!-- Luồng 12 · Quên mật khẩu (html/ForgotPassword*.dc.html) -->
+    <string name="cd_step_progress">Bước %1$d/%2$d · %3$s</string>
+    <string name="forgot_title">Quên mật khẩu</string>
+    <string name="forgot_step_account">1. Tài khoản</string>
+    <string name="forgot_step_code">2. Mã xác thực</string>
+    <string name="forgot_step_password">3. Mật khẩu mới</string>
+    <string name="forgot_find_heading">Tìm tài khoản</string>
+    <string name="forgot_find_body">Nhập email hoặc số điện thoại đã đăng ký. Chúng tôi sẽ gửi mã xác thực 6 số.</string>
+    <string name="forgot_send_code">Gửi mã xác thực</string>
+    <string name="forgot_find_note">Nếu tài khoản tồn tại, mã xác thực sẽ được gửi tới email hoặc số điện thoại này.</string>
+    <string name="forgot_error_too_many">Bạn đã yêu cầu mã 3 lần trong 10 phút. Vui lòng thử lại sau.</string>
+    <string name="forgot_otp_heading">Nhập mã xác thực</string>
+    <string name="forgot_otp_body">Mã 6 số đã gửi tới %1$s. Mã có hiệu lực trong 5 phút.</string>
+    <string name="forgot_otp_confirm">Xác nhận</string>
+    <!-- Bước nhập mã dùng chung 12b, 13b (BO_SUNG §18) -->
+    <string name="cd_otp_input">Mã xác thực %1$d số</string>
+    <string name="otp_resend_in">Gửi lại mã sau %1$s</string>
+    <string name="otp_resend">Gửi lại mã</string>
+    <plurals name="otp_error_wrong">
+        <item quantity="other">Mã không đúng. Còn %1$d lần thử.</item>
+    </plurals>
+    <string name="otp_error_expired">Mã đã hết hạn. Bấm Gửi lại mã để nhận mã mới.</string>
+    <string name="otp_error_locked">Bạn đã nhập sai 5 lần. Vui lòng thử lại sau 15 phút.</string>
+    <string name="forgot_new_heading">Đặt mật khẩu mới</string>
+    <string name="forgot_new_password">Mật khẩu mới</string>
+    <string name="forgot_new_confirm">Nhập lại mật khẩu</string>
+    <string name="forgot_new_note">Tối thiểu 8 ký tự, có cả chữ và số. Đổi mật khẩu sẽ đăng xuất mọi thiết bị khác.</string>
+    <string name="forgot_new_submit">Đổi mật khẩu</string>
+    <string name="forgot_error_session_expired">Phiên đặt lại mật khẩu đã hết hạn. Vui lòng quay lại và gửi mã mới.</string>
+    <string name="forgot_done_heading">Đổi mật khẩu thành công</string>
+    <string name="forgot_done_body">Đang chuyển về màn hình Đăng nhập…</string>
+    <string name="forgot_done_to_login">Về Đăng nhập</string>
+
+    <!-- Luồng 13 · Đăng ký (html/Register*.dc.html; BO_SUNG §20) -->
+    <string name="register_title">Đăng ký</string>
+    <string name="register_intro">Tạo tài khoản chủ hộ để theo dõi hệ thống điện mặt trời của bạn.</string>
+    <string name="register_name">Họ và tên</string>
+    <string name="register_email">Email</string>
+    <string name="register_phone">Số điện thoại</string>
+    <string name="register_password">Mật khẩu</string>
+    <string name="register_password_hint">Tối thiểu 8 ký tự, có cả chữ và số</string>
+    <string name="register_agree">Tôi đồng ý với %1$s và %2$s</string>
+    <string name="register_terms">Điều khoản sử dụng</string>
+    <string name="register_privacy">Chính sách bảo mật</string>
+    <string name="register_submit">Tạo tài khoản</string>
+    <string name="register_have_account">Đã có tài khoản?</string>
+    <string name="register_login">Đăng nhập</string>
+    <string name="register_error_name_empty">Vui lòng nhập họ và tên.</string>
+    <string name="register_error_email_empty">Vui lòng nhập email.</string>
+    <string name="register_error_email_invalid">Email không hợp lệ.</string>
+    <string name="register_error_email_taken">Email này đã được đăng ký.</string>
+    <string name="register_error_phone_empty">Vui lòng nhập số điện thoại.</string>
+    <string name="register_error_phone_invalid">Số điện thoại không hợp lệ.</string>
+    <string name="register_error_phone_taken">Số điện thoại này đã được đăng ký.</string>
+    <string name="register_otp_heading">Xác thực số điện thoại</string>
+    <string name="register_otp_body">Nhập mã 6 số đã gửi tới %1$s.</string>
+    <string name="register_otp_confirm">Xác thực</string>
+
+    <!-- Luồng 14 · Thêm dự án (html/AddProject*.dc.html; BO_SUNG §21) -->
+    <string name="add_project_title">Thêm dự án mới</string>
+    <string name="add_project_step_device">1. Thiết bị</string>
+    <string name="add_project_step_info">2. Thông tin dự án</string>
+    <string name="add_project_step_tariff">3. Giá điện</string>
+    <string name="add_project_continue">Tiếp tục</string>
+    <string name="add_device_intro">Định danh inverter của hệ thống bằng mã QR hoặc số serial.</string>
+    <string name="add_device_scan">Quét mã QR</string>
+    <string name="add_device_or_manual">hoặc nhập tay</string>
+    <string name="add_device_serial">Số serial</string>
+    <string name="add_device_check">Kiểm tra</string>
+    <string name="add_device_serial_hint">Serial in trên tem cạnh phải inverter</string>
+    <string name="add_device_valid">Hợp lệ</string>
+    <string name="add_device_model">Model</string>
+    <string name="add_device_rated_power">Công suất định mức</string>
+    <string name="add_device_manufactured">Ngày xuất xưởng</string>
+    <string name="add_device_error_empty">Vui lòng nhập số serial.</string>
+    <string name="add_device_error_not_found">Không tìm thấy thiết bị có số serial này. Kiểm tra lại tem trên inverter.</string>
+    <string name="add_device_error_owned">Thiết bị đang thuộc một tài khoản khác.</string>
+    <string name="add_device_contact_support">Liên hệ hỗ trợ</string>
+    <!-- Màn 3 · Tôi (html/Me.dc.html; Thay đổi 0.6 §7) -->
+    <string name="me_section_notifications">Thông báo</string>
+    <string name="me_notif_alerts">Cảnh báo thiết bị</string>
+    <string name="me_notif_alerts_desc">Lỗi, mất kết nối, nhiệt độ cao</string>
+    <string name="me_notif_daily">Báo cáo hằng ngày</string>
+    <string name="me_notif_daily_desc">Sản lượng và tiền tiết kiệm lúc 20:00</string>
+    <string name="me_notif_news">Thông báo từ GG Power</string>
+    <string name="me_notif_news_desc">Tin tức, sản phẩm mới từ GG Power</string>
+    <string name="me_section_system">Cài đặt hệ thống</string>
+    <string name="me_temperature_unit">Đơn vị nhiệt độ</string>
+    <string name="unit_fahrenheit">°F</string>
+    <string name="me_theme">Giao diện</string>
+    <string name="me_theme_light">Sáng</string>
+    <string name="me_theme_dark">Tối</string>
+    <string name="me_theme_auto">Tự động</string>
+    <string name="me_language">Ngôn ngữ</string>
+    <!-- Tên ngôn ngữ luôn viết bằng chính ngôn ngữ đó. -->
+    <string name="language_vi" translatable="false">Tiếng Việt</string>
+    <string name="language_en" translatable="false">English</string>
+    <string name="me_logout">Đăng xuất</string>
+    <!-- Đọc cho trình đọc màn hình ở dòng Ngôn ngữ (không hiện trên màn). -->
+    <string name="state_expanded">Đang mở</string>
+    <string name="state_collapsed">Đang đóng</string>
+    <!-- Màn 18 · Quét mã QR (html/QRScan.dc.html; BO_SUNG §24) -->
+    <string name="cd_close">Đóng</string>
+    <string name="qr_title">Quét mã QR</string>
+    <string name="qr_hint">Đưa mã QR trên tem thiết bị vào khung</string>
+    <string name="cd_qr_frame">Khung quét mã QR</string>
+    <string name="qr_invalid">Mã không hợp lệ</string>
+    <string name="qr_manual">Nhập số serial bằng tay</string>
+    <string name="cd_torch_on">Bật đèn pin</string>
+    <string name="cd_torch_off">Tắt đèn pin</string>
+    <string name="qr_checking">Đang kiểm tra thiết bị…</string>
+    <string name="qr_problem_not_found">Không tìm thấy thiết bị có số serial này.</string>
+    <string name="qr_valid">Mã hợp lệ</string>
+    <string name="qr_use_device">Dùng thiết bị này</string>
+    <string name="qr_rescan">Quét lại</string>
+    <string name="qr_denied_title">Cần quyền camera để quét mã QR</string>
+    <string name="qr_denied_body">Bật quyền Camera cho GG Power trong Cài đặt, hoặc nhập số serial bằng tay.</string>
+    <string name="add_project_back">Quay lại</string>
+    <string name="add_info_name">Tên dự án *</string>
+    <string name="add_info_site_type">Loại công trình *</string>
+    <string name="add_info_site_type_group">Loại công trình</string>
+    <string name="add_info_site_home">Nhà ở</string>
+    <string name="add_info_site_factory">Nhà xưởng</string>
+    <string name="add_info_address">Địa chỉ *</string>
+    <string name="add_info_address_hint">Toạ độ dùng để tra cứu thời tiết và bức xạ</string>
+    <string name="cd_locate">Lấy vị trí hiện tại</string>
+    <string name="add_info_time_zone">Múi giờ *</string>
+    <string name="add_info_installed_on">Ngày lắp đặt *</string>
+    <string name="add_info_installed_on_title">Ngày lắp đặt</string>
+    <string name="add_info_kwp">Công suất PV lắp đặt (kWp) *</string>
+    <string name="add_info_kwp_hint">Dùng để tính hệ số hiệu quả trên biểu đồ Sản lượng PV</string>
+    <string name="add_info_photo">Ảnh công trình</string>
+    <string name="add_info_photo_add">Thêm ảnh (không bắt buộc)</string>
+    <string name="cd_project_photo">Ảnh công trình đã chọn. Chạm để chọn ảnh khác</string>
+    <string name="cd_remove_photo">Bỏ ảnh</string>
+    <string name="add_info_error_name_empty">Vui lòng nhập tên dự án.</string>
+    <string name="add_info_error_name_long">Tên dự án tối đa %1$d ký tự.</string>
+    <string name="add_info_error_address_empty">Vui lòng nhập địa chỉ.</string>
+    <string name="add_info_error_date_future">Ngày lắp đặt không được sau hôm nay.</string>
+    <string name="add_info_error_kwp_empty">Vui lòng nhập công suất PV lắp đặt.</string>
+    <string name="add_info_error_kwp_invalid">Công suất phải lớn hơn 0.</string>
+    <string name="add_info_locate_found">Đã lấy toạ độ %1$s, %2$s</string>
+    <string name="add_info_locate_denied">Chưa có quyền vị trí. Bật quyền trong Cài đặt hoặc nhập địa chỉ.</string>
+    <string name="add_info_open_settings">Mở Cài đặt</string>
+    <string name="add_info_locate_disabled">Vị trí của máy đang tắt. Bật vị trí rồi thử lại.</string>
+    <string name="add_info_locate_failed">Không lấy được vị trí. Thử lại hoặc nhập địa chỉ.</string>
+    <string name="add_info_locate_rationale_title">Cho phép truy cập vị trí</string>
+    <string name="add_info_locate_rationale_body">GG Power dùng vị trí gần đúng của điện thoại để lấy toạ độ công trình, phục vụ tra cứu thời tiết và bức xạ.</string>
+    <string name="add_info_later">Để sau</string>
+    <string name="action_choose">Chọn</string>
+    <string name="add_tariff_intro">Giá điện dùng để tính %1$s. Có thể bỏ qua và cài sau.</string>
+    <string name="add_tariff_savings">Tiền điện tiết kiệm</string>
+    <string name="add_tariff_buy">Giá mua điện</string>
+    <string name="add_tariff_kind_evn">Bậc thang EVN</string>
+    <string name="add_tariff_kind_fixed">Giá cố định</string>
+    <string name="add_tariff_evn_title">Bậc thang EVN sinh hoạt</string>
+    <string name="add_tariff_tier">Bậc %1$d (%2$d–%3$d kWh)</string>
+    <string name="add_tariff_tier_open">Bậc %1$d (từ %2$d kWh)</string>
+    <plurals name="add_tariff_tier_count">
+        <item quantity="other">%1$d bậc</item>
+    </plurals>
+    <string name="add_tariff_price_placeholder">[GIÁ]</string>
+    <string name="unit_vnd_per_kwh">đ/kWh</string>
+    <string name="add_tariff_fixed">Giá cố định (đ/kWh)</string>
+    <string name="add_tariff_sell">Giá bán lên lưới (đ/kWh)</string>
+    <string name="add_tariff_sell_hint">Mặc định 0 vì hệ dân dụng hiện chưa bán điện</string>
+    <string name="add_tariff_error_fixed_empty">Vui lòng nhập giá điện.</string>
+    <string name="add_tariff_error_fixed_zero">Giá điện phải lớn hơn 0.</string>
+    <string name="add_tariff_error_limit">Tài khoản đã có tối đa 10 dự án. Liên hệ GG Power để nâng giới hạn.</string>
+    <string name="add_tariff_skip">Bỏ qua</string>
+    <string name="add_tariff_create">Tạo dự án</string>
+    <!-- Mật khẩu dùng chung 12c, 13a (BO_SUNG §19) -->
+    <string name="password_strength">Độ mạnh: %1$s</string>
+    <string name="password_strength_weak">Yếu</string>
+    <string name="password_strength_fair">Trung bình</string>
+    <string name="password_strength_good">Tốt</string>
+    <string name="password_strength_strong">Mạnh</string>
+    <string name="password_error_empty">Vui lòng nhập mật khẩu.</string>
+    <string name="password_error_weak">Mật khẩu cần tối thiểu 8 ký tự, có cả chữ và số.</string>
+    <string name="password_error_confirm_empty">Vui lòng nhập lại mật khẩu.</string>
+    <string name="password_error_mismatch">Mật khẩu nhập lại không khớp.</string>
+    <string name="login_error_password_empty">Vui lòng nhập mật khẩu.</string>
+    <string name="login_error_credentials">Email/số điện thoại hoặc mật khẩu không đúng.</string>
+    <string name="error_no_internet">Không có kết nối Internet</string>
+    <string name="error_server">Có lỗi xảy ra. Vui lòng thử lại.</string>
+
+    <!-- 2 · Dự án (html/Projects.dc.html, ProjectsEmpty.dc.html, đặc tả §3.2) -->
+    <string name="cd_add_project">Thêm dự án</string>
+    <string name="projects_search_label">Tìm dự án</string>
+    <string name="projects_search_placeholder">Tìm theo tên hoặc địa chỉ</string>
+    <string name="projects_metric_pv">PV hiện tại</string>
+    <string name="projects_metric_today">Hôm nay</string>
+    <string name="projects_metric_soc">SOC pin</string>
+    <string name="projects_empty_title">Chưa có dự án nào</string>
+    <string name="projects_empty_body">Thêm hệ thống điện mặt trời của bạn bằng mã QR trên inverter hoặc số serial.</string>
+    <string name="projects_empty_action">Thêm dự án đầu tiên</string>
+    <!-- Chưa có trong thiết kế: BO_SUNG_v3.md §7 (chờ duyệt) -->
+    <string name="projects_no_result">Không tìm thấy dự án phù hợp.</string>
+    <string name="action_retry">Thử lại</string>
+    <string name="status_online">Online</string>
+    <string name="status_warning">Cảnh báo</string>
+    <string name="status_offline">Offline</string>
+    <string name="status_error">Lỗi</string>
+    <string name="status_waiting_connection">Đang chờ kết nối</string>
+    <string name="value_missing">—</string>
+    <string name="unit_kw">kW</string>
+    <string name="unit_kwh">kWh</string>
+    <string name="unit_percent">%</string>
+
+    <!-- 4 · Màn hình chính, phần trên (html/Main.dc.html, đặc tả §3.4 mục 4.1–4.3) -->
+    <string name="cd_alerts">Cảnh báo</string>
+    <plurals name="cd_alerts_unresolved">
+        <item quantity="other">Cảnh báo, %d chưa xử lý</item>
+    </plurals>
+    <string name="home_insight_higher">Hôm nay sản lượng cao hơn %1$s so với hôm qua.</string>
+    <string name="energy_flow_title">Dòng năng lượng</string>
+    <string name="energy_pv">PV</string>
+    <string name="energy_grid">Lưới điện</string>
+    <string name="energy_battery">S16 Pre - %1$s</string>
+    <string name="energy_load">Tải tiêu thụ</string>
+    <string name="energy_hub">GG SmartBox</string>
+    <string name="battery_charging">Đang sạc</string>
+    <string name="battery_discharging">Đang xả</string>
+    <string name="cd_energy_flow">Dòng năng lượng: PV %1$s, lưới điện %2$s, pin %3$s %4$s, tải tiêu thụ %5$s</string>
+    <string name="mode_label">Chế độ hoạt động</string>
+    <string name="mode_gg_ai">GG AI</string>
+    <string name="mode_self_consumption">Tự tiêu thụ tối đa</string>
+    <string name="mode_tou">Theo khung giờ (TOU)</string>
+    <string name="mode_max_grid_export">Phát tối đa lên lưới</string>
+    <string name="mode_battery_priority">Ưu tiên sạc pin</string>
+    <string name="mode_self_consumption_short">PV cấp tải trước, dư sạc pin</string>
+    <string name="mode_backup_soc">SOC dự phòng %1$s</string>
+    <string name="cd_mode_box">Chế độ hoạt động: %1$s. Mở cấu hình dự án</string>
+    <string name="battery_box_title">Pin S16 Pre</string>
+    <string name="battery_from_pv">Từ PV</string>
+    <string name="battery_from_grid">Từ lưới</string>
+    <string name="cd_battery_box">Xem nguồn năng lượng trong pin S16 Pre</string>
+    <string name="cd_battery_bar">Năng lượng trong pin: %1$s dung lượng, gồm %2$s từ PV và %3$s từ lưới điện</string>
+    <!-- 4 · Màn hình chính, thống kê (mục 4.4–4.7) -->
+    <string name="period_group">Khoảng thời gian</string>
+    <string name="period_day">Ngày</string>
+    <string name="period_month">Tháng</string>
+    <string name="period_year">Năm</string>
+    <string name="period_month_label">Tháng %1$s</string>
+    <string name="period_year_label">Năm %1$d</string>
+    <string name="cd_period_previous">Kỳ trước</string>
+    <string name="cd_period_next">Kỳ sau</string>
+    <string name="chart_hour_suffix">h</string>
+    <string name="chart_month_prefix">T</string>
+    <string name="chart_power_title">Công suất</string>
+    <string name="chart_battery_title">Pin S16 Pre</string>
+    <string name="chart_yield_title">Sản lượng PV</string>
+    <string name="legend_pv">PV</string>
+    <string name="legend_grid">Lưới điện</string>
+    <string name="legend_battery">S16 Pre</string>
+    <string name="legend_load">Tải tiêu thụ</string>
+    <string name="legend_bms_current">Dòng BMS</string>
+    <string name="legend_soc">SOC</string>
+    <string name="legend_pv_self">PV tiêu thụ</string>
+    <string name="legend_pv_charge">PV sạc pin</string>
+    <string name="legend_pv_export">PV lên lưới</string>
+    <string name="legend_efficiency">Hệ số hiệu quả (kW)</string>
+    <string name="unit_ampere">A</string>
+    <!-- Tháng / Năm: biểu đồ Năng lượng và Pin theo ngày / tháng (quyết định 02/10/2026, BO_SUNG_v3.md §9, chờ thiết kế) -->
+    <string name="chart_energy_title">Năng lượng</string>
+    <string name="legend_battery_charge">Sạc</string>
+    <string name="legend_battery_discharge">Xả</string>
+    <string name="legend_soc_average">SOC trung bình</string>
+    <string name="cd_chart_energy">Biểu đồ năng lượng theo từng ngày hoặc tháng: PV, lưới điện (mua là dương, bán là âm), pin S16 Pre (sạc là dương, xả là âm) và tải tiêu thụ</string>
+    <string name="cd_chart_battery_energy">Biểu đồ pin S16 Pre theo từng ngày hoặc tháng: năng lượng sạc, xả và SOC trung bình</string>
+    <string name="cd_battery_energy_selection">%1$s, sạc %2$s, xả %3$s, SOC trung bình %4$s</string>
+    <string name="cd_chart_power">Biểu đồ đường công suất trong ngày: PV, lưới điện, pin S16 Pre và tải tiêu thụ</string>
+    <string name="cd_chart_battery">Biểu đồ pin S16 Pre trong ngày: dòng BMS (sạc là dương, xả là âm) và SOC</string>
+    <string name="cd_chart_yield">Biểu đồ cột chồng sản lượng điện mặt trời, chia theo phần tự tiêu thụ, sạc vào pin và phát lên lưới, kèm đường nét đứt hệ số hiệu quả bằng sản lượng chia thời gian</string>
+    <string name="cd_power_selection">%1$s, PV %2$s, lưới %3$s, S16 Pre %4$s, tải %5$s</string>
+    <string name="cd_battery_selection">%1$s, dòng BMS %2$s, SOC %3$s</string>
+    <string name="cd_yield_selection">%1$s, PV tiêu thụ %2$s, sạc pin %3$s, lên lưới %4$s</string>
+
+    <!-- 4.8 · Chỉ số tổng hợp -->
+    <string name="summary_consumption">Tiêu thụ</string>
+    <string name="summary_self_use">Tỷ lệ tự dùng</string>
+    <string name="summary_saving">Tiền điện tiết kiệm</string>
+    <string name="summary_co2">Giảm phát thải CO₂</string>
+    <string name="unit_mwh">MWh</string>
+    <string name="unit_vnd">đ</string>
+    <string name="unit_kg">kg</string>
+    <string name="unit_ton">t</string>
+
+    <!-- Màn 4: chưa có trong thiết kế, theo BO_SUNG_v3.md §8 (chờ duyệt) -->
+    <string name="home_insight_lower">Hôm nay sản lượng thấp hơn %1$s so với hôm qua.</string>
+    <string name="home_insight_same">Hôm nay sản lượng bằng hôm qua.</string>
+    <string name="battery_idle">Không sạc/xả</string>
+    <string name="mode_unknown">Không xác định</string>
+    <string name="mode_gg_ai_short">EMS tự tối ưu theo giá điện và dự báo</string>
+    <string name="mode_tou_short">Sạc và xả theo khung giờ</string>
+    <string name="mode_max_grid_export_short">PV ưu tiên phát lên lưới</string>
+    <string name="mode_battery_priority_short">PV sạc đầy pin trước rồi mới cấp tải</string>
+    <string name="mode_unknown_short">Cấu hình trên thiết bị khác các chế độ của app</string>
+
+    <!-- Thanh 24h (TouStrategy.dc.html) -->
+    <string name="tou_legend_charge">Sạc</string>
+    <string name="tou_legend_discharge">Xả</string>
+    <string name="tou_legend_auto">Tự động</string>
+
+    <!-- Định dạng (AGENTS.md §5) -->
+    <string name="weekday_mon">T2</string>
+    <string name="weekday_tue">T3</string>
+    <string name="weekday_wed">T4</string>
+    <string name="weekday_thu">T5</string>
+    <string name="weekday_fri">T6</string>
+    <string name="weekday_sat">T7</string>
+    <string name="weekday_sun">CN</string>
+    <string name="weekday_every_day">Hằng ngày</string>
+    <!-- Màn 16 · Cấu hình dự án (html/Config.dc.html; BO_SUNG_v3.md §3, §11) -->
+    <string name="config_role_owner">Chủ hộ</string>
+    <string name="config_role_distributor">Nhà phân phối</string>
+    <string name="config_role_technician">Kỹ thuật GGP</string>
+    <string name="config_badge_distributor">CẤP B · NHÀ PHÂN PHỐI</string>
+    <string name="config_badge_technician">CẤP C · KỸ THUẬT GGP</string>
+    <string name="config_section_mode">Chế độ vận hành</string>
+    <string name="config_mode_phase2">Pha 2</string>
+    <string name="config_mode_desc_gg_ai">EMS cloud tự tối ưu theo giá điện, bức xạ và thói quen tiêu thụ.</string>
+    <string name="config_mode_desc_self">PV cấp tải trước, dư thì sạc pin, dư nữa mới phát lên lưới.</string>
+    <string name="config_mode_desc_tou">Sạc và xả theo các khung giờ để tối ưu chi phí theo biểu giá điện.</string>
+    <string name="config_mode_desc_grid">PV ưu tiên phát lên lưới (chỉ khi có hợp đồng mua điện).</string>
+    <string name="config_mode_desc_battery">PV sạc đầy pin trước rồi mới cấp tải. Dùng mùa mưa, trước bão.</string>
+    <string name="config_section_tou">Khung giờ sạc/xả</string>
+    <string name="config_tou_today">Hôm nay</string>
+    <string name="config_tou_no_strategy">Chưa có chiến lược</string>
+    <string name="cd_config_tou_box">Khung giờ sạc/xả: mở danh sách chiến lược</string>
+    <plurals name="config_tou_summary">
+        <item quantity="other">%1$d giai đoạn: %2$s</item>
+    </plurals>
+    <plurals name="config_tou_charge_count">
+        <item quantity="other">%1$d lần sạc</item>
+    </plurals>
+    <plurals name="config_tou_discharge_count">
+        <item quantity="other">%1$d lần xả</item>
+    </plurals>
+    <string name="config_tou_empty">Chưa có khung sạc hoặc xả nào. Hệ thống chạy như Tự tiêu thụ tối đa cả ngày.</string>
+    <string name="config_tou_duration">· %1$s</string>
+    <string name="config_tou_duration_overnight">· %1$s, qua đêm</string>
+    <string name="unit_hour">giờ</string>
+    <string name="unit_minute">phút</string>
+    <string name="config_section_battery">Pin và ngưỡng SOC</string>
+    <string name="config_backup_soc">SOC dự phòng (cắt xả)</string>
+    <string name="config_backup_estimate">Dự phòng ước tính</string>
+    <string name="config_backup_hours">~%1$s giờ</string>
+    <string name="config_backup_basis">theo tải trung bình 7 ngày (%1$s)</string>
+    <string name="config_backup_bms_blocked">Chưa có truyền thông với pin (BMS) nên chưa đổi được SOC dự phòng.</string>
+    <string name="config_stop_charge_soc">SOC dừng sạc</string>
+    <string name="config_low_soc_alarm">Ngưỡng cảnh báo SOC thấp</string>
+    <string name="config_switch_to_grid_soc">SOC chuyển sang lưới</string>
+    <string name="config_max_charge_current">Dòng sạc tối đa</string>
+    <string name="config_bms_limit">BMS đang giới hạn ở %1$s — chỉ đặt được giá trị nhỏ hơn</string>
+    <string name="config_grid_charge_current">Dòng sạc tối đa từ lưới</string>
+    <string name="config_charge_limit_mode">Chế độ giới hạn dòng sạc</string>
+    <string name="config_charge_limit_bms">%1$d · Theo BMS</string>
+    <string name="config_section_grid">Lưới điện</string>
+    <string name="config_grid_work_mode">Chế độ làm việc với lưới</string>
+    <string name="config_grid_mode_0">Độc lập</string>
+    <string name="config_grid_mode_1">Nối lưới</string>
+    <string name="config_grid_mode_2">Chống phát ngược\ntại tải UPS</string>
+    <string name="config_grid_mode_3">Chống phát ngược\ntại đầu vào</string>
+    <string name="config_grid_mode_4">Ghép AC</string>
+    <string name="config_zero_export">Sai số chống phát ngược</string>
+    <string name="config_max_line_power">Giới hạn công suất lấy từ lưới</string>
+    <string name="config_output_voltage">Điện áp đầu ra</string>
+    <string name="config_output_frequency">Tần số đầu ra</string>
+    <string name="config_grid_note">Chống phát ngược bật mặc định khi xuất xưởng. Chỉ mở khi công trình có hợp đồng mua điện.</string>
+    <string name="config_section_protection">Bảo vệ và khởi động lại</string>
+    <string name="config_auto_restart_overload">Tự khởi động lại sau quá tải</string>
+    <string name="config_auto_restart_overtemp">Tự khởi động lại sau quá nhiệt</string>
+    <string name="config_stop_on_bms_loss">Dừng khi mất truyền thông BMS</string>
+    <string name="config_alarm">Bật còi cảnh báo</string>
+    <string name="config_power_saving">Chế độ tiết kiệm điện</string>
+    <string name="config_power_onoff">Bật / tắt inverter</string>
+    <string name="config_section_device">Thiết bị và truyền thông</string>
+    <string name="config_bms_comm">Truyền thông BMS</string>
+    <string name="config_bms_comm_0">Không truyền thông</string>
+    <string name="config_bms_comm_1">RS485</string>
+    <string name="config_bms_comm_2">CAN</string>
+    <string name="config_bms_protocol">Giao thức BMS</string>
+    <string name="config_modbus_address">Địa chỉ Modbus inverter</string>
+    <string name="config_parallel_mode" tools:ignore="Typos">Chế độ song song</string>
+    <string name="config_parallel_0">Độc lập</string>
+    <string name="config_parallel_1">Song song một pha</string>
+    <string name="config_parallel_3phase">Ba pha</string>
+    <string name="config_section_history">Lịch sử thay đổi · 90 ngày</string>
+    <string name="config_history_change">%1$s: %2$s → %3$s</string>
+    <string name="config_history_meta">%1$s · %2$s</string>
+    <string name="config_history_backup_soc">SOC dự phòng</string>
+    <string name="config_history_mode">Chế độ</string>
+    <string name="config_demo_locked">Bản demo — chưa mở</string>
+    <string name="config_banner_device_read_only">Thiết bị này chỉ xem.</string>
+    <string name="config_banner_disabled_by_server">Tạm khoá thay đổi cấu hình. Vui lòng thử lại sau.</string>
+    <string name="config_banner_gateway_offline">Mất kết nối với hệ thống — không thể thay đổi cấu hình</string>
+    <string name="unit_watt">W</string>
+    <string name="unit_volt">V</string>
+    <string name="unit_hertz">Hz</string>
+    <!-- Mã thanh ghi hiển thị dưới tên tham số (đặc tả §16.3–16.7), không dịch -->
+    <string name="reg_e00f" translatable="false">E00F BatStopSOC</string>
+    <string name="reg_e01d" translatable="false">E01D StopChgSocSet</string>
+    <string name="reg_e01e" translatable="false">E01E BatSocLowAlarm</string>
+    <string name="reg_e01f" translatable="false">E01F BatSocSwToLine</string>
+    <string name="reg_e20a" translatable="false">E20A MaxChgCurr</string>
+    <string name="reg_e205" translatable="false">E205 IbattLineChgLimit</string>
+    <string name="reg_e025" translatable="false">E025 BMSChgLCMode</string>
+    <string name="reg_e037" translatable="false">E037 InvToGridEn = %1$d</string>
+    <string name="reg_e42c" translatable="false">E42C ZeroExportPower</string>
+    <string name="reg_e21d" translatable="false">E21D MaxLinePower</string>
+    <string name="reg_e208" translatable="false">E208 OutputVoltSet</string>
+    <string name="reg_e209" translatable="false">E209 OutputFreqSet</string>
+    <string name="reg_e20d" translatable="false">E20D AutoRestartOvLoad</string>
+    <string name="reg_e20e" translatable="false">E20E AutoRestartOvTemper</string>
+    <string name="reg_e214" translatable="false">E214 BmsErrStopEnable</string>
+    <string name="reg_e210" translatable="false">E210 AlarmEnable</string>
+    <string name="reg_e20c" translatable="false">E20C PowerSavingMode</string>
+    <string name="reg_df00">DF00 CmdPowerOnOff · xác nhận 2 bước</string>
+    <string name="reg_e215" translatable="false">E215 BmsCommEnable</string>
+    <string name="reg_e21b" translatable="false">E21B Rs485BmsProtocol</string>
+    <string name="reg_e200" translatable="false">E200 Rs485AddrSet</string>
+    <string name="reg_e201" translatable="false">E201 ParallMode</string>
+    <!-- Ghi cấu hình (BO_SUNG_v3.md §1–3, đã duyệt 02/10/2026) -->
+    <string name="action_cancel">Huỷ</string>
+    <string name="action_confirm">Xác nhận</string>
+    <string name="action_understood">Đã hiểu</string>
+    <string name="confirm_title">Xác nhận thay đổi</string>
+    <string name="confirm_note">Thay đổi được gửi tới hệ thống và chỉ áp dụng sau khi thiết bị xác nhận.</string>
+    <string name="confirm_stale">Cấu hình vừa được thay đổi ở nơi khác. Hãy xem lại trước khi xác nhận.</string>
+    <string name="config_change_mode">Chế độ vận hành</string>
+    <string name="config_change_backup_soc">SOC dự phòng</string>
+    <string name="change_value">%1$s → %2$s</string>
+    <string name="write_in_progress">Đang ghi…</string>
+    <string name="write_applied">Đã áp dụng.</string>
+    <string name="write_applied_without_discharge">Đã lưu, nhưng thiết bị này chưa hỗ trợ khung xả: các khung xả chưa được áp dụng.</string>
+    <string name="write_saved_not_written">Đã lưu lịch. Lịch sẽ chạy khi bạn chọn chế độ Theo khung giờ.</string>
+    <string name="write_reverted">Thiết bị không nhận giá trị mới, đã giữ giá trị cũ.</string>
+    <string name="write_failed">Chưa thay đổi được. Thử lại sau.</string>
+    <string name="write_unknown">Không chắc thiết bị đang chạy giá trị nào. Đã tải lại cấu hình thực tế, hãy kiểm tra lại.</string>
+    <string name="write_device_rejected">Thiết bị từ chối thay đổi, thử lại sau.</string>
+    <string name="write_not_permitted">Bạn không có quyền thay đổi mục này.</string>
+    <string name="write_command_in_progress">Thiết bị đang xử lý một thay đổi khác. Thử lại sau ít phút.</string>
+    <plurals name="write_rate_limited">
+        <item quantity="other">Thao tác quá nhanh. Thử lại sau %d giây.</item>
+    </plurals>
+    <string name="write_invalid">Dữ liệu không hợp lệ. Hãy kiểm tra lại.</string>
+    <!-- Màn 16a · Lịch theo khung giờ – Danh sách chiến lược (html/TouSchedule.dc.html) -->
+    <string name="tou_schedule_title">Lịch theo khung giờ</string>
+    <string name="cd_back_to_config">Quay lại Cấu hình dự án</string>
+    <string name="tou_schedule_intro">Mỗi chiến lược là một bộ khung sạc/xả, áp dụng cho các thứ bạn chọn. Mỗi thứ chỉ thuộc một chiến lược; thứ chưa gán chạy như Tự tiêu thụ tối đa.</string>
+    <string name="tou_no_days">Chưa gán ngày nào</string>
+    <string name="tou_card_summary">%1$s · %2$s</string>
+    <string name="tou_card_empty">Chưa có khung sạc hoặc xả</string>
+    <string name="cd_open_strategy">Mở chiến lược %1$s</string>
+    <string name="tou_add_strategy">Thêm chiến lược</string>
+    <string name="tou_schedule_note_limit">Tối đa 4 chiến lược. Chạm vào một chiến lược để xem và sửa khung giờ.</string>
+    <string name="tou_schedule_note_daily">Khi sang ngày mới, hệ thống tự nạp khung giờ của chiến lược tương ứng xuống inverter.</string>
+    <!-- Màn 16b · Chi tiết chiến lược (html/TouStrategy.dc.html; BO_SUNG_v3.md §4) -->
+    <string name="action_save">Lưu</string>
+    <string name="tou_new_strategy_name">Chiến lược %1$s</string>
+    <string name="cd_back_to_strategies">Quay lại danh sách chiến lược</string>
+    <string name="cd_rename_strategy">Đổi tên chiến lược</string>
+    <string name="tou_strategy_intro">Khung sạc và xả của chiến lược này. Ngoài các khung đã đặt, hệ thống chạy như Tự tiêu thụ tối đa.</string>
+    <string name="tou_slot_charge">Sạc %1$d</string>
+    <string name="tou_slot_discharge">Xả %1$d</string>
+    <string name="cd_edit_slot">Sửa khung %1$s</string>
+    <string name="tou_slot_meta_charge">SOC dừng %1$s · tối đa %2$s · nguồn: lưới</string>
+    <string name="tou_slot_meta_discharge">SOC dừng %1$s · tối đa %2$s</string>
+    <string name="tou_apply_days">Áp dụng các ngày</string>
+    <string name="tou_days_owned">%1$s đang thuộc \"%2$s\"</string>
+    <string name="tou_days_owned_note">%1$s. Chọn các ngày này sẽ chuyển chúng sang chiến lược đang sửa.</string>
+    <string name="tou_no_days_warning">Chưa chọn ngày nào nên lịch sẽ không chạy. Hãy chọn ít nhất một ngày.</string>
+    <string name="reg_e225" translatable="false">E225 WeekToOnTimeEn</string>
+    <string name="tou_add_slot">Thêm khung sạc hoặc xả</string>
+    <string name="tou_strategy_note_limit">Tối đa 3 khung sạc và 3 khung xả; các khung không được chồng lấn.</string>
+    <string name="tou_strategy_note_tap">Chạm vào một khung để sửa giờ, SOC dừng, công suất và nguồn sạc.</string>
+    <string name="tou_delete_strategy">Xoá chiến lược này</string>
+    <string name="tou_unsaved">Có thay đổi chưa lưu</string>
+    <string name="tou_save_changes">Lưu thay đổi</string>
+    <string name="tou_rename_title">Đổi tên chiến lược</string>
+    <string name="tou_rename_label">Tên chiến lược</string>
+    <string name="tou_rename_counter">%1$d/%2$d</string>
+    <string name="tou_rename_empty">Tên chiến lược không được để trống.</string>
+    <string name="tou_discard_title">Bỏ thay đổi?</string>
+    <string name="tou_discard_body">Các thay đổi chưa lưu sẽ mất.</string>
+    <string name="tou_discard_stay">Ở lại</string>
+    <string name="tou_discard_confirm">Bỏ thay đổi</string>
+    <!-- Popup thêm / sửa khung 16b (Thay đổi 0.6 §5; ADR-002 mục 1) -->
+    <string name="tou_sheet_add_title">Thêm khung giờ</string>
+    <string name="tou_sheet_edit_title">Sửa khung %1$s</string>
+    <string name="tou_sheet_kind_group">Loại khung</string>
+    <string name="tou_sheet_kind_charge">Khung sạc</string>
+    <string name="tou_sheet_kind_discharge">Khung xả</string>
+    <string name="tou_sheet_start">Giờ bắt đầu</string>
+    <string name="tou_sheet_end">Giờ kết thúc</string>
+    <string name="tou_sheet_soc">SOC dừng (%)</string>
+    <string name="tou_sheet_power">Công suất tối đa (W)</string>
+    <string name="tou_sheet_source">Nguồn sạc: lưới điện</string>
+    <string name="tou_sheet_delete">Xoá khung này</string>
+    <plurals name="tou_err_limit_charge">
+        <item quantity="other">Đã đủ %1$d khung sạc. Hãy sửa hoặc xoá một khung có sẵn.</item>
+    </plurals>
+    <plurals name="tou_err_limit_discharge">
+        <item quantity="other">Đã đủ %1$d khung xả. Hãy sửa hoặc xoá một khung có sẵn.</item>
+    </plurals>
+    <string name="tou_err_time_format">Giờ phải có dạng hh:mm, ví dụ 01:30.</string>
+    <string name="tou_err_same_time">Giờ kết thúc phải khác giờ bắt đầu.</string>
+    <string name="tou_err_soc">SOC dừng phải trong khoảng 0–100 %.</string>
+    <string name="tou_err_power">Công suất tối đa phải trong khoảng 0–12.000 W.</string>
+    <string name="tou_err_overlap">Trùng với %1$s (%2$s). Các khung không được chồng lấn.</string>
+    <!-- Lưu lịch 16b (BO_SUNG_v3.md §1) -->
+    <string name="confirm_not_tou">Chế độ hiện tại không phải Theo khung giờ. Lịch được lưu và sẽ chạy khi bạn chọn chế độ này.</string>
+    <string name="tou_change_prefix">%1$s · %2$s</string>
+    <string name="tou_change_name">Tên</string>
+    <string name="tou_change_days">Ngày áp dụng</string>
+    <string name="tou_change_none">chưa có</string>
+    <string name="tou_change_deleted">đã xoá</string>
+    <string name="tou_slot_summary">%1$s · %2$s · %3$s</string>
+    <string name="tou_change_added_strategy">Thêm chiến lược \"%1$s\"</string>
+    <string name="tou_change_removed_strategy">Xoá chiến lược \"%1$s\". %2$s sẽ chạy như Tự tiêu thụ tối đa.</string>
+    <string name="tou_change_removed_strategy_no_days">Xoá chiến lược \"%1$s\".</string>
+    <!-- Màn 5 · Thiết bị (html/Device.dc.html) -->
+    <string name="cd_add_device">Thêm thiết bị</string>
+    <string name="device_serial">SN %1$s</string>
+    <string name="device_power">Công suất</string>
+    <string name="device_temperature">Nhiệt độ</string>
+    <string name="device_firmware">Firmware</string>
+    <string name="device_voltage">Điện áp</string>
+    <string name="device_soh">SOH</string>
+    <string name="device_soc">SoC</string>
+    <string name="device_open_data">Theo dõi dữ liệu chi tiết</string>
+    <string name="cd_battery_level">Mức pin</string>
+    <string name="battery_charging_until_full">Đang sạc · đầy sau ~%1$s giờ</string>
+    <string name="battery_discharging_remaining">Đang xả · còn ~%1$s giờ</string>
+    <string name="unit_celsius">°C</string>
+    <!-- Màn 17 · Theo dõi dữ liệu (html/DataInverter.dc.html; đặc tả §17) -->
+    <string name="data_title">Theo dõi dữ liệu</string>
+    <string name="cd_refresh">Làm mới</string>
+    <string name="data_serial_updated">SN %1$s · %2$s</string>
+    <plurals name="data_updated_seconds">
+        <item quantity="other">cập nhật %1$d giây trước</item>
+    </plurals>
+    <plurals name="data_updated_minutes">
+        <item quantity="other">cập nhật %1$d phút trước</item>
+    </plurals>
+    <string name="data_updated_at">cập nhật %1$s</string>
+    <string name="data_groups">Nhóm dữ liệu</string>
+    <string name="data_group_overview">Tổng quan</string>
+    <string name="data_group_pv">PV</string>
+    <string name="data_group_grid_load">Lưới &amp; tải</string>
+    <string name="data_group_temperature">Nhiệt độ</string>
+    <string name="data_machine_state">Trạng thái máy</string>
+    <string name="data_no_errors">Không có</string>
+    <string name="data_pv_total">Công suất PV tổng</string>
+    <string name="data_grid_power">Công suất trao đổi với lưới</string>
+    <string name="data_ups_load">Công suất tải UPS</string>
+    <string name="data_pv_charge_current">Dòng sạc pin từ PV</string>
+    <string name="data_active_errors">Mã lỗi đang hoạt động</string>
+    <string name="data_pv1_voltage" tools:ignore="Typos">PV1 · điện áp</string>
+    <string name="data_pv1_current" tools:ignore="Typos">PV1 · dòng</string>
+    <string name="data_pv1_power" tools:ignore="Typos">PV1 · công suất</string>
+    <string name="data_pv2_voltage">PV2 · điện áp</string>
+    <string name="data_pv2_current">PV2 · dòng</string>
+    <string name="data_pv2_power">PV2 · công suất</string>
+    <string name="data_grid_voltage">Điện áp lưới</string>
+    <string name="data_grid_current">Dòng lưới</string>
+    <string name="data_grid_frequency">Tần số lưới</string>
+    <string name="data_output">Điện áp · dòng đầu ra</string>
+    <string name="data_apparent">Công suất biểu kiến tải</string>
+    <string name="data_load_ratio">Tỷ lệ tải</string>
+    <string name="data_home_load">Công suất tải thường</string>
+    <string name="data_grid_charge_current">Dòng sạc pin từ lưới</string>
+    <string name="data_temp_dcdc">Tản nhiệt DC-DC</string>
+    <string name="data_temp_dcac">Tản nhiệt DC-AC</string>
+    <string name="data_temp_transformer">Biến áp</string>
+    <string name="data_temp_ambient">Môi trường</string>
+    <string name="unit_va">VA</string>
+    <string name="reg_pv_total" translatable="false">0x109 + 0x111</string>
+    <string name="reg_0x23a" translatable="false">0x23A GridActivePowerA</string>
+    <string name="reg_0x23a_sign">0x23A (dương là phát lên)</string>
+    <string name="reg_0x21b" translatable="false">0x21B LoadActivePowerA</string>
+    <string name="reg_0x224" translatable="false">0x224 Ibuck1</string>
+    <string name="reg_0x200" translatable="false">0x200 CurrErrReg</string>
+    <string name="reg_0x200_64">0x200 CurrErrReg (64 bit)</string>
+    <string name="reg_0x213" translatable="false">0x213 GridVoltA</string>
+    <string name="reg_0x214" translatable="false">0x214 GridCurrA</string>
+    <string name="reg_0x215" translatable="false">0x215 GridFreq</string>
+    <string name="reg_0x21c" translatable="false">0x21C LoadApparentPowerA</string>
+    <string name="reg_0x21f" translatable="false">0x21F LoadRatioA</string>
+    <string name="reg_0x240" translatable="false">0x240 HomeLoadActivePowerA</string>
+    <string name="reg_0x21e" translatable="false">0x21E LineChgCurr</string>
+    <string name="reg_0x220" translatable="false">0x220 Tempera</string>
+    <string name="reg_0x221" translatable="false">0x221 Temperb</string>
+    <string name="reg_0x222" translatable="false">0x222 Temperc</string>
+    <string name="reg_0x223" translatable="false">0x223 Temperd</string>
+    <!-- Biểu đồ lịch sử màn 17 (đặc tả §17.4; BO_SUNG_v3.md §12) -->
+    <string name="history_title">Biểu đồ lịch sử</string>
+    <string name="history_max_fields">tối đa 3 trường</string>
+    <string name="history_range_group">Khoảng thời gian</string>
+    <string name="history_range_hour">1 giờ</string>
+    <string name="history_range_day">24 giờ</string>
+    <string name="history_range_week">7 ngày</string>
+    <string name="history_chart_cd">Kéo để xem giá trị theo thời gian</string>
+    <string name="unit_millivolt">mV</string>
+    <string name="field_pv_power">Công suất PV</string>
+    <string name="field_load_power">Công suất tải</string>
+    <string name="field_temp_dcac">Nhiệt độ DC-AC</string>
+    <string name="field_grid_voltage">Điện áp lưới</string>
+    <string name="field_grid_frequency">Tần số lưới</string>
+    <!-- Màn 17 · Theo dõi dữ liệu – Pin S16 Pre (html/DataBattery.dc.html; đặc tả §17.3) -->
+    <string name="bat_group_overview">Tổng quan</string>
+    <string name="bat_group_limits">Giới hạn</string>
+    <string name="bat_group_cells">Cell</string>
+    <string name="bat_group_protection">Bảo vệ</string>
+    <string name="bat_group_versions">Phiên bản</string>
+    <string name="bat_deviation">Lệch điện áp inverter đo / BMS báo: %1$s</string>
+    <string name="bat_deviation_ok">Bình thường</string>
+    <string name="bat_deviation_high">Cần kiểm tra</string>
+    <string name="bat_soc">SOC</string>
+    <string name="bat_soh">SOH</string>
+    <string name="bat_cycles">Số chu kỳ sạc/xả</string>
+    <string name="bat_cycles_value">%1$s lần</string>
+    <string name="bat_pack_voltage_inverter">Điện áp pack (inverter đo)</string>
+    <string name="bat_pack_voltage_bms">Điện áp pack (BMS báo)</string>
+    <string name="bat_pack_current">Dòng pack (BMS báo)</string>
+    <string name="bat_temp_bms">Nhiệt độ pin (BMS báo)</string>
+    <string name="bat_temp_inverter">Nhiệt độ pin (inverter đo)</string>
+    <string name="bat_charge_limit_voltage">Điện áp giới hạn sạc</string>
+    <string name="bat_charge_limit_current">Dòng giới hạn sạc</string>
+    <string name="bat_discharge_limit_current">Dòng giới hạn xả</string>
+    <string name="bat_allowed_charge">Công suất sạc cho phép</string>
+    <string name="bat_allowed_discharge">Công suất xả cho phép</string>
+    <string name="bat_limit_mode">Chế độ giới hạn dòng</string>
+    <string name="bat_gauge_charging">Đang sạc · trong giới hạn</string>
+    <string name="bat_gauge_discharging">Đang xả · trong giới hạn</string>
+    <string name="bat_gauge_idle">Đứng yên</string>
+    <string name="bat_gauge_limited">Đang bị giới hạn bởi BMS</string>
+    <string name="bat_gauge_discharge_limit">Giới hạn xả</string>
+    <string name="bat_gauge_charge_limit">Giới hạn sạc</string>
+    <string name="bat_gauge_note">Khi dòng chạm giới hạn, cung đổi sang cam và hiện “Đang bị giới hạn bởi BMS”.</string>
+    <string name="bat_cell_max">Điện áp cell cao nhất</string>
+    <string name="bat_cell_min">Điện áp cell thấp nhất</string>
+    <string name="bat_cell_value">%1$s · cell %2$d</string>
+    <string name="bat_cell_delta">Chênh áp cell</string>
+    <string name="bat_cell_temp_max">Nhiệt độ cell cao nhất</string>
+    <string name="bat_cell_temp_min">Nhiệt độ cell thấp nhất</string>
+    <string name="bat_cell_chart_title">Biểu đồ điện áp từng cell — pha 2</string>
+    <string name="bat_cell_chart_body">Cần gateway đọc thẳng BMS của S16 Pre qua RS485/CAN. Bảng thanh ghi SRNE hiện chỉ có cell cao nhất và thấp nhất.</string>
+    <string name="bat_packs_online">Số pack đang trực tuyến</string>
+    <string name="bat_packs_charge_blocked">Số pack bị cấm sạc</string>
+    <string name="bat_packs_discharge_blocked">Số pack bị cấm xả</string>
+    <string name="bat_packs_offline">Số pack mất kết nối</string>
+    <string name="bat_system_faults">Bảng lỗi hệ thống BMS</string>
+    <string name="bat_flags_active">Cờ đang bật (%1$d)</string>
+    <string name="bat_flag_alarm">Cảnh báo</string>
+    <string name="bat_flag_protect">Bảo vệ</string>
+    <string name="bat_flag_chip">%1$s · %2$s</string>
+    <string name="bat_flag_none">%1$s: không có cờ nào đang bật.</string>
+    <string name="bat_flag_raw_alarm">Cờ cảnh báo bit %1$d</string>
+    <string name="bat_flag_raw_protect">Cờ bảo vệ bit %1$d</string>
+    <string name="bat_flags_show_all">Xem tất cả trạng thái (%1$d cờ)</string>
+    <string name="bat_flags_collapse">Thu gọn</string>
+    <string name="bat_flags_section">%1$s (%2$d)</string>
+    <string name="bat_flag_on">Bật</string>
+    <string name="bat_flag_off">Tắt</string>
+    <string name="bat_manufacturer">Hãng sản xuất BMS</string>
+    <string name="bat_sw_version">Phiên bản phần mềm BMS</string>
+    <string name="bat_hw_version">Phiên bản phần cứng BMS</string>
+    <string name="bat_protocol_version">Phiên bản giao thức</string>
+    <string name="field_soc">SOC</string>
+    <string name="field_pack_current">Dòng pack</string>
+    <string name="field_pack_current_legend">Dòng pack (BMS)</string>
+    <string name="field_battery_temp">Nhiệt độ pin</string>
+    <string name="field_cell_delta">Chênh áp cell</string>
+    <string name="reg_0x100" translatable="false">0x100 BatSoc</string>
+    <string name="reg_0x104" translatable="false">0x104 BatSoh</string>
+    <string name="reg_0x10c" translatable="false">0x10C BatCycles</string>
+    <string name="reg_0x101" translatable="false">0x101 BatVolt</string>
+    <string name="reg_0x112" translatable="false">0x112 BatBmsVolt</string>
+    <string name="reg_0x113" translatable="false">0x113 BatBmsCurr</string>
+    <string name="reg_0x114" translatable="false">0x114 BatBmsTemp</string>
+    <string name="reg_0x103" translatable="false">0x103 DeviceBatTemper</string>
+    <string name="reg_0x115" translatable="false">0x115 BatBmsChgLimitVolt</string>
+    <string name="reg_0x116" translatable="false">0x116 BatBmsChgLimitCurr</string>
+    <string name="reg_0x117" translatable="false">0x117 BatBmsDchgLimitCurr</string>
+    <string name="reg_allowed_charge">Tính: 0x116 × 0x112</string>
+    <string name="reg_allowed_discharge">Tính: 0x117 × 0x112</string>
+    <string name="reg_cell_max" translatable="false">0x132 · 0x136</string>
+    <string name="reg_cell_min" translatable="false">0x133 · 0x137</string>
+    <string name="reg_cell_delta">Tính: 0x132 − 0x133</string>
+    <string name="reg_0x134" translatable="false">0x134 BmsMaxCellTemp</string>
+    <string name="reg_0x135" translatable="false">0x135 BmsMinCellTemp</string>
+    <string name="reg_0x12a" translatable="false">0x12A BmsModuleNum</string>
+    <string name="reg_0x12c" translatable="false">0x12C BmsStopChgPkgCnt</string>
+    <string name="reg_0x12d" translatable="false">0x12D BmsStopDchgPkgCnt</string>
+    <string name="reg_0x12e" translatable="false">0x12E BmsOfflinePkgCnt</string>
+    <string name="reg_0x131" translatable="false">0x131 BmsSysFaultTbl</string>
+    <string name="reg_0x13a" translatable="false">0x13A BmsFacturerName</string>
+    <string name="reg_0x12f" translatable="false">0x12F BmsSwVer</string>
+    <string name="reg_0x130" translatable="false">0x130 BmsHwVer</string>
+    <string name="reg_0x1c" translatable="false">0x1C RS485Version</string>
+    <!-- Màn 10 · Cảnh báo (html/Alerts.dc.html) -->
+    <string name="alerts_title">Cảnh báo</string>
+    <string name="cd_alert_settings">Cài đặt thông báo</string>
+    <string name="alerts_filter_all">Tất cả (%1$d)</string>
+    <string name="alerts_filter_open">Chưa xử lý (%1$d)</string>
+    <string name="alerts_filter_resolved">Đã xử lý (%1$d)</string>
+    <string name="alerts_empty">Không có cảnh báo nào.</string>
+    <string name="alert_severity_error">Lỗi</string>
+    <string name="alert_severity_warning">Cảnh báo</string>
+    <string name="alert_severity_info">Thông tin</string>
+    <string name="alert_open">Chưa xử lý</string>
+    <string name="alert_resolved">Đã xử lý</string>
+    <string name="cd_alert_open">Xem chi tiết: %1$s</string>
+    <string name="screen_alert_settings">Cài đặt thông báo cảnh báo</string>
+    <string name="screen_add_device">Thêm thiết bị vào dự án</string>
+    <!-- Màn 10a · Chi tiết cảnh báo (html/AlertDetail.dc.html) -->
+    <string name="cd_back_to_alerts">Quay lại Cảnh báo</string>
+    <string name="alert_fact_device">Thiết bị</string>
+    <string name="alert_fact_project">Dự án</string>
+    <string name="alert_fact_start">Bắt đầu</string>
+    <string name="alert_fact_end">Kết thúc</string>
+    <string name="alert_fact_duration">Thời lượng</string>
+    <string name="alert_end_ongoing">Đang diễn ra</string>
+    <string name="alert_end_marked">Đã đánh dấu xử lý</string>
+    <string name="alert_end_auto_recovered">Tự phục hồi lúc %1$s</string>
+    <string name="alert_end_auto_updated">Đã cập nhật tự động lúc %1$s</string>
+    <string name="alert_code_section">Mã lỗi</string>
+    <string name="alert_chart_section">Diễn biến 30 phút</string>
+    <!-- Tên đại lượng (backend) + đơn vị: "Điện áp lưới (V)", "Nhiệt độ cell cao nhất (°F)" -->
+    <string name="alert_chart_label">%1$s (%2$s)</string>
+    <string name="alert_causes_section">Nguyên nhân có thể</string>
+    <string name="alert_steps_section">Hướng xử lý</string>
+    <string name="alert_create_support">Tạo yêu cầu hỗ trợ kỹ thuật</string>
+    <string name="alert_mark">Đánh dấu đã xử lý</string>
+    <string name="alert_unmark">Đã xử lý · chạm để bỏ đánh dấu</string>
+    <string name="alert_support_note">Yêu cầu hỗ trợ sẽ điền sẵn loại Kỹ thuật, dự án, tiêu đề và mã lỗi của cảnh báo này.</string>
+    <!-- Màn 11 · Nguồn năng lượng pin (html/BatteryEnergy.dc.html) -->
+    <string name="energy_chip_charging">Đang sạc %1$s</string>
+    <string name="energy_chip_discharging">Đang xả %1$s</string>
+    <string name="energy_available">Dung lượng khả dụng</string>
+    <string name="energy_from_grid_full">Từ lưới điện</string>
+    <string name="energy_empty">Còn trống</string>
+    <string name="energy_params">Thông số pin</string>
+    <string name="energy_charge_current">Dòng sạc</string>
+    <string name="energy_discharge_current">Dòng xả</string>
+    <string name="energy_cycles">Chu kỳ</string>
+    <string name="energy_figure_cd">Pin %1$s dung lượng %2$s, đang chứa %3$s: %4$s từ PV (%5$s) ở lớp trên và %6$s từ lưới (%7$s) ở lớp dưới; %8$s</string>
+    <string name="energy_figure_cd_unknown">Pin %1$s: chưa có số liệu nguồn năng lượng</string>
+    <string name="energy_cd_charging">pin đang sạc</string>
+    <string name="energy_cd_discharging">pin đang xả</string>
+    <string name="energy_cd_idle">pin không sạc/xả</string>
+
+    <!-- Màn 15 · Thông tin tài khoản (Account.dc.html, BO_SUNG_v3.md §24) -->
+    <string name="account_avatar_hint">Chạm để chụp mới hoặc chọn từ thư viện</string>
+    <string name="cd_change_avatar">Đổi ảnh đại diện</string>
+    <string name="account_name">Họ và tên</string>
+    <string name="account_email">Email · đổi cần xác thực OTP</string>
+    <string name="account_phone">Số điện thoại · đổi cần xác thực OTP</string>
+    <string name="account_security">Bảo mật</string>
+    <string name="account_change_password">Đổi mật khẩu</string>
+    <string name="account_delete">Xoá tài khoản</string>
+    <string name="account_save">Lưu thay đổi</string>
+    <string name="account_saved">Đã lưu thay đổi.</string>
+    <string name="account_delete_title">Xoá tài khoản?</string>
+    <string name="account_delete_body">Tài khoản bị khoá đăng nhập ngay. Toàn bộ dữ liệu và dự án sẽ bị xoá vĩnh viễn sau 30 ngày.</string>
+    <string name="account_delete_password">Nhập mật khẩu để xác nhận</string>
+    <string name="account_delete_cancel">Huỷ</string>
+    <string name="account_delete_wrong_password">Mật khẩu không đúng.</string>
+    <string name="account_deleted_notice">Đã gửi yêu cầu xoá tài khoản. Dữ liệu sẽ bị xoá sau 30 ngày.</string>
+    <string name="screen_change_contact">Đổi email / Đổi số điện thoại</string>
+    <string name="screen_change_password">Đổi mật khẩu</string>
+
+    <!-- Màn 6 · Dịch vụ (Service.dc.html; đặc tả §6) -->
+    <string name="service_contact_title">Hỗ trợ GG Power</string>
+    <string name="service_hotline_label">Hotline</string>
+    <string name="service_email_label">Email</string>
+    <string name="cd_copy_hotline">Sao chép số hotline</string>
+    <string name="cd_copy_email">Sao chép email</string>
+    <string name="service_copied_hotline">Đã sao chép số hotline</string>
+    <string name="service_copied_email">Đã sao chép email</string>
+    <string name="service_section_tools">Tiện ích</string>
+    <string name="service_explore">Khám phá</string>
+    <string name="service_explore_desc">Sản phẩm, tin tức và video hướng dẫn</string>
+    <string name="service_support">Hỗ trợ</string>
+    <string name="service_support_desc">Gửi yêu cầu kỹ thuật, tài khoản</string>
+    <string name="service_warranty">Bảo hành</string>
+    <string name="service_warranty_desc">Ngày kích hoạt, hạn và tình trạng bảo hành</string>
+
+    <!-- Màn 9 · Bảo hành (html/Warranty.dc.html) -->
+    <plurals name="warranty_context">
+        <item quantity="other">Dự án %1$s · %2$d thiết bị</item>
+    </plurals>
+    <string name="warranty_activated_on">Ngày kích hoạt</string>
+    <string name="warranty_expires_on">Hạn bảo hành</string>
+    <string name="warranty_status_active">Còn bảo hành</string>
+    <string name="warranty_status_soon">Sắp hết hạn</string>
+    <string name="warranty_status_expired">Hết bảo hành</string>
+    <plurals name="warranty_term_years">
+        <item quantity="other">Bảo hành %d năm</item>
+    </plurals>
+    <plurals name="warranty_term_months">
+        <item quantity="other">Bảo hành %d tháng</item>
+    </plurals>
+    <string name="warranty_term_years_months">Bảo hành %1$d năm %2$d tháng</string>
+    <string name="warranty_left_years_months">Còn %1$d năm %2$d tháng</string>
+    <plurals name="warranty_left_years">
+        <item quantity="other">Còn %d năm</item>
+    </plurals>
+    <plurals name="warranty_left_months">
+        <item quantity="other">Còn %d tháng</item>
+    </plurals>
+    <plurals name="warranty_left_days">
+        <item quantity="other">Còn %d ngày</item>
+    </plurals>
+    <!-- Chưa có trong thiết kế — chốt 03/10/2026 -->
+    <string name="warranty_left_today">Hết hạn hôm nay</string>
+    <string name="warranty_left_expired">Đã hết hạn</string>
+    <string name="cd_warranty_used">Thời gian bảo hành đã dùng %1$d %%</string>
+    <string name="warranty_history">Lịch sử bảo hành</string>
+    <string name="warranty_history_repair">%1$s · phiếu %2$s</string>
+    <string name="warranty_history_firmware">%1$s · %2$s → %3$s</string>
+    <string name="warranty_history_when">%1$s · %2$s</string>
+    <string name="warranty_channel_on_site">kỹ thuật viên tại nhà</string>
+    <string name="warranty_channel_remote">từ xa</string>
+    <string name="warranty_entry_completed">Hoàn tất</string>
+    <string name="warranty_request">Yêu cầu bảo hành</string>
+    <!-- Chưa có trong thiết kế — chốt 03/10/2026 -->
+    <string name="warranty_empty">Chưa có thiết bị nào trong dự án.</string>
+
+    <!-- Màn 7 · Khám phá (html/Explore.dc.html) -->
+    <string name="explore_search_placeholder">Tìm sản phẩm, tin tức, video</string>
+    <string name="explore_search_label">Tìm kiếm</string>
+    <string name="explore_tabs_label">Nội dung khám phá</string>
+    <string name="explore_tab_products">Sản phẩm</string>
+    <string name="explore_tab_news">Tin tức</string>
+    <string name="explore_tab_videos">Hướng dẫn</string>
+    <string name="explore_featured">NỔI BẬT</string>
+    <!-- Dòng phụ của bài viết: "Hướng dẫn · 4 phút đọc" -->
+    <string name="explore_article_meta">%1$s · %2$d phút đọc</string>
+    <!-- Chưa có thiết kế; câu chữ tạm theo "Không tìm thấy dự án phù hợp." (OPEN_QUESTIONS 03/10/2026) -->
+    <string name="explore_no_result">Không tìm thấy nội dung phù hợp.</string>
+    <string name="screen_explore_detail">Chi tiết nội dung Khám phá</string>
+
+    <!-- Màn 8 · Yêu cầu hỗ trợ (html/Support.dc.html, đặc tả §3.8, Thay đổi 0.6 §6) -->
+    <string name="support_tab_new">Gửi yêu cầu mới</string>
+    <string name="support_tab_mine">Yêu cầu của tôi</string>
+    <string name="support_from_alert">Tạo từ cảnh báo</string>
+    <!-- "Mất kết nối lưới điện · 07:12 24/09/2026" -->
+    <string name="support_from_alert_title">%1$s · %2$s</string>
+    <string name="support_from_alert_note">Serial, firmware và mã lỗi sẽ được đính kèm tự động.</string>
+    <string name="support_type_label">Loại yêu cầu</string>
+    <string name="support_type_technical">Kỹ thuật</string>
+    <string name="support_type_account">Tài khoản</string>
+    <string name="support_type_other">Khác</string>
+    <string name="support_project_label">Dự án cần hỗ trợ</string>
+    <string name="support_title_label">Tiêu đề</string>
+    <string name="support_title_placeholder">Ví dụ: Inverter báo lỗi mất lưới</string>
+    <string name="support_desc_label">Mô tả chi tiết</string>
+    <string name="support_desc_placeholder">Mô tả sự cố, thời điểm xảy ra, mã lỗi (nếu có)…</string>
+    <string name="support_attach">Đính kèm ảnh hoặc video</string>
+    <string name="support_submit">Gửi yêu cầu</string>
+    <string name="support_mine_caption">Phiếu của mọi dự án thuộc tài khoản</string>
+    <string name="support_status_received">Đã tiếp nhận</string>
+    <string name="support_status_in_progress">Đang xử lý</string>
+    <string name="support_status_resolved">Đã xử lý</string>
+    <string name="support_status_closed">Đã đóng</string>
+    <!-- "Nhà của bạn · 26/09/2026" -->
+    <string name="support_ticket_meta">%1$s · %2$s</string>
+    <!-- Mô tả điền sẵn khi mở từ 10a. %1$s mức độ, %2$s thời điểm, %3$s mã lỗi (Support.dc.html). -->
+    <string name="support_prefill_desc_ongoing">Cảnh báo %1$s lúc %2$s, vẫn đang diễn ra. Mã lỗi: %3$s.</string>
+    <!-- Chưa có trong thiết kế (chốt 03/10/2026). %3$s lúc kết thúc, %4$s mã lỗi. -->
+    <string name="support_prefill_desc_ended">Cảnh báo %1$s lúc %2$s, đã kết thúc lúc %3$s. Mã lỗi: %4$s.</string>
+    <!-- Chưa có trong thiết kế (chốt 03/10/2026, OPEN_QUESTIONS) -->
+    <string name="support_project_placeholder">Chọn dự án</string>
+    <string name="support_error_project">Vui lòng chọn dự án.</string>
+    <string name="support_error_title">Vui lòng nhập tiêu đề.</string>
+    <string name="support_error_desc">Vui lòng nhập mô tả.</string>
+    <string name="support_mine_empty">Bạn chưa gửi yêu cầu nào.</string>
+    <string name="support_resend">Gửi lại</string>
+    <string name="cd_support_remove_attachment">Bỏ tệp %1$s</string>
+    <string name="cd_support_project_selected">Đang chọn</string>
+
+    <!-- Màn 24 · Gửi yêu cầu thành công (đặc tả §3.24; chưa có ảnh/HTML — dựng theo chữ đặc tả, chốt 03/10/2026) -->
+    <string name="screen_support_sent">Gửi yêu cầu thành công</string>
+    <string name="support_sent_title">Đã gửi yêu cầu</string>
+    <string name="support_sent_code_label">Mã yêu cầu</string>
+    <string name="support_sent_response_technical">Thời gian phản hồi dự kiến: trong 4 giờ làm việc.</string>
+    <string name="support_sent_view_mine">Xem yêu cầu của tôi</string>
+    <string name="support_sent_back_service">Về Dịch vụ</string>
+    <string name="support_sent_copied">Đã sao chép mã yêu cầu</string>
+    <string name="cd_copy_ticket_code">Sao chép mã yêu cầu</string>
+
+    <!-- Màn 8 · Chi tiết yêu cầu (TicketDetail.dc.html) -->
+    <string name="ticket_detail_meta">%1$s · %2$s · %3$s</string>
+    <string name="ticket_detail_meta_no_project">%1$s · %2$s</string>
+    <string name="ticket_detail_attach_both">%1$d ảnh đính kèm · thông tin hệ thống tự đính kèm</string>
+    <string name="ticket_detail_attach_photos">%1$d ảnh đính kèm</string>
+    <string name="ticket_detail_attach_system">Thông tin hệ thống tự đính kèm</string>
+    <string name="ticket_detail_author_support">Hỗ trợ GG Power · %1$s</string>
+    <string name="ticket_detail_author_me">Bạn · %1$s</string>
+    <string name="ticket_detail_message_hint">Nhập tin nhắn…</string>
+    <string name="ticket_detail_message_label">Tin nhắn</string>
+    <string name="ticket_detail_send">Gửi</string>
+    <string name="ticket_detail_closed_note">Yêu cầu đã đóng. Gửi yêu cầu mới nếu cần hỗ trợ thêm.</string>
+</resources>

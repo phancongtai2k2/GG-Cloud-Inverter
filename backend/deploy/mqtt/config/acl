@@ -1,0 +1,9 @@
+# The backend reads every device's uplink and is the only account that may send commands.
+user backend
+topic read solar/+/inverter/+/up/#
+topic write solar/+/inverter/+/down/command
+
+# A datalogger logs in with its inverter serial as user name and is confined to its own topics:
+# it publishes its uplink and reads its own commands, nothing else.
+pattern write solar/ggp/inverter/%u/up/#
+pattern read solar/ggp/inverter/%u/down/#

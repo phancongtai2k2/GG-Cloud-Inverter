@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Chuyển từ SVG trong docs/design/html/Explore.dc.html (viewBox 24, stroke 1.5). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="28dp" android:height="28dp" android:viewportWidth="24" android:viewportHeight="24">
+    <path android:pathData="M7,3.5h7l4,4V20a0.5,0.5 0 0 1 -0.5,0.5h-10.5a0.5,0.5 0 0 1 -0.5,-0.5V4a0.5,0.5 0 0 1 0.5,-0.5z" android:strokeColor="#FF000000" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:fillColor="#00000000" />
+    <path android:pathData="M9,11h6M9,14.5h6M9,18h4" android:strokeColor="#FF000000" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:fillColor="#00000000" />
+</vector>

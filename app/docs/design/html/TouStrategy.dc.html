@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Chi tiết chiến lược</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&amp;display=swap">
+<style>
+html,body{scrollbar-width:none}html::-webkit-scrollbar,body::-webkit-scrollbar,*::-webkit-scrollbar{display:none;width:0;height:0}
+body{margin:0;font-family:Montserrat,system-ui,-apple-system,"Segoe UI",sans-serif;background:#f5f7f3;color:#13201b}
+a{color:#0f7a3a}a:hover{color:#0b6630}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:none;box-shadow:0 0 0 2px #ffffff,0 0 0 4px #0f7a3a}
+</style>
+</helmet>
+<div style="width: 390px; height: 1020px; box-sizing: border-box; position: relative; display: flex; flex-direction: column; background: #f5f7f3; color: #13201b; font-family: Montserrat, system-ui, sans-serif; overflow: hidden">
+<header style="height: 64px; flex-shrink: 0; display: flex; align-items: center; gap: 4px; padding: 0 8px 0 4px"><a href="TouSchedule.dc.html" aria-label="Quay lại danh sách chiến lược" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 999px; color: #13201b; text-decoration: none"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M19 12H5M11 6l-6 6 6 6"></path></svg></a><h1 style="margin: 0; flex-grow: 1; font-size: 22px; line-height: 28px; font-weight: 600">{{title}}</h1></header>
+<main style="flex-grow: 1; display: grid; grid-template-columns: minmax(0, 1fr); grid-auto-rows: max-content; align-content: start; gap: 12px; padding: 0 20px 24px; overflow: hidden">
+
+
+<p style="margin: 0; font-size: 13px; line-height: 20px; color: #56625c"><span style="{{cur.badge}}">{{cur.letter}}</span> Khung sạc và xả của chiến lược này. Ngoài các khung đã đặt, hệ thống chạy như Tự tiêu thụ tối đa.</p>
+<div style="display: flex; flex-direction: column; gap: 6px"><div style="position: relative; height: 28px; border-radius: 8px; background: #eaeee8; overflow: hidden"><sc-for list="{{segs}}" as="g" hint-placeholder-count="3"><span style="{{g.style}}"></span></sc-for></div><div style="display: flex; justify-content: space-between; font-size: 11px; line-height: 14px; color: #56625c; font-variant-numeric: tabular-nums"><span>00</span><span>06</span><span>12</span><span>18</span><span>24</span></div><div style="display: flex; gap: 16px; font-size: 12px; line-height: 16px; color: #56625c"><span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #e0700f"></span>Sạc</span><span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #149c4a"></span>Xả</span><span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #eaeee8; border: 1px solid #d9dfd8"></span>Tự động</span></div></div>
+<section style="background: #f9faf7; border: 1px solid #e3e8e1; border-radius: 16px; box-shadow: 0 1px 2px rgba(19,32,27,0.06), 0 2px 8px rgba(19,32,27,0.05); padding: 8px 16px 12px; display: flex; flex-direction: column; gap: 8px">
+
+<sc-for list="{{rows}}" as="w" hint-placeholder-count="4"><button type="button" onClick="{{w.open}}" aria-label="{{w.aria}}" style="{{w.style}}"><span style="{{w.bar}}"></span><span style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px; line-height: 20px; font-weight: 600">{{w.name}} · <span style="font-variant-numeric: tabular-nums">{{w.time}}</span></span><span style="font-size: 12px; line-height: 16px; color: #56625c">{{w.meta}}</span></span><span style="color: #7f8b85; display: flex"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M9 6l6 6-6 6"></path></svg></span></button></sc-for><sc-if value="{{noRows}}" hint-placeholder-val="{{false}}"><p style="margin: 0; padding: 12px 0 4px; font-size: 13px; line-height: 20px; color: #56625c">Chưa có khung sạc hoặc xả nào. Hệ thống chạy như Tự tiêu thụ tối đa cả ngày.</p></sc-if>
+<div style="display: flex; flex-direction: column; gap: 6px; padding-top: 6px; border-top: 1px solid #e3e8e1"><span style="font-size: 13px; line-height: 18px; font-weight: 600; padding-top: 8px">Áp dụng các ngày</span><div style="display: flex; gap: 4px"><button type="button" aria-pressed="{{days.d0.pressed}}" onClick="{{days.d0.flip}}" style="{{days.d0.style}}">T2</button><button type="button" aria-pressed="{{days.d1.pressed}}" onClick="{{days.d1.flip}}" style="{{days.d1.style}}">T3</button><button type="button" aria-pressed="{{days.d2.pressed}}" onClick="{{days.d2.flip}}" style="{{days.d2.style}}">T4</button><button type="button" aria-pressed="{{days.d3.pressed}}" onClick="{{days.d3.flip}}" style="{{days.d3.style}}">T5</button><button type="button" aria-pressed="{{days.d4.pressed}}" onClick="{{days.d4.flip}}" style="{{days.d4.style}}">T6</button><button type="button" aria-pressed="{{days.d5.pressed}}" onClick="{{days.d5.flip}}" style="{{days.d5.style}}">T7</button><button type="button" aria-pressed="{{days.d6.pressed}}" onClick="{{days.d6.flip}}" style="{{days.d6.style}}">CN</button></div><sc-if value="{{dayNote.show}}" hint-placeholder-val="{{false}}"><span style="font-size: 12px; line-height: 18px; color: #56625c">{{dayNote.text}}</span></sc-if><sc-if value="{{sum.warn}}" hint-placeholder-val="{{false}}"><p style="margin: 0; font-size: 12px; line-height: 18px; font-weight: 600; color: #b3261e">Chưa chọn ngày nào nên lịch sẽ không chạy. Hãy chọn ít nhất một ngày.</p></sc-if><span style="font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 11px; line-height: 14px; color: #7f8b85">E225 WeekToOnTimeEn</span></div>
+</section>
+<button type="button" onClick="{{add}}" style="height: 48px; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px dashed #0f7a3a; border-radius: 12px; background: #ffffff; color: #0f7a3a; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M12 5v14M5 12h14"></path></svg>Thêm khung sạc hoặc xả</button>
+<ul style="margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; font-size: 12px; line-height: 18px; color: #56625c">
+<li>Tối đa 3 khung sạc và 3 khung xả; các khung không được chồng lấn.</li>
+<li>Chạm vào một khung để sửa giờ, SOC dừng, công suất và nguồn sạc.</li>
+
+</ul>
+<sc-if value="{{cur.canDelete}}" hint-placeholder-val="{{true}}"><a href="TouSchedule.dc.html" style="text-decoration: none; height: 44px; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; border-radius: 10px; background: transparent; color: #b3261e; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"></path></svg>Xoá chiến lược này</a></sc-if>
+
+</main>
+<sc-if value="{{sh.open}}" hint-placeholder-val="{{false}}"><div style="position: absolute; inset: 0; background: rgba(14,21,18,0.5); display: flex; flex-direction: column; justify-content: flex-end"><div role="dialog" aria-modal="true" aria-labelledby="sh-t" style="background: #ffffff; border-radius: 24px 24px 0 0; padding: 12px 20px 24px; display: flex; flex-direction: column; gap: 14px">
+<span style="align-self: center; width: 40px; height: 4px; border-radius: 999px; background: #d9dfd8"></span>
+<div style="display: flex; align-items: center; gap: 10px"><span style="width: 4px; height: 22px; border-radius: 999px; background: {{sh.color}}"></span><h2 id="sh-t" style="margin: 0; flex-grow: 1; font-size: 18px; line-height: 26px; font-weight: 700">{{sh.title}}</h2></div>
+<sc-if value="{{sh.isAdd}}" hint-placeholder-val="{{true}}"><div role="group" aria-label="Loại khung" style="display: flex; gap: 4px; padding: 4px; border-radius: 12px; background: #eaeee8"><sc-for list="{{sh.kinds}}" as="o" hint-placeholder-count="2"><button type="button" aria-pressed="{{o.pressed}}" onClick="{{o.pick}}" style="{{o.style}}">{{o.label}}</button></sc-for></div></sc-if>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px"><div style="display: flex; flex-direction: column; gap: 6px"><label for="sh-a" style="font-size: 12px; line-height: 16px; font-weight: 600">Giờ bắt đầu</label><input id="sh-a" type="text" inputmode="numeric" value="{{sh.d.start}}" onChange="{{sh.set.start}}" style="height: 44px; box-sizing: border-box; width: 100%; padding: 0 12px; border-radius: 10px; background: #ffffff; font-family: inherit; font-size: 14px; color: #13201b; font-variant-numeric: tabular-nums; border: 1px solid #7f8b85"></div><div style="display: flex; flex-direction: column; gap: 6px"><label for="sh-b" style="font-size: 12px; line-height: 16px; font-weight: 600">Giờ kết thúc</label><input id="sh-b" type="text" inputmode="numeric" value="{{sh.d.end}}" onChange="{{sh.set.end}}" style="height: 44px; box-sizing: border-box; width: 100%; padding: 0 12px; border-radius: 10px; background: #ffffff; font-family: inherit; font-size: 14px; color: #13201b; font-variant-numeric: tabular-nums; border: 1px solid #7f8b85"></div><div style="display: flex; flex-direction: column; gap: 6px"><label for="sh-c" style="font-size: 12px; line-height: 16px; font-weight: 600">SOC dừng (%)</label><input id="sh-c" type="text" inputmode="numeric" value="{{sh.d.soc}}" onChange="{{sh.set.soc}}" style="height: 44px; box-sizing: border-box; width: 100%; padding: 0 12px; border-radius: 10px; background: #ffffff; font-family: inherit; font-size: 14px; color: #13201b; font-variant-numeric: tabular-nums; border: 1px solid #7f8b85"></div><div style="display: flex; flex-direction: column; gap: 6px"><label for="sh-d" style="font-size: 12px; line-height: 16px; font-weight: 600">Công suất tối đa (W)</label><input id="sh-d" type="text" inputmode="numeric" value="{{sh.d.pw}}" onChange="{{sh.set.pw}}" style="height: 44px; box-sizing: border-box; width: 100%; padding: 0 12px; border-radius: 10px; background: #ffffff; font-family: inherit; font-size: 14px; color: #13201b; font-variant-numeric: tabular-nums; border: 1px solid #7f8b85"></div></div>
+<sc-if value="{{sh.isChg}}" hint-placeholder-val="{{true}}"><span style="font-size: 12px; line-height: 16px; color: #56625c">Nguồn sạc: lưới điện</span></sc-if>
+<sc-if value="{{sh.hasErr}}" hint-placeholder-val="{{false}}"><p role="alert" style="margin: 0; display: flex; gap: 8px; padding: 10px 12px; border-radius: 10px; background: #fdecea; color: #b3261e; font-size: 13px; line-height: 18px; font-weight: 500"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16h.01"></path></svg>{{sh.err}}</p></sc-if>
+<div style="display: flex; gap: 10px"><button type="button" onClick="{{sh.close}}" style="flex: 1 1 0; height: 48px; border: 1px solid #7f8b85; border-radius: 10px; background: #ffffff; color: #13201b; font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer">Huỷ</button><button type="button" onClick="{{sh.save}}" aria-disabled="{{sh.hasErr}}" style="{{sh.saveStyle}}">Lưu</button></div>
+<sc-if value="{{sh.isEdit}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{sh.del}}" style="height: 44px; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; border-radius: 10px; background: transparent; color: #b3261e; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"></path></svg>Xoá khung này</button></sc-if>
+</div></div></sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"strategy": {"editor": "enum", "options": ["A", "B"], "default": "A", "section": "Chiến lược hiển thị (A Ngày thường · B Cuối tuần)"}, "$preview": {"width": 390, "height": 1020}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.state || {};
+    const SC = ['#0f7a3a', '#2f6fb3', '#8a4fbf', '#b36b00'];
+    const LET = ['A', 'B', 'C', 'D'];
+    const DEFS = [
+      { id: 'a', name: 'Ngày thường', days: [true, true, true, true, true, false, false],
+        slots: { c1: { start: '22:00', end: '06:00', soc: '90', pw: '3.000' }, c2: { start: '13:00', end: '16:00', soc: '100', pw: '3.000' },
+                 x1: { start: '09:00', end: '12:00', soc: '50', pw: '4.000' }, x2: { start: '18:00', end: '21:00', soc: '20', pw: '5.000' } } },
+      { id: 'b', name: 'Cuối tuần', days: [false, false, false, false, false, true, true],
+        slots: { c1: { start: '00:00', end: '06:00', soc: '90', pw: '3.000' }, c2: { start: '14:00', end: '16:00', soc: '100', pw: '3.000' },
+                 x1: { start: '10:00', end: '12:00', soc: '60', pw: '4.000' }, x2: { start: '18:00', end: '23:00', soc: '20', pw: '5.000' } } }];
+    const strats = s.strats || DEFS;
+    const TODAY = 3; // 24/09/2026 là Thứ 5
+    const pick = s.cur || ({ A: 'a', B: 'b' }[this.props.strategy] || 'a');
+    const idx = Math.max(0, strats.findIndex((x) => x.id === pick));
+    const curS = idx >= 0 ? strats[idx] : strats[0];
+    const ci = idx >= 0 ? idx : 0;
+    const upd = (patch) => this.setState({ strats: strats.map((x, i) => i === ci ? Object.assign({}, x, patch) : x) });
+    const dayOn = curS.days;
+    const DN = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+    const owner = (d) => strats.findIndex((x) => x.days[d]);
+    const days = {};
+    dayOn.forEach((v, k) => { days['d' + k] = { pressed: v ? 'true' : 'false',
+      flip: () => { this.setState({ strats: strats.map((x, i) => { const n = x.days.slice(); if (i === ci) n[k] = !v; else if (!v) n[k] = false; return Object.assign({}, x, { days: n }); }) }); },
+      style: 'flex: 1 1 0; height: 32px; box-sizing: border-box; border-radius: 8px; font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; ' + (v ? 'border: 1px solid #0f7a3a; background: #0f7a3a; color: #ffffff' : 'border: 1px solid #e3e8e1; background: #eef1ec; color: ' + (k === 6 ? '#c62828' : '#9aa59f') + '; opacity: 0.6; font-weight: 500') }; });
+    const others = {};
+    dayOn.forEach((v, k) => { const o = owner(k); if (!v && o >= 0 && o !== ci) (others[o] = others[o] || []).push(DN[k]); });
+    const noteParts = Object.keys(others).map((o) => others[o].join(', ') + ' đang thuộc "' + strats[o].name + '"');
+    const dayNote = { show: noteParts.length > 0, text: noteParts.join('; ') + '. Chọn các ngày này sẽ chuyển chúng sang chiến lược đang sửa.' };
+
+    const slots = curS.slots;
+    const KEYS = ['c1', 'c2', 'x1', 'x2'];
+    const NAME = { c1: 'Sạc 1', c2: 'Sạc 2', x1: 'Xả 1', x2: 'Xả 2' };
+    const F = { chg: { start: '10:00', end: '14:00', soc: '80', pw: '3.000' }, dis: { start: '06:00', end: '08:00', soc: '40', pw: '4.000' } };
+    const isC = (k) => k[0] === 'c';
+    const COL = (chg) => chg ? '#e0700f' : '#149c4a';
+    const mins = (t) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+    const ranges = (a, b) => a < b ? [[a, b]] : [[a, 1440], [0, b]];
+    const free = (kind) => kind === 'chg' ? (!slots.c1 ? 'c1' : !slots.c2 ? 'c2' : null) : (!slots.x1 ? 'x1' : !slots.x2 ? 'x2' : null);
+    const sh = s.sheet;
+    const editing = sh && sh.mode === 'edit' ? sh.slot : null;
+
+    const segs = [];
+    KEYS.forEach((k) => { const v = slots[k]; if (!v) return;
+      ranges(mins(v.start), mins(v.end)).forEach(([a, b]) => segs.push({ style: 'position: absolute; top: 0; bottom: 0; left: ' + (a / 14.4).toFixed(3) + '%; width: ' + ((b - a) / 14.4).toFixed(3) + '%; background: ' + COL(isC(k)) + (editing && editing !== k ? '; opacity: 0.35' : '') })); });
+
+
+    const periods = KEYS.filter((k) => slots[k]).map((k) => ({ k, v: slots[k], a: mins(slots[k].start), b: mins(slots[k].end) })).sort((p, q) => p.a - q.a);
+    const dur = (a, b) => { const m = (b - a + 1440) % 1440; const h = Math.floor(m / 60), r = m % 60; return h + ' giờ' + (r ? ' ' + r + ' phút' : ''); };
+    const nC = periods.filter((p) => isC(p.k)).length, nX = periods.length - nC;
+    const parts = []; if (nC) parts.push(nC + ' lần sạc'); if (nX) parts.push(nX + ' lần xả');
+    const on = dayOn.map((v, i) => v ? i : -1).filter((i) => i >= 0);
+    const dayTxt = on.length === 7 ? 'Hằng ngày' : on.length === 0 ? 'chưa chọn ngày nào' : on.map((i) => DN[i]).join(', ');
+    const sum = { hasItems: periods.length > 0, warn: on.length === 0, days: dayTxt,
+      head: periods.length ? 'Lịch có ' + periods.length + ' giai đoạn trong ngày: ' + parts.join(', ') + '.' : 'Chưa có khung sạc hoặc xả nào. Hệ thống chạy như Tự tiêu thụ tối đa cả ngày.',
+      items: periods.map((p, i) => ({ label: String(i + 1), kind: isC(p.k) ? 'Sạc' : 'Xả', time: p.v.start + ' – ' + p.v.end,
+        note: '· ' + dur(p.a, p.b) + (p.b < p.a ? ', qua đêm' : ''),
+        dot: 'width: 8px; height: 8px; border-radius: 999px; flex-shrink: 0; background: ' + COL(isC(p.k)) })) };
+    const r = {};
+    KEYS.forEach((k) => { const v = slots[k];
+      r[k] = v ? { time: v.start + ' – ' + v.end, meta: 'SOC dừng ' + v.soc + ' % · tối đa ' + v.pw + ' W' + (isC(k) ? ' · nguồn: lưới' : ''), bar: 1, aria: 'Sửa khung ' + NAME[k],
+                   open: () => this.setState({ sheet: { mode: 'edit', slot: k, d: Object.assign({}, v) } }) }
+               : { time: 'Chưa đặt', meta: 'Chạm để thêm khung', bar: 0.35, aria: 'Thêm khung ' + NAME[k],
+                   open: () => this.setState({ sheet: { mode: 'add', kind: isC(k) ? 'chg' : 'dis', d: Object.assign({}, F[isC(k) ? 'chg' : 'dis']) } }) }; });
+
+    const rowKeys = KEYS.filter((k) => slots[k]);
+    const rows = rowKeys.map((k, i) => { const v = slots[k];
+      return { name: NAME[k], time: v.start + ' – ' + v.end, meta: 'SOC dừng ' + v.soc + ' % · tối đa ' + v.pw + ' W' + (isC(k) ? ' · nguồn: lưới' : ''), aria: 'Sửa khung ' + NAME[k],
+        open: () => this.setState({ sheet: { mode: 'edit', slot: k, d: Object.assign({}, v) } }),
+        bar: 'width: 4px; align-self: stretch; border-radius: 999px; background: ' + COL(isC(k)),
+        style: (i ? 'border-top: 1px solid #e3e8e1; ' : 'border-top: none; ') + 'width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 0; border-left: none; border-right: none; border-bottom: none; background: transparent; color: #13201b; font-family: inherit; text-align: left; cursor: pointer' }; });
+    const add = () => { const kind = free('chg') || !free('dis') ? 'chg' : 'dis';
+      this.setState({ sheet: { mode: 'add', kind, d: Object.assign({}, F[kind]) } }); };
+
+    let shv = { open: false, d: { start: '', end: '', soc: '', pw: '' }, set: {}, kinds: [], title: '', color: '', isAdd: false, isEdit: false, isChg: false, hasErr: false, err: '', saveStyle: '' };
+    if (sh) {
+      const kind = sh.mode === 'edit' ? (isC(sh.slot) ? 'chg' : 'dis') : sh.kind;
+      const slot = sh.mode === 'edit' ? sh.slot : free(kind);
+      const d = sh.d;
+      const set = {};
+      ['start', 'end', 'soc', 'pw'].forEach((f) => { set[f] = (e) => this.setState({ sheet: Object.assign({}, sh, { d: Object.assign({}, d, { [f]: e.target.value }) }) }); });
+      const TM = /^([01]\d|2[0-3]):[0-5]\d$/;
+      const pwN = Number(String(d.pw).replace(/\./g, ''));
+      let err = '';
+      if (!slot) err = 'Đã đủ 2 khung ' + (kind === 'chg' ? 'sạc' : 'xả') + '. Hãy sửa hoặc xoá một khung có sẵn.';
+      else if (!TM.test(d.start) || !TM.test(d.end)) err = 'Giờ phải có dạng hh:mm, ví dụ 01:30.';
+      else if (d.start === d.end) err = 'Giờ kết thúc phải khác giờ bắt đầu.';
+      else if (!/^\d{1,3}$/.test(d.soc) || Number(d.soc) > 100) err = 'SOC dừng phải trong khoảng 0–100 %.';
+      else if (!/^[\d.]+$/.test(d.pw) || isNaN(pwN) || pwN > 12000) err = 'Công suất tối đa phải trong khoảng 0–12.000 W.';
+      else {
+        const mine = ranges(mins(d.start), mins(d.end));
+        const hit = KEYS.find((k) => k !== slot && slots[k] && ranges(mins(slots[k].start), mins(slots[k].end)).some(([a, b]) => mine.some(([c, e]) => c < b && a < e)));
+        if (hit) err = 'Trùng với ' + NAME[hit] + ' (' + slots[hit].start + ' – ' + slots[hit].end + '). Các khung không được chồng lấn.';
+      }
+      const fmt = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+      shv = { open: true, d, set,
+        title: sh.mode === 'edit' ? 'Sửa khung ' + NAME[slot] : 'Thêm khung giờ', color: COL(kind === 'chg'),
+        isAdd: sh.mode === 'add', isEdit: sh.mode === 'edit', isChg: kind === 'chg', hasErr: !!err, err,
+        kinds: [['chg', 'Khung sạc'], ['dis', 'Khung xả']].map(([id, label]) => { const on = id === kind;
+          return { label, pressed: on ? 'true' : 'false', pick: () => this.setState({ sheet: { mode: 'add', kind: id, d: Object.assign({}, F[id]) } }),
+            style: 'flex: 1 1 0; height: 36px; border: none; border-radius: 10px; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; ' + (on ? 'background: #ffffff; color: #13201b; box-shadow: 0 1px 2px rgba(19,32,27,0.06), 0 2px 8px rgba(19,32,27,0.05)' : 'background: transparent; color: #56625c') }; }),
+        saveStyle: 'flex: 2 1 0; height: 48px; border: none; border-radius: 10px; font-family: inherit; font-size: 15px; font-weight: 600; ' + (err ? 'background: #c9d1cb; color: #ffffff; cursor: not-allowed' : 'background: #0f7a3a; color: #ffffff; cursor: pointer'),
+        close: () => this.setState({ sheet: null }),
+        save: () => { if (err) return; this.setState({ sheet: null, strats: strats.map((x, i) => i === ci ? Object.assign({}, x, { slots: Object.assign({}, slots, { [slot]: { start: d.start, end: d.end, soc: String(Number(d.soc)), pw: fmt(pwN) } }) }) : x) }); },
+        del: () => { const n = Object.assign({}, slots, { [sh.slot]: null });
+          if (!n.c1 && n.c2) { n.c1 = n.c2; n.c2 = null; } if (!n.x1 && n.x2) { n.x1 = n.x2; n.x2 = null; }
+          this.setState({ sheet: null, strats: strats.map((x, i) => i === ci ? Object.assign({}, x, { slots: n }) : x) }); } };
+    }
+
+    // danh sách chiến lược
+    const segOf = (sl) => { const out = []; KEYS.forEach((k) => { const v = sl[k]; if (!v) return;
+      ranges(mins(v.start), mins(v.end)).forEach(([a, b]) => out.push({ style: 'position: absolute; top: 0; bottom: 0; left: ' + (a / 14.4).toFixed(3) + '%; width: ' + ((b - a) / 14.4).toFixed(3) + '%; background: ' + COL(isC(k)) })); }); return out; };
+    const headOf = (sl) => { const ks = KEYS.filter((k) => sl[k]); const c = ks.filter(isC).length, x = ks.length - c; const p = []; if (c) p.push(c + ' lần sạc'); if (x) p.push(x + ' lần xả');
+      return ks.length ? ks.length + ' giai đoạn: ' + p.join(', ') + ' · ' + ks.map((k) => sl[k]).sort((m, n) => mins(m.start) - mins(n.start)).map((v) => v.start + '–' + v.end).join(', ') : 'Chưa có khung sạc hoặc xả'; };
+    const badge = (i, size) => 'width: ' + size + 'px; height: ' + size + 'px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; background: ' + SC[i] + '; color: #ffffff; font-size: ' + (size > 24 ? 14 : 11) + 'px; font-weight: 700; vertical-align: middle';
+    const daysOf = (d) => { const on2 = d.map((v, i) => v ? i : -1).filter((i) => i >= 0); return on2.length === 7 ? 'Hằng ngày' : on2.length ? on2.map((i) => DN[i]).join(', ') : 'Chưa gán ngày nào'; };
+    const cards = strats.map((x, i) => ({ letter: LET[i], name: x.name, days: daysOf(x.days), today: !!x.days[TODAY], badge: badge(i, 32),
+      segs: segOf(x.slots), head: headOf(x.slots), aria: 'Mở chiến lược ' + x.name, open: () => this.setState({ cur: x.id, sheet: null }) }));
+    const week = DN.map((d, k) => { const o = owner(k);
+      return { d, tag: o >= 0 ? LET[o] : '–',
+        dayStyle: 'font-size: 12px; line-height: 16px; font-weight: ' + (k === TODAY ? 700 : 500) + '; color: ' + (k === TODAY ? '#13201b' : '#56625c'),
+        tagStyle: 'width: 100%; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 12px; font-weight: 700; ' + (o >= 0 ? 'background: ' + SC[o] + '; color: #ffffff' : 'background: #eaeee8; color: #7f8b85') + (k === TODAY ? '; box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #13201b' : '') }; });
+    const free7 = DN.filter((d, k) => owner(k) < 0);
+    const unassigned = { show: free7.length > 0, text: free7.join(', ') + ' chưa có chiến lược, chạy như Tự tiêu thụ tối đa.' };
+    const addStrategy = () => { const used = strats.map((x) => x.id); const id = ['a', 'b', 'c', 'd'].find((z) => !used.includes(z));
+      this.setState({ strats: strats.concat([{ id, name: 'Chiến lược ' + LET[strats.length], days: [false, false, false, false, false, false, false], slots: { c1: null, c2: null, x1: null, x2: null } }]), cur: id }); };
+    const isDetail = idx >= 0;
+    const cur = { letter: LET[ci], badge: badge(ci, 22), canDelete: strats.length > 1,
+      remove: () => this.setState({ strats: strats.filter((x, i) => i !== ci), cur: null, sheet: null }) };
+    return { rows, noRows: rowKeys.length === 0, days, segs, r, add, sh: shv, sum, dayNote, cards, week, unassigned, addStrategy, canAdd: strats.length < 4, cur,
+      view: { list: !isDetail, detail: isDetail }, title: curS.name, back: () => this.setState({ cur: null, sheet: null }) };
+  }
+}
+</script>
+</body>
+</html>

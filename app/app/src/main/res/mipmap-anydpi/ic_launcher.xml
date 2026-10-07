@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 8–12. Bản có lớp monochrome (API 33) nằm ở mipmap-anydpi-v33; để ở đây aapt sẽ
+     chỉ sinh bản v33 và máy dưới 33 mất icon, nên bỏ qua MonochromeLauncherIcon cho file này. -->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="MonochromeLauncherIcon">
+    <background android:drawable="@color/launcher_background" />
+    <foreground android:drawable="@mipmap/ic_launcher_fg" />
+</adaptive-icon>

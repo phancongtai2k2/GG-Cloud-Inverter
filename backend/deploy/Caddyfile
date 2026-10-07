@@ -1,0 +1,21 @@
+# TLS certificates are obtained and renewed automatically for SITE_ADDRESS (a host name pointing at this server).
+{$SITE_ADDRESS} {
+	encode zstd gzip
+
+	@api path /api/* /ws/* /healthz
+	handle @api {
+		reverse_proxy api:8080
+	}
+
+	# Static web site: put files in ./www
+	handle {
+		root * /srv/www
+		file_server
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options nosniff
+		-Server
+	}
+}

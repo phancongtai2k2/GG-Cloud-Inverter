@@ -1,0 +1,79 @@
+# GG Power server: database + MQTT broker + API + web front (TLS, static site). Everything lives in this folder.
+#   docker compose up -d --build     start / update
+#   docker compose logs -f api       follow the API log
+# Published: web (80/443) and the MQTT broker's TLS port (8883). The database is reachable from the API only.
+name: ggpower
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ggpower
+      POSTGRES_DB: ggpower
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in .env}
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ggpower -d ggpower"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [internal]
+
+  mqtt:
+    image: eclipse-mosquitto:2
+    restart: unless-stopped
+    ports:
+      - "8883:8883"          # TLS, for dataloggers. 1883 stays inside the Docker network.
+    volumes:
+      - ./mqtt/config:/mosquitto/config
+      - ./mqtt/certs:/mosquitto/certs:ro
+      - ./data/mosquitto:/mosquitto/data
+    networks: [internal]
+
+  api:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      db: { condition: service_healthy }
+      mqtt: { condition: service_started }
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      GGP_ConnectionStrings__Main: "Host=db;Port=5432;Database=ggpower;Username=ggpower;Password=${POSTGRES_PASSWORD};Maximum Pool Size=40"
+      GGP_Security__JwtSigningKey: ${JWT_SIGNING_KEY:?set in .env}
+      GGP_Security__LogOtpCodes: ${LOG_OTP_CODES:-false}
+      GGP_Mqtt__Host: ${MQTT_HOST}
+      GGP_Mqtt__Port: ${MQTT_PORT:-1883}
+      GGP_Mqtt__UseTls: ${MQTT_TLS:-false}
+      GGP_Mqtt__Username: ${MQTT_USER}
+      GGP_Mqtt__Password: ${MQTT_PASSWORD}
+      GGP_Ingest__Tenants__0: ${MQTT_TENANT:-ggp}
+      GGP_Storage__Root: /data/storage
+      # Client addresses are taken from X-Forwarded-For of the web container only.
+      GGP_Proxy__Known__0: 172.28.0.250
+    volumes:
+      - ./data/storage:/data/storage
+    networks: [internal]
+
+  web:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on: [api]
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:?set in .env}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./www:/srv/www:ro
+      - ./data/caddy:/data
+    networks:
+      internal: { ipv4_address: 172.28.0.250 }
+
+networks:
+  internal:
+    ipam:
+      config:
+        - subnet: 172.28.0.0/24

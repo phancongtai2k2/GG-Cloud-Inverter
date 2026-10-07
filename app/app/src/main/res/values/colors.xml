@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Chỉ dùng cho nền cửa sổ và icon launcher (trước khi Compose vẽ); màn hình lấy màu từ GgTheme. -->
+    <color name="window_background">#FFF5F7F3</color>
+    <color name="launcher_background">#FF5489FB</color>
+</resources>

@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Cảnh báo</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;font-family:Montserrat,system-ui,-apple-system,"Segoe UI",sans-serif;background:#f5f7f3;color:#13201b}
+a{color:#0f7a3a}a:hover{color:#0b6630}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:none;box-shadow:0 0 0 2px #ffffff,0 0 0 4px #0f7a3a}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; position: relative; display: flex; flex-direction: column; background: #f5f7f3; color: #13201b; font-family: Montserrat, system-ui, sans-serif; overflow: hidden">
+<header style="height: 64px; flex-shrink: 0; display: flex; align-items: center; gap: 4px; padding: 0 8px 0 4px"><a href="Main.dc.html" aria-label="Quay lại" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 999px; color: #13201b; text-decoration: none"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M19 12H5M11 6l-6 6 6 6"></path></svg></a><h1 style="margin: 0; flex-grow: 1; font-size: 22px; line-height: 28px; font-weight: 600">Cảnh báo</h1><button type="button" aria-label="Cài đặt thông báo" style="position: relative; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 999px; color: #13201b; background: transparent; border: none; padding: 0; text-decoration: none; cursor: pointer"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"></path><circle cx="15" cy="7" r="2"></circle><circle cx="9" cy="17" r="2"></circle></svg></button></header>
+<main style="flex-grow: 1; display: flex; flex-direction: column; gap: 12px; padding: 0 20px 16px 20px; overflow: hidden">
+<div role="group" aria-label="Lọc cảnh báo" style="display: flex; gap: 8px">
+<sc-for list="{{chips}}" as="c" hint-placeholder-count="3">
+<button type="button" aria-pressed="{{c.pressed}}" onClick="{{c.pick}}" style="{{c.style}}">{{c.label}}</button>
+</sc-for>
+</div>
+<ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px">
+<sc-for list="{{items}}" as="a" hint-placeholder-count="4">
+<li><a href="AlertDetail.dc.html" aria-label="Xem chi tiết: {{a.title}}" style="background: #f9faf7; border: 1px solid #e3e8e1; border-radius: 16px; box-shadow: 0 1px 2px rgba(19,32,27,0.06), 0 2px 8px rgba(19,32,27,0.05); padding: 16px; display: flex; gap: 12px; text-decoration: none; color: #13201b">
+<span style="{{a.iconStyle}}">
+<sc-if value="{{a.isDanger}}" hint-placeholder-val="{{false}}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><circle cx="12" cy="12" r="9"></circle><path d="M9 9l6 6M15 9l-6 6"></path></svg></sc-if>
+<sc-if value="{{a.isWarning}}" hint-placeholder-val="{{true}}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M12 3.5l9.5 16.5h-19z"></path><path d="M12 10v4.5M12 17.5v.01"></path></svg></sc-if>
+<sc-if value="{{a.isInfo}}" hint-placeholder-val="{{false}}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v6M12 7.5v.01"></path></svg></sc-if>
+</span>
+<div style="flex-grow: 1; display: flex; flex-direction: column; gap: 4px">
+<span style="{{a.kindStyle}}">{{a.word}}</span>
+<span style="font-size: 15px; line-height: 22px; font-weight: 600">{{a.title}}</span>
+<span style="font-size: 13px; line-height: 20px; color: #56625c">{{a.desc}}</span>
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px">
+<span style="font-size: 12px; line-height: 16px; font-weight: 500; color: #56625c; font-variant-numeric: tabular-nums">{{a.time}}</span>
+<span style="{{a.statusStyle}}">{{a.status}}</span>
+</div>
+</div>
+</a></li>
+</sc-for>
+</ul>
+</main>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview": {"width": 390, "height": 844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.state || {};
+    const f = s.filter || 'all';
+    const K = {
+      danger: { fg: '#c62828', bg: '#fdecea', word: 'Lỗi' },
+      warning: { fg: '#8a6100', bg: '#fdf3d6', word: 'Cảnh báo' },
+      info: { fg: '#2f6fb3', bg: '#e7f0fa', word: 'Thông tin' }
+    };
+    const all = [
+      { kind: 'danger', title: 'Mất kết nối lưới điện', desc: 'Inverter chuyển sang cấp điện từ pin.', time: '07:12 · 24/09/2026', open: true },
+      { kind: 'warning', title: 'Nhiệt độ pin cao (45 °C)', desc: 'Công suất sạc được giảm tạm thời.', time: '14:30 · 23/09/2026', open: true },
+      { kind: 'info', title: 'Có firmware mới v1.3.3', desc: 'Cập nhật sẽ chạy tự động lúc 02:00.', time: '09:05 · 22/09/2026', open: false },
+      { kind: 'warning', title: 'Điện áp PV thấp', desc: 'Chuỗi PV1 dưới ngưỡng trong 25 phút.', time: '16:48 · 20/09/2026', open: false }
+    ];
+    const items = all
+      .filter((a) => f === 'all' || (f === 'open' ? a.open : !a.open))
+      .map((a) => Object.assign({}, a, K[a.kind], {
+        isDanger: a.kind === 'danger', isWarning: a.kind === 'warning', isInfo: a.kind === 'info',
+        status: a.open ? 'Chưa xử lý' : 'Đã xử lý',
+        iconStyle: 'width: 40px; height: 40px; flex-shrink: 0; border-radius: 999px; display: flex; align-items: center; justify-content: center; color: ' + K[a.kind].fg + '; background: ' + K[a.kind].bg,
+        kindStyle: 'font-size: 12px; line-height: 16px; font-weight: 600; color: ' + K[a.kind].fg,
+        statusStyle: a.open
+          ? 'padding: 2px 8px; border-radius: 6px; font-size: 12px; line-height: 16px; font-weight: 600; color: #13201b; background: #eaeee8; border: 1px solid #7f8b85'
+          : 'padding: 2px 8px; border-radius: 6px; font-size: 12px; line-height: 16px; font-weight: 600; color: #0f7a3a; background: #e3f3e8; border: 1px solid #e3f3e8'
+      }));
+    const chips = [['all', 'Tất cả (4)'], ['open', 'Chưa xử lý (2)'], ['done', 'Đã xử lý (2)']].map(([id, label]) => ({
+      label, pressed: id === f ? 'true' : 'false',
+      style: id === f
+        ? 'height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid #0f7a3a; background: #0f7a3a; color: #ffffff; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer'
+        : 'height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid #7f8b85; background: #ffffff; color: #13201b; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer',
+      pick: () => this.setState({ filter: id })
+    }));
+    return { items, chips };
+  }
+}
+</script>
+</body>
+</html>

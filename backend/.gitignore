@@ -1,0 +1,10 @@
+bin/
+obj/
+.vs/
+*.user
+.env
+appsettings.Local.json
+storage/
+TestResults/
+backend.log
+backend.err.log

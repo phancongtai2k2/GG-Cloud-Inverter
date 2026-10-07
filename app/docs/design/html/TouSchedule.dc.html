@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Lịch theo khung giờ</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&amp;display=swap">
+<style>
+html,body{scrollbar-width:none}html::-webkit-scrollbar,body::-webkit-scrollbar,*::-webkit-scrollbar{display:none;width:0;height:0}
+body{margin:0;font-family:Montserrat,system-ui,-apple-system,"Segoe UI",sans-serif;background:#f5f7f3;color:#13201b}
+a{color:#0f7a3a}a:hover{color:#0b6630}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:none;box-shadow:0 0 0 2px #ffffff,0 0 0 4px #0f7a3a}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; position: relative; display: flex; flex-direction: column; background: #f5f7f3; color: #13201b; font-family: Montserrat, system-ui, sans-serif; overflow: hidden">
+<header style="height: 64px; flex-shrink: 0; display: flex; align-items: center; gap: 4px; padding: 0 8px 0 4px"><a href="Config.dc.html" aria-label="Quay lại Cấu hình dự án" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 999px; color: #13201b; text-decoration: none"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M19 12H5M11 6l-6 6 6 6"></path></svg></a><h1 style="margin: 0; flex-grow: 1; font-size: 22px; line-height: 28px; font-weight: 600">{{title}}</h1></header>
+<main style="flex-grow: 1; display: grid; grid-template-columns: minmax(0, 1fr); grid-auto-rows: max-content; align-content: start; gap: 12px; padding: 0 20px 24px; overflow: hidden">
+
+
+<p style="margin: 0; font-size: 13px; line-height: 20px; color: #56625c">Mỗi chiến lược là một bộ khung sạc/xả, áp dụng cho các thứ bạn chọn. Mỗi thứ chỉ thuộc một chiến lược; thứ chưa gán chạy như Tự tiêu thụ tối đa.</p>
+<sc-for list="{{cards}}" as="c" hint-placeholder-count="2"><a href="TouStrategy.dc.html" aria-label="{{c.aria}}" style="display: flex; text-decoration: none; box-sizing: border-box; background: #f9faf7; border: 1px solid #e3e8e1; border-radius: 16px; box-shadow: 0 1px 2px rgba(19,32,27,0.06), 0 2px 8px rgba(19,32,27,0.05); width: 100%; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; font-family: inherit; color: #13201b; text-align: left; cursor: pointer">
+<span style="width: 100%; display: flex; align-items: center; gap: 10px"><span style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px; line-height: 22px; font-weight: 600">{{c.name}}</span><span style="font-size: 12px; line-height: 16px; color: #56625c">{{c.days}}</span></span><sc-if value="{{c.today}}" hint-placeholder-val="{{false}}"><span style="padding: 2px 8px; border-radius: 6px; background: #e3f3e8; color: #0f7a3a; font-size: 11px; line-height: 16px; font-weight: 600; white-space: nowrap">Hôm nay</span></sc-if><span style="color: #7f8b85; display: flex"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M9 6l6 6-6 6"></path></svg></span></span>
+<span style="position: relative; display: block; width: 100%; height: 14px; border-radius: 6px; background: #eaeee8; overflow: hidden"><sc-for list="{{c.segs}}" as="g" hint-placeholder-count="2"><span style="{{g.style}}"></span></sc-for></span>
+<span style="font-size: 12px; line-height: 18px; color: #56625c">{{c.head}}</span>
+</a></sc-for>
+<sc-if value="{{canAdd}}" hint-placeholder-val="{{true}}"><a href="TouStrategy.dc.html" style="text-decoration: none; height: 48px; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px dashed #0f7a3a; border-radius: 12px; background: #ffffff; color: #0f7a3a; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M12 5v14M5 12h14"></path></svg>Thêm chiến lược</a></sc-if>
+<ul style="margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; font-size: 12px; line-height: 18px; color: #56625c">
+<li>Tối đa 4 chiến lược. Chạm vào một chiến lược để xem và sửa khung giờ.</li>
+<li>Khi sang ngày mới, hệ thống tự nạp khung giờ của chiến lược tương ứng xuống inverter.</li>
+</ul>
+
+</main>
+
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview": {"width": 390, "height": 844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.state || {};
+    const SC = ['#0f7a3a', '#2f6fb3', '#8a4fbf', '#b36b00'];
+    const LET = ['A', 'B', 'C', 'D'];
+    const DEFS = [
+      { id: 'a', name: 'Ngày thường', days: [true, true, true, true, true, false, false],
+        slots: { c1: { start: '22:00', end: '06:00', soc: '90', pw: '3.000' }, c2: { start: '13:00', end: '16:00', soc: '100', pw: '3.000' },
+                 x1: { start: '09:00', end: '12:00', soc: '50', pw: '4.000' }, x2: { start: '18:00', end: '21:00', soc: '20', pw: '5.000' } } },
+      { id: 'b', name: 'Cuối tuần', days: [false, false, false, false, false, true, true],
+        slots: { c1: { start: '00:00', end: '06:00', soc: '90', pw: '3.000' }, c2: { start: '14:00', end: '16:00', soc: '100', pw: '3.000' },
+                 x1: { start: '10:00', end: '12:00', soc: '60', pw: '4.000' }, x2: { start: '18:00', end: '23:00', soc: '20', pw: '5.000' } } }];
+    const strats = s.strats || DEFS;
+    const TODAY = 3; // 24/09/2026 là Thứ 5
+    const idx = s.cur == null ? -1 : strats.findIndex((x) => x.id === s.cur);
+    const curS = idx >= 0 ? strats[idx] : strats[0];
+    const ci = idx >= 0 ? idx : 0;
+    const upd = (patch) => this.setState({ strats: strats.map((x, i) => i === ci ? Object.assign({}, x, patch) : x) });
+    const dayOn = curS.days;
+    const DN = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+    const owner = (d) => strats.findIndex((x) => x.days[d]);
+    const days = {};
+    dayOn.forEach((v, k) => { days['d' + k] = { pressed: v ? 'true' : 'false',
+      flip: () => { this.setState({ strats: strats.map((x, i) => { const n = x.days.slice(); if (i === ci) n[k] = !v; else if (!v) n[k] = false; return Object.assign({}, x, { days: n }); }) }); },
+      style: 'flex: 1 1 0; height: 32px; box-sizing: border-box; border-radius: 8px; font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; ' + (v ? 'border: 1px solid #0f7a3a; background: #0f7a3a; color: #ffffff' : 'border: 1px solid #e3e8e1; background: #eef1ec; color: ' + (k === 6 ? '#c62828' : '#9aa59f') + '; opacity: 0.6; font-weight: 500') }; });
+    const others = {};
+    dayOn.forEach((v, k) => { const o = owner(k); if (!v && o >= 0 && o !== ci) (others[o] = others[o] || []).push(DN[k]); });
+    const noteParts = Object.keys(others).map((o) => others[o].join(', ') + ' đang thuộc "' + strats[o].name + '"');
+    const dayNote = { show: noteParts.length > 0, text: noteParts.join('; ') + '. Chọn các ngày này sẽ chuyển chúng sang chiến lược đang sửa.' };
+
+    const slots = curS.slots;
+    const KEYS = ['c1', 'c2', 'x1', 'x2'];
+    const NAME = { c1: 'Sạc 1', c2: 'Sạc 2', x1: 'Xả 1', x2: 'Xả 2' };
+    const F = { chg: { start: '10:00', end: '14:00', soc: '80', pw: '3.000' }, dis: { start: '06:00', end: '08:00', soc: '40', pw: '4.000' } };
+    const isC = (k) => k[0] === 'c';
+    const COL = (chg) => chg ? '#e0700f' : '#149c4a';
+    const mins = (t) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+    const ranges = (a, b) => a < b ? [[a, b]] : [[a, 1440], [0, b]];
+    const free = (kind) => kind === 'chg' ? (!slots.c1 ? 'c1' : !slots.c2 ? 'c2' : null) : (!slots.x1 ? 'x1' : !slots.x2 ? 'x2' : null);
+    const sh = s.sheet;
+    const editing = sh && sh.mode === 'edit' ? sh.slot : null;
+
+    const segs = [];
+    KEYS.forEach((k) => { const v = slots[k]; if (!v) return;
+      ranges(mins(v.start), mins(v.end)).forEach(([a, b]) => segs.push({ style: 'position: absolute; top: 0; bottom: 0; left: ' + (a / 14.4).toFixed(3) + '%; width: ' + ((b - a) / 14.4).toFixed(3) + '%; background: ' + COL(isC(k)) + (editing && editing !== k ? '; opacity: 0.35' : '') })); });
+
+
+    const periods = KEYS.filter((k) => slots[k]).map((k) => ({ k, v: slots[k], a: mins(slots[k].start), b: mins(slots[k].end) })).sort((p, q) => p.a - q.a);
+    const dur = (a, b) => { const m = (b - a + 1440) % 1440; const h = Math.floor(m / 60), r = m % 60; return h + ' giờ' + (r ? ' ' + r + ' phút' : ''); };
+    const nC = periods.filter((p) => isC(p.k)).length, nX = periods.length - nC;
+    const parts = []; if (nC) parts.push(nC + ' lần sạc'); if (nX) parts.push(nX + ' lần xả');
+    const on = dayOn.map((v, i) => v ? i : -1).filter((i) => i >= 0);
+    const dayTxt = on.length === 7 ? 'Hằng ngày' : on.length === 0 ? 'chưa chọn ngày nào' : on.map((i) => DN[i]).join(', ');
+    const sum = { hasItems: periods.length > 0, warn: on.length === 0, days: dayTxt,
+      head: periods.length ? 'Lịch có ' + periods.length + ' giai đoạn trong ngày: ' + parts.join(', ') + '.' : 'Chưa có khung sạc hoặc xả nào. Hệ thống chạy như Tự tiêu thụ tối đa cả ngày.',
+      items: periods.map((p, i) => ({ label: String(i + 1), kind: isC(p.k) ? 'Sạc' : 'Xả', time: p.v.start + ' – ' + p.v.end,
+        note: '· ' + dur(p.a, p.b) + (p.b < p.a ? ', qua đêm' : ''),
+        dot: 'width: 8px; height: 8px; border-radius: 999px; flex-shrink: 0; background: ' + COL(isC(p.k)) })) };
+    const r = {};
+    KEYS.forEach((k) => { const v = slots[k];
+      r[k] = v ? { time: v.start + ' – ' + v.end, meta: 'SOC dừng ' + v.soc + ' % · tối đa ' + v.pw + ' W' + (isC(k) ? ' · nguồn: lưới' : ''), bar: 1, aria: 'Sửa khung ' + NAME[k],
+                   open: () => this.setState({ sheet: { mode: 'edit', slot: k, d: Object.assign({}, v) } }) }
+               : { time: 'Chưa đặt', meta: 'Chạm để thêm khung', bar: 0.35, aria: 'Thêm khung ' + NAME[k],
+                   open: () => this.setState({ sheet: { mode: 'add', kind: isC(k) ? 'chg' : 'dis', d: Object.assign({}, F[isC(k) ? 'chg' : 'dis']) } }) }; });
+
+    const add = () => { const kind = free('chg') || !free('dis') ? 'chg' : 'dis';
+      this.setState({ sheet: { mode: 'add', kind, d: Object.assign({}, F[kind]) } }); };
+
+    let shv = { open: false, d: { start: '', end: '', soc: '', pw: '' }, set: {}, kinds: [], title: '', color: '', isAdd: false, isEdit: false, isChg: false, hasErr: false, err: '', saveStyle: '' };
+    if (sh) {
+      const kind = sh.mode === 'edit' ? (isC(sh.slot) ? 'chg' : 'dis') : sh.kind;
+      const slot = sh.mode === 'edit' ? sh.slot : free(kind);
+      const d = sh.d;
+      const set = {};
+      ['start', 'end', 'soc', 'pw'].forEach((f) => { set[f] = (e) => this.setState({ sheet: Object.assign({}, sh, { d: Object.assign({}, d, { [f]: e.target.value }) }) }); });
+      const TM = /^([01]\d|2[0-3]):[0-5]\d$/;
+      const pwN = Number(String(d.pw).replace(/\./g, ''));
+      let err = '';
+      if (!slot) err = 'Đã đủ 2 khung ' + (kind === 'chg' ? 'sạc' : 'xả') + '. Hãy sửa hoặc xoá một khung có sẵn.';
+      else if (!TM.test(d.start) || !TM.test(d.end)) err = 'Giờ phải có dạng hh:mm, ví dụ 01:30.';
+      else if (d.start === d.end) err = 'Giờ kết thúc phải khác giờ bắt đầu.';
+      else if (!/^\d{1,3}$/.test(d.soc) || Number(d.soc) > 100) err = 'SOC dừng phải trong khoảng 0–100 %.';
+      else if (!/^[\d.]+$/.test(d.pw) || isNaN(pwN) || pwN > 12000) err = 'Công suất tối đa phải trong khoảng 0–12.000 W.';
+      else {
+        const mine = ranges(mins(d.start), mins(d.end));
+        const hit = KEYS.find((k) => k !== slot && slots[k] && ranges(mins(slots[k].start), mins(slots[k].end)).some(([a, b]) => mine.some(([c, e]) => c < b && a < e)));
+        if (hit) err = 'Trùng với ' + NAME[hit] + ' (' + slots[hit].start + ' – ' + slots[hit].end + '). Các khung không được chồng lấn.';
+      }
+      const fmt = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+      shv = { open: true, d, set,
+        title: sh.mode === 'edit' ? 'Sửa khung ' + NAME[slot] : 'Thêm khung giờ', color: COL(kind === 'chg'),
+        isAdd: sh.mode === 'add', isEdit: sh.mode === 'edit', isChg: kind === 'chg', hasErr: !!err, err,
+        kinds: [['chg', 'Khung sạc'], ['dis', 'Khung xả']].map(([id, label]) => { const on = id === kind;
+          return { label, pressed: on ? 'true' : 'false', pick: () => this.setState({ sheet: { mode: 'add', kind: id, d: Object.assign({}, F[id]) } }),
+            style: 'flex: 1 1 0; height: 36px; border: none; border-radius: 10px; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; ' + (on ? 'background: #ffffff; color: #13201b; box-shadow: 0 1px 2px rgba(19,32,27,0.06), 0 2px 8px rgba(19,32,27,0.05)' : 'background: transparent; color: #56625c') }; }),
+        saveStyle: 'flex: 2 1 0; height: 48px; border: none; border-radius: 10px; font-family: inherit; font-size: 15px; font-weight: 600; ' + (err ? 'background: #c9d1cb; color: #ffffff; cursor: not-allowed' : 'background: #0f7a3a; color: #ffffff; cursor: pointer'),
+        close: () => this.setState({ sheet: null }),
+        save: () => { if (err) return; this.setState({ sheet: null, strats: strats.map((x, i) => i === ci ? Object.assign({}, x, { slots: Object.assign({}, slots, { [slot]: { start: d.start, end: d.end, soc: String(Number(d.soc)), pw: fmt(pwN) } }) }) : x) }); },
+        del: () => this.setState({ sheet: null, strats: strats.map((x, i) => i === ci ? Object.assign({}, x, { slots: Object.assign({}, slots, { [sh.slot]: null }) }) : x) }) };
+    }
+
+    // danh sách chiến lược
+    const segOf = (sl) => { const out = []; KEYS.forEach((k) => { const v = sl[k]; if (!v) return;
+      ranges(mins(v.start), mins(v.end)).forEach(([a, b]) => out.push({ style: 'position: absolute; top: 0; bottom: 0; left: ' + (a / 14.4).toFixed(3) + '%; width: ' + ((b - a) / 14.4).toFixed(3) + '%; background: ' + COL(isC(k)) })); }); return out; };
+    const headOf = (sl) => { const ks = KEYS.filter((k) => sl[k]); const c = ks.filter(isC).length, x = ks.length - c; const p = []; if (c) p.push(c + ' lần sạc'); if (x) p.push(x + ' lần xả');
+      return ks.length ? ks.length + ' giai đoạn: ' + p.join(', ') + ' · ' + ks.map((k) => sl[k]).sort((m, n) => mins(m.start) - mins(n.start)).map((v) => v.start + '–' + v.end).join(', ') : 'Chưa có khung sạc hoặc xả'; };
+    const badge = (i, size) => 'width: ' + size + 'px; height: ' + size + 'px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; background: ' + SC[i] + '; color: #ffffff; font-size: ' + (size > 24 ? 14 : 11) + 'px; font-weight: 700; vertical-align: middle';
+    const daysOf = (d) => { const on2 = d.map((v, i) => v ? i : -1).filter((i) => i >= 0); return on2.length === 7 ? 'Hằng ngày' : on2.length ? on2.map((i) => DN[i]).join(', ') : 'Chưa gán ngày nào'; };
+    const cards = strats.map((x, i) => ({ letter: LET[i], name: x.name, days: daysOf(x.days), today: !!x.days[TODAY], badge: badge(i, 32),
+      segs: segOf(x.slots), head: headOf(x.slots), aria: 'Mở chiến lược ' + x.name, open: () => this.setState({ cur: x.id, sheet: null }) }));
+    const week = DN.map((d, k) => { const o = owner(k);
+      return { d, tag: o >= 0 ? LET[o] : '–',
+        dayStyle: 'font-size: 12px; line-height: 16px; font-weight: ' + (k === TODAY ? 700 : 500) + '; color: ' + (k === TODAY ? '#13201b' : '#56625c'),
+        tagStyle: 'width: 100%; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 12px; font-weight: 700; ' + (o >= 0 ? 'background: ' + SC[o] + '; color: #ffffff' : 'background: #eaeee8; color: #7f8b85') + (k === TODAY ? '; box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #13201b' : '') }; });
+    const free7 = DN.filter((d, k) => owner(k) < 0);
+    const unassigned = { show: free7.length > 0, text: free7.join(', ') + ' chưa có chiến lược, chạy như Tự tiêu thụ tối đa.' };
+    const addStrategy = () => { const used = strats.map((x) => x.id); const id = ['a', 'b', 'c', 'd'].find((z) => !used.includes(z));
+      this.setState({ strats: strats.concat([{ id, name: 'Chiến lược ' + LET[strats.length], days: [false, false, false, false, false, false, false], slots: { c1: null, c2: null, x1: null, x2: null } }]), cur: id }); };
+    const isDetail = idx >= 0;
+    const cur = { letter: LET[ci], badge: badge(ci, 22), canDelete: strats.length > 1,
+      remove: () => this.setState({ strats: strats.filter((x, i) => i !== ci), cur: null, sheet: null }) };
+    return { days, segs, r, add, sh: shv, sum, dayNote, cards, week, unassigned, addStrategy, canAdd: strats.length < 4, cur,
+      view: { list: !isDetail, detail: isDetail }, title: 'Lịch theo khung giờ', back: () => this.setState({ cur: null, sheet: null }) };
+  }
+}
+</script>
+</body>
+</html>

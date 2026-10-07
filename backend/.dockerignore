@@ -1,0 +1,8 @@
+**/bin
+**/obj
+.git
+tests
+tools
+deploy
+storage
+*.log

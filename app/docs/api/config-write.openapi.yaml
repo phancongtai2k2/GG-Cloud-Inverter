@@ -1,0 +1,725 @@
+openapi: 3.1.0
+info:
+  title: GGP Inverter — API ghi cấu hình
+  version: 0.2.0-draft
+  x-status: draft
+  description: |
+    **KHUNG NHÁP — chưa được Phòng EMS / backend duyệt.** Soạn 01/10/2026 theo ADR-001
+    (demo điều khiển thật có kiểm soát) và đặc tả v0.6 §16.1–16.4a, §16.8.
+    Tên endpoint, tên trường, mã lỗi trong file này là ĐỀ XUẤT. Các điểm cần chốt nằm ở
+    `docs/OPEN_QUESTIONS.md` (mục ngày 01/10/2026). Cho tới khi file này được duyệt,
+    app vẫn chỉ dùng `Fake…Repository`; file này dùng để thống nhất hình dạng dữ liệu.
+
+    **0.2.0 (02/10/2026, nháp):** thêm `ConfigSnapshot.settings` (tham số chỉ xem của màn 16) và
+    `initiator.display_name` (tên hiện ở Lịch sử thay đổi). Chờ backend duyệt như phần còn lại.
+
+    **Phạm vi:** chỉ phần ghi cấu hình và đọc cấu hình liên quan. Đăng nhập, dự án, realtime,
+    cảnh báo… chưa có hợp đồng (vẫn dùng Fake).
+
+    **Nguyên tắc (ADR-001):**
+    - App không ghi trực tiếp xuống inverter; chỉ gọi backend. UI chỉ đổi khi lệnh ở trạng thái `applied`.
+    - Chỉ 3 nhóm được ghi trong demo: `operating_mode`, `backup_soc`, `tou_schedule` (mọi vai trò A/B/C;
+      riêng chế độ `max_grid_export` chỉ cấp B và C — ADR-001 sửa đổi, ADR-002 mục 10).
+      Mọi tham số khác (dòng sạc, lưới, bảo vệ, DF00, BMS/Modbus/song song, điện áp/tần số ra) bị từ chối.
+    - Backend kiểm tra theo thứ tự ở bảng của `POST /config-commands` (vai trò, danh sách cho phép, serial demo,
+      công tắc tắt ghi, gateway online, BMS, khoá 00:00, giới hạn 1 lệnh / 5 s / thiết bị).
+    - Sau khi ghi, backend đọc lại (mã hàm 03) sau 3 s. Lệch thì hoàn về giá trị cũ.
+    - Mọi lệnh ghi lưu nhật ký 90 ngày.
+    - Lệnh hết hạn sau 30 s kể từ khi tạo: backend đưa về trạng thái cuối (`failed` hoặc `reverted`). `Idempotency-Key` lưu 24 giờ.
+    - Số khung tối đa 3 sạc + 3 xả (quyết 01/10/2026). Chiến lược bắt buộc có ít nhất 1 ngày (E225 không nhận giá trị 0).
+
+    **Mô hình tương tác:** ghi là bất đồng bộ. `POST /config-commands` trả `202` kèm lệnh; app hỏi lại
+    `GET /config-commands/{id}` (gợi ý mỗi 1 s) tới khi trạng thái là một trong `applied`, `reverted`, `failed`.
+    Các lỗi chặn ngay từ đầu (không có quyền, thiết bị chỉ xem, mất kết nối…) trả mã HTTP 4xx, không tạo lệnh.
+
+    **Văn bản hiển thị:** backend chỉ trả `code`; app tự dịch qua `strings.xml`.
+    Giờ trong payload là giờ + phút riêng; backend quy đổi sang `giờ × 256 + phút` (§16.4), app không tự mã hoá.
+servers:
+  - url: https://{host}/api/v1
+    description: Địa chỉ backend EMS chưa chốt
+    variables:
+      host:
+        default: chua-chot.example
+security:
+  - bearerAuth: []
+tags:
+  - name: Cấu hình
+    description: Đọc cấu hình và gửi lệnh ghi (app)
+  - name: Quản trị ghi
+    description: Công tắc tắt khẩn cấp và danh sách serial demo (Phòng EMS)
+paths:
+  /devices/{serial}/config:
+    get:
+      tags: [Cấu hình]
+      operationId: getDeviceConfig
+      summary: Đọc cấu hình hiện hành và quyền ghi của người gọi
+      description: |
+        Giá trị `mode`, `backup_soc_percent` là giá trị THẬT đọc từ inverter (mã hàm 03).
+        `write_access` cho app biết bật/tắt control nào; app không tự suy ra từ vai trò.
+      parameters:
+        - $ref: "#/components/parameters/Serial"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ConfigSnapshot" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "404": { $ref: "#/components/responses/DeviceNotFound" }
+  /devices/{serial}/config-commands:
+    post:
+      tags: [Cấu hình]
+      operationId: createConfigCommand
+      summary: Gửi một lệnh ghi cấu hình
+      description: |
+        Mỗi lệnh thuộc đúng một nhóm (`group`). Thứ tự kiểm tra và mã lỗi tương ứng:
+
+        | # | Kiểm tra | HTTP | `code` |
+        |---|---|---|---|
+        | 1 | Token hợp lệ | 401 | `UNAUTHENTICATED` |
+        | 2 | Thiết bị tồn tại và người gọi thuộc dự án | 404 | `DEVICE_NOT_FOUND` |
+        | 3 | Vai trò được phép đổi nhóm / giá trị này (`max_grid_export` chỉ cấp B, C) | 403 | `ROLE_NOT_PERMITTED` |
+        | 4 | Nhóm nằm trong danh sách cho phép của bản demo | 403 | `GROUP_NOT_IN_ALLOWLIST` |
+        | 5 | Serial nằm trong danh sách demo | 409 | `DEVICE_READ_ONLY` |
+        | 6 | Công tắc tắt ghi toàn cục đang bật ghi | 409 | `WRITE_DISABLED_BY_SERVER` |
+        | 7 | Gateway online (mất > 60 s thì khoá) | 409 | `GATEWAY_OFFLINE` |
+        | 7a | Pin có truyền thông BMS (chỉ nhóm `backup_soc`, vì E00F chỉ có hiệu lực khi có BMS) | 409 | `BMS_NOT_CONNECTED` |
+        | 8 | Payload hợp lệ | 400 | `VALIDATION_FAILED` |
+        | 9 | `based_on_version` còn khớp | 409 | `CONFIG_STALE` |
+        | 10 | Không có lệnh khác đang chạy trên thiết bị, kể cả lệnh hệ thống tự nạp lịch lúc 00:00 (khoá lệnh người dùng 00:00–00:01 giờ Asia/Ho_Chi_Minh) | 409 | `COMMAND_IN_PROGRESS` |
+        | 11 | Chưa vượt 1 lệnh / 5 s / thiết bị | 429 | `RATE_LIMITED` |
+
+        `Idempotency-Key` bắt buộc: gửi lại cùng khóa trong 24 giờ trả đúng lệnh đã tạo, không ghi lần hai.
+      parameters:
+        - $ref: "#/components/parameters/Serial"
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ConfigCommandRequest" }
+            examples:
+              backup_soc:
+                summary: Đổi SOC dự phòng lên 30 %
+                value: { group: backup_soc, based_on_version: "v-8f3a", soc_percent: 30 }
+              operating_mode:
+                summary: Chuyển sang Ưu tiên sạc pin
+                value: { group: operating_mode, based_on_version: "v-8f3a", mode: battery_priority }
+              tou_schedule:
+                summary: Một chiến lược "Ngày thường"
+                value:
+                  group: tou_schedule
+                  based_on_version: "v-8f3a"
+                  strategies:
+                    - id: 6f1c1d52-6a0e-4a65-9d57-0c1c1a1d0001
+                      name: Ngày thường
+                      weekdays: [mon, tue, wed, thu, fri]
+                      charge_slots:
+                        - { start: { hour: 22, minute: 0 }, end: { hour: 6, minute: 0 }, stop_soc_percent: 90, max_power_w: 3000 }
+                      discharge_slots:
+                        - { start: { hour: 18, minute: 0 }, end: { hour: 21, minute: 0 }, stop_soc_percent: 20, max_power_w: 5000 }
+      responses:
+        "202":
+          description: Đã nhận lệnh, đang xử lý. Hỏi lại bằng `GET` tại `Location`.
+          headers:
+            Location:
+              schema: { type: string }
+              description: Đường dẫn của lệnh vừa tạo
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ConfigCommand" }
+        "400": { $ref: "#/components/responses/ValidationFailed" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "403":
+          description: Không có quyền hoặc nhóm không được mở trong demo
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              examples:
+                role: { value: { code: ROLE_NOT_PERMITTED } }
+                allowlist: { value: { code: GROUP_NOT_IN_ALLOWLIST } }
+        "404": { $ref: "#/components/responses/DeviceNotFound" }
+        "409":
+          description: Trạng thái hiện tại không cho ghi
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              examples:
+                readOnly: { summary: App hiện "Thiết bị này chỉ xem", value: { code: DEVICE_READ_ONLY } }
+                switchOff: { value: { code: WRITE_DISABLED_BY_SERVER } }
+                offline: { summary: App hiện dải "Mất kết nối với hệ thống…", value: { code: GATEWAY_OFFLINE } }
+                bms: { summary: App vô hiệu thanh SOC dự phòng kèm chú thích, value: { code: BMS_NOT_CONNECTED } }
+                stale: { summary: App đọc lại cấu hình rồi cho người dùng xác nhận lại, value: { code: CONFIG_STALE, current_version: "v-91bc" } }
+                busy: { value: { code: COMMAND_IN_PROGRESS, command_id: 0b7f0d52-1c1b-4c34-9c0e-6e3f0a000002 } }
+        "422":
+          description: Cùng `Idempotency-Key` nhưng nội dung khác
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              examples:
+                reused: { value: { code: IDEMPOTENCY_KEY_REUSED } }
+        "429":
+          description: Quá 1 lệnh ghi / 5 s / thiết bị
+          headers:
+            Retry-After:
+              schema: { type: integer }
+              description: Số giây cần chờ
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              examples:
+                rate: { value: { code: RATE_LIMITED, retry_after_seconds: 3 } }
+    get:
+      tags: [Cấu hình]
+      operationId: listConfigCommands
+      summary: Lịch sử thay đổi (nhật ký giữ 90 ngày)
+      parameters:
+        - $ref: "#/components/parameters/Serial"
+        - name: from
+          in: query
+          schema: { type: string, format: date-time }
+        - name: to
+          in: query
+          schema: { type: string, format: date-time }
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+        - name: cursor
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK, mới nhất trước
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/ConfigCommand" }
+                  next_cursor: { type: [string, "null"] }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "404": { $ref: "#/components/responses/DeviceNotFound" }
+  /devices/{serial}/config-commands/{command_id}:
+    get:
+      tags: [Cấu hình]
+      operationId: getConfigCommand
+      summary: Trạng thái một lệnh ghi
+      description: App hỏi lại mỗi `poll_after_ms` cho tới khi `status` là trạng thái cuối.
+      parameters:
+        - $ref: "#/components/parameters/Serial"
+        - name: command_id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ConfigCommand" }
+              examples:
+                applied:
+                  summary: Đã áp dụng
+                  value:
+                    command_id: 0b7f0d52-1c1b-4c34-9c0e-6e3f0a000001
+                    device_serial: GGI5K2610001
+                    group: backup_soc
+                    status: applied
+                    initiator: { type: user, user_id: u-1024, role: owner }
+                    created_at: "2026-10-12T02:15:05Z"
+                    updated_at: "2026-10-12T02:15:12Z"
+                    changes:
+                      - { parameter: backup_soc_percent, register: E00F, old: 20, new: 30, readback: 30, readback_matched: true }
+                    outcome: { device_state: new }
+                reverted:
+                  summary: Đọc lại lệch, đã hoàn về
+                  value:
+                    command_id: 0b7f0d52-1c1b-4c34-9c0e-6e3f0a000003
+                    device_serial: GGI5K2610001
+                    group: operating_mode
+                    status: reverted
+                    initiator: { type: user, user_id: u-1024, role: owner }
+                    created_at: "2026-10-12T02:20:05Z"
+                    updated_at: "2026-10-12T02:20:13Z"
+                    changes:
+                      - { parameter: operating_mode, register: E039, old: self_consumption, new: battery_priority, readback: self_consumption, readback_matched: false }
+                    outcome: { device_state: old_restored }
+                    failure: { code: READBACK_MISMATCH }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "404": { $ref: "#/components/responses/DeviceNotFound" }
+  /admin/config-write-switch:
+    get:
+      tags: [Quản trị ghi]
+      operationId: getConfigWriteSwitch
+      summary: Trạng thái công tắc tắt ghi toàn cục
+      x-required-role: ggp_technician_with_write_admin_flag
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WriteSwitch" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+    put:
+      tags: [Quản trị ghi]
+      operationId: setConfigWriteSwitch
+      summary: Bật/tắt ghi cho toàn hệ thống (công tắc khẩn cấp)
+      description: |
+        Khi `enabled = false`, mọi lệnh ghi mới bị từ chối `WRITE_DISABLED_BY_SERVER` và app hiển thị như chỉ xem,
+        không cần phát hành bản mới. Lệnh đang chạy được chạy nốt và đọc lại; chỉ lệnh mới bị từ chối.
+      x-required-role: ggp_technician_with_write_admin_flag
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties:
+                enabled: { type: boolean }
+                reason: { type: string, maxLength: 200 }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WriteSwitch" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+  /admin/config-write-allowlist:
+    get:
+      tags: [Quản trị ghi]
+      operationId: listConfigWriteAllowlist
+      summary: Danh sách serial được ghi trong demo
+      x-required-role: ggp_technician_with_write_admin_flag
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/AllowlistEntry" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+  /admin/config-write-allowlist/{serial}:
+    parameters:
+      - $ref: "#/components/parameters/Serial"
+    put:
+      tags: [Quản trị ghi]
+      operationId: addConfigWriteAllowlist
+      summary: Thêm serial vào danh sách ghi (idempotent)
+      x-required-role: ggp_technician_with_write_admin_flag
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                note: { type: string, maxLength: 200 }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AllowlistEntry" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+    delete:
+      tags: [Quản trị ghi]
+      operationId: removeConfigWriteAllowlist
+      summary: Gỡ serial khỏi danh sách ghi
+      x-required-role: ggp_technician_with_write_admin_flag
+      responses:
+        "204": { description: Đã gỡ }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Cơ chế xác thực của backend chưa chốt; giả định JWT. Vai trò do backend cấp, nằm trong token hoặc tra theo dự án.
+  parameters:
+    Serial:
+      name: serial
+      in: path
+      required: true
+      schema: { type: string }
+      description: Serial inverter (ví dụ GGI5K2610001)
+  responses:
+    Unauthenticated:
+      description: Thiếu hoặc hết hạn token
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          example: { code: UNAUTHENTICATED }
+    Forbidden:
+      description: Không đủ quyền
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          example: { code: ROLE_NOT_PERMITTED }
+    DeviceNotFound:
+      description: Không có thiết bị này trong dự án của người gọi
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          example: { code: DEVICE_NOT_FOUND }
+    ValidationFailed:
+      description: Payload sai. `errors` liệt kê từng trường, theo thứ tự kiểm tra ở đặc tả v0.6 mục 5.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          example:
+            code: VALIDATION_FAILED
+            errors:
+              - { field: "strategies[0].charge_slots[1]", code: SLOT_OVERLAP }
+  schemas:
+    Role:
+      type: string
+      enum: [owner, distributor, ggp_technician]
+      description: "owner = cấp A (chủ hộ); distributor = cấp B (nhà phân phối); ggp_technician = cấp C (Phòng EMS). Xem §16.1. Endpoint /admin chỉ dành cho ggp_technician có thêm cờ quản trị ghi do backend gắn (quyết 01/10/2026), không có vai trò riêng."
+    WriteGroup:
+      type: string
+      enum: [operating_mode, backup_soc, tou_schedule]
+      description: Ba nhóm trong danh sách cho phép của ADR-001. Thêm nhóm mới phải sửa ADR trước.
+    OperatingMode:
+      type: string
+      enum: [self_consumption, battery_priority, max_grid_export, tou, gg_ai, unknown]
+      description: |
+        Giá trị đọc được. `gg_ai` (pha 2, đang khoá) chỉ xuất hiện khi đọc, không ghi được.
+        `unknown` khi tổ hợp thanh ghi không khớp bảng §16.2 (ví dụ E037=0 off-grid hoặc 4 ghép AC, hoặc E02C/E033 lệch nhau).
+    WritableOperatingMode:
+      type: string
+      enum: [self_consumption, battery_priority, max_grid_export, tou]
+      description: |
+        Ánh xạ thanh ghi (§16.2, §16.4a), do backend thực hiện:
+        `self_consumption` E039=0, E20F=0; `battery_priority` E039=1; `max_grid_export` E039=2, E037=1;
+        `tou` ghi E039=0, E20F=0 → lịch (khung, E04D, E225) → đọc lại → E02C/E033 theo số khung; rời `tou` ghi E02C=E033=0 cùng lượt.
+        `max_grid_export` chỉ cấp B và C (§16.5: chủ hộ không đổi chống phát ngược). Backend lưu giá trị E037 đọc được ngay
+        trước lệnh (thường 2 hoặc 3) và KHÔNG BAO GIỜ ghi E037=0 (0 là off-grid): khi rời chế độ này, khôi phục đúng giá trị đã lưu.
+        Đang ở `gg_ai` vẫn được chuyển sang bất kỳ chế độ nào ở đây; SOC và lịch TOU vẫn sửa được.
+    TimeOfDay:
+      type: object
+      required: [hour, minute]
+      properties:
+        hour: { type: integer, minimum: 0, maximum: 23 }
+        minute: { type: integer, minimum: 0, maximum: 59 }
+    Weekday:
+      type: string
+      enum: [mon, tue, wed, thu, fri, sat, sun]
+    TouSlot:
+      type: object
+      required: [start, end, stop_soc_percent, max_power_w]
+      description: |
+        Khung có thể qua nửa đêm (start > end). Hai khung bất kỳ không được chồng lấn; chạm mép không tính là trùng.
+        Khung sạc luôn lấy điện từ lưới (E04D), không có trường nguồn.
+      properties:
+        start: { $ref: "#/components/schemas/TimeOfDay" }
+        end: { $ref: "#/components/schemas/TimeOfDay" }
+        stop_soc_percent: { type: integer, minimum: 0, maximum: 100 }
+        max_power_w: { type: integer, minimum: 0, maximum: 12000 }
+    TouStrategy:
+      type: object
+      required: [id, name, weekdays, charge_slots, discharge_slots]
+      description: |
+        Một bộ khung sạc/xả kèm các thứ áp dụng. Inverter chỉ giữ MỘT bộ khung và một mặt nạ ngày (E225),
+        nên backend nạp chiến lược của ngày hiện tại và nạp lại lúc 00:00 khi ngày mới thuộc chiến lược khác.
+      properties:
+        id: { type: string, format: uuid, description: App sinh khi tạo chiến lược mới }
+        name: { type: string, minLength: 1, maxLength: 40 }
+        weekdays:
+          type: array
+          uniqueItems: true
+          items: { $ref: "#/components/schemas/Weekday" }
+          minItems: 1
+          description: Ít nhất 1 ngày (chặn Lưu khi không chọn ngày; E225 không nhận 0). Mỗi thứ chỉ thuộc một chiến lược.
+        charge_slots:
+          type: array
+          maxItems: 3
+          items: { $ref: "#/components/schemas/TouSlot" }
+          description: Tối đa 3 (quyết 01/10/2026, M10). Prototype đang 2, phải sửa.
+        discharge_slots:
+          type: array
+          maxItems: 3
+          items: { $ref: "#/components/schemas/TouSlot" }
+    ConfigSnapshot:
+      type: object
+      required: [device_serial, version, read_at, mode, backup_soc_percent, strategies, write_access]
+      properties:
+        device_serial: { type: string }
+        version:
+          type: string
+          description: Mã mờ đổi mỗi khi một giá trị trong danh sách cho phép đổi (kể cả đổi ở màn LCD). Gửi lại ở `based_on_version`.
+        read_at: { type: string, format: date-time }
+        mode: { $ref: "#/components/schemas/OperatingMode" }
+        backup_soc_percent: { type: integer, minimum: 5, maximum: 100, multipleOf: 5 }
+        strategies:
+          type: array
+          maxItems: 4
+          items: { $ref: "#/components/schemas/TouStrategy" }
+        today_strategy_id:
+          type: [string, "null"]
+          format: uuid
+          description: Chiến lược áp dụng hôm nay (giờ Asia/Ho_Chi_Minh); null nếu hôm nay chạy như Tự tiêu thụ tối đa
+        write_access: { $ref: "#/components/schemas/WriteAccess" }
+        settings: { $ref: "#/components/schemas/DeviceSettings" }
+    DeviceSettings:
+      type: object
+      description: |
+        Tham số CHỈ XEM của màn 16 (ngoài danh sách cho phép của ADR-001), đọc thật từ inverter (mã hàm 03).
+        Giá trị dạng mã giữ nguyên số của thanh ghi; app tự đặt tên theo đặc tả §16.3–16.7.
+        Trường nào backend chưa đọc được thì bỏ (app hiện "—"). Thêm 0.2.0, nháp.
+      properties:
+        battery_capacity_kwh: { type: number, description: Dung lượng pin danh định, để ước tính giờ dự phòng (§16.3) }
+        average_load_kw_7d: { type: number, description: Tải trung bình 7 ngày gần nhất (§16.3) }
+        stop_charge_soc_percent: { type: integer, description: E01D StopChgSocSet }
+        low_soc_alarm_percent: { type: integer, description: E01E BatSocLowAlarm }
+        switch_to_grid_soc_percent: { type: integer, description: E01F BatSocSwToLine }
+        max_charge_current_a: { type: number, description: E20A MaxChgCurr (bước 0,1 A) }
+        bms_charge_limit_a: { type: [number, "null"], description: Giới hạn dòng sạc BMS đang áp dụng; null khi không có truyền thông BMS }
+        grid_charge_current_a: { type: integer, description: E205 IbattLineChgLimit }
+        charge_limit_mode: { type: integer, enum: [0, 1, 2], description: E025 BMSChgLCMode }
+        grid_work_mode: { type: integer, minimum: 0, maximum: 4, description: E037 InvToGridEn }
+        zero_export_w: { type: integer, description: E42C ZeroExportPower }
+        max_line_power_w: { type: integer, description: E21D MaxLinePower }
+        output_voltage_v: { type: integer, description: "E208 OutputVoltSet (chỉ trả cho cấp C)" }
+        output_frequency_hz: { type: integer, description: "E209 OutputFreqSet (chỉ trả cho cấp C)" }
+        protection:
+          type: object
+          properties:
+            auto_restart_overload: { type: boolean, description: E20D AutoRestartOvLoad }
+            auto_restart_overtemp: { type: boolean, description: E20E AutoRestartOvTemper }
+            stop_on_bms_loss: { type: boolean, description: E214 BmsErrStopEnable }
+            alarm_enabled: { type: boolean, description: E210 AlarmEnable }
+            power_saving: { type: boolean, description: E20C PowerSavingMode }
+        bms_comm: { type: integer, enum: [0, 1, 2], description: "E215 BmsCommEnable (chỉ trả cho cấp C)" }
+        bms_protocol: { type: string, description: "E21B Rs485BmsProtocol, mã theo tài liệu SRNE (chỉ trả cho cấp C)" }
+        modbus_address: { type: integer, minimum: 1, maximum: 254, description: "E200 Rs485AddrSet (chỉ trả cho cấp C)" }
+        parallel_mode: { type: integer, description: "E201 ParallMode: 0 độc lập, 1 một pha, 5–7 ba pha (chỉ trả cho cấp C)" }
+    WriteAccess:
+      type: object
+      required: [state, role, writable_groups]
+      properties:
+        state:
+          type: string
+          enum: [enabled, device_read_only, disabled_by_server, gateway_offline]
+          description: |
+            `enabled` cho ghi; `device_read_only` serial không thuộc danh sách demo ("Thiết bị này chỉ xem");
+            `disabled_by_server` công tắc khẩn cấp đang tắt ghi; `gateway_offline` mất kết nối > 60 s.
+        role: { $ref: "#/components/schemas/Role" }
+        writable_groups:
+          type: array
+          items: { $ref: "#/components/schemas/WriteGroup" }
+          description: Giao của vai trò và danh sách cho phép, trừ nhóm trong `blocked_groups`. Rỗng khi `state` khác `enabled`. Control ngoài danh sách này bị vô hiệu.
+        blocked_groups:
+          type: array
+          description: Nhóm thuộc vai trò và danh sách cho phép nhưng đang bị chặn tạm thời (hiện chỉ do thiếu BMS). App vô hiệu control kèm chú thích theo `reason`.
+          items:
+            type: object
+            required: [group, reason]
+            properties:
+              group: { $ref: "#/components/schemas/WriteGroup" }
+              reason: { type: string, enum: [BMS_NOT_CONNECTED] }
+        writable_modes:
+          type: array
+          items: { $ref: "#/components/schemas/WritableOperatingMode" }
+          description: |
+            Chế độ vai trò này được chọn. Cấp A không có `max_grid_export`; app ẩn thẻ đó (ADR-002 mục 10).
+            Là quyền theo vai trò: KHÔNG bị làm rỗng khi `state` khác `enabled` (khác `writable_groups`), để app vẫn
+            hiện đúng các thẻ (bị khoá) khi mất kết nối / chỉ xem / tắt ghi (quyết 02/10/2026).
+    ConfigCommandRequest:
+      description: Chọn theo `group`
+      oneOf:
+        - $ref: "#/components/schemas/OperatingModeCommand"
+        - $ref: "#/components/schemas/BackupSocCommand"
+        - $ref: "#/components/schemas/TouScheduleCommand"
+      discriminator:
+        propertyName: group
+        mapping:
+          operating_mode: "#/components/schemas/OperatingModeCommand"
+          backup_soc: "#/components/schemas/BackupSocCommand"
+          tou_schedule: "#/components/schemas/TouScheduleCommand"
+    CommandBase:
+      type: object
+      required: [group, based_on_version]
+      properties:
+        based_on_version:
+          type: string
+          description: "`version` của ConfigSnapshot mà người dùng đã thấy khi xác nhận \"giá trị cũ → giá trị mới\""
+    OperatingModeCommand:
+      allOf:
+        - $ref: "#/components/schemas/CommandBase"
+        - type: object
+          required: [group, mode]
+          properties:
+            group: { const: operating_mode }
+            mode: { $ref: "#/components/schemas/WritableOperatingMode" }
+    BackupSocCommand:
+      allOf:
+        - $ref: "#/components/schemas/CommandBase"
+        - type: object
+          required: [group, soc_percent]
+          properties:
+            group: { const: backup_soc }
+            soc_percent: { type: integer, minimum: 5, maximum: 100, multipleOf: 5 }
+    TouScheduleCommand:
+      allOf:
+        - $ref: "#/components/schemas/CommandBase"
+        - type: object
+          required: [group, strategies]
+          description: |
+            Thay toàn bộ danh sách chiến lược (tối đa 4). Backend lưu cả danh sách; chỉ chiến lược áp dụng hôm nay
+            được nạp xuống inverter (E026–E04D, E225) theo thứ tự §16.4a: ghi lịch → đọc lại → bật E02C/E033.
+            E04D: backend chỉ bật bit sạc từ lưới cho từng khung sạc đã đặt, không bật bit máy phát.
+            Chỉ ghi xuống inverter khi chế độ hiện tại là `tou`; ngoài ra chỉ lưu ở backend và nạp khi vào `tou`
+            (kết quả có `outcome.device_written = false`). Ngày không thuộc chiến lược nào: lúc 00:00 backend ghi E02C=E033=0.
+          properties:
+            group: { const: tou_schedule }
+            strategies:
+              type: array
+              maxItems: 4
+              items: { $ref: "#/components/schemas/TouStrategy" }
+    CommandStatus:
+      type: string
+      enum: [queued, writing, verifying, reverting, applied, reverted, failed]
+      description: |
+        Đang chạy: `queued`, `writing`, `verifying` (đọc lại sau 3 s), `reverting`.
+        Trạng thái cuối: `applied` (UI đổi sang giá trị mới), `reverted` (đọc lại lệch hoặc ghi dở, đã hoàn về giá trị cũ),
+        `failed` (không thực hiện được; xem `outcome.device_state`).
+    ConfigCommand:
+      type: object
+      required: [command_id, device_serial, group, status, initiator, created_at, updated_at]
+      properties:
+        command_id: { type: string, format: uuid }
+        device_serial: { type: string }
+        group: { $ref: "#/components/schemas/WriteGroup" }
+        status: { $ref: "#/components/schemas/CommandStatus" }
+        initiator:
+          type: object
+          required: [type]
+          properties:
+            type: { type: string, enum: [user, system], description: "`system` = backend tự nạp lịch lúc 00:00 hoặc tự hoàn về" }
+            user_id: { type: string }
+            display_name: { type: string, description: "Tên hiện ở Lịch sử thay đổi (ví dụ \"Michael Demo\", \"Đại lý Solar Hưng Yên\"); không có khi `type = system`" }
+            role: { $ref: "#/components/schemas/Role" }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+        poll_after_ms:
+          type: integer
+          description: Gợi ý thời gian hỏi lại (1000); chỉ có khi chưa ở trạng thái cuối
+        expires_at:
+          type: string
+          format: date-time
+          description: created_at + 30 s. Quá hạn mà chưa ở trạng thái cuối thì backend tự chuyển sang `failed` hoặc `reverted`.
+        changes:
+          type: array
+          description: Từng tham số đổi, dùng cho nhật ký và hộp xác nhận
+          items: { $ref: "#/components/schemas/Change" }
+        outcome:
+          type: object
+          description: Chỉ có ở trạng thái cuối
+          required: [device_state]
+          properties:
+            device_written:
+              type: boolean
+              description: false khi lệnh chỉ lưu ở backend (sửa lịch TOU lúc chế độ khác `tou`); khi đó `device_state` là `old_unchanged`.
+            device_state:
+              type: string
+              enum: [new, old_restored, old_unchanged, unknown]
+              description: |
+                Giá trị đang chạy trên inverter: `new` (đã áp dụng); `old_restored` (hoàn về và đã đọc lại xác nhận);
+                `old_unchanged` (chưa ghi gì); `unknown` (hoàn về thất bại hoặc ack không rõ — app phải đọc lại cấu hình
+                và báo người dùng).
+        failure:
+          type: object
+          description: Có khi `status` là `reverted` hoặc `failed`
+          required: [code]
+          properties:
+            code:
+              type: string
+              enum: [READBACK_MISMATCH, ACK_TIMEOUT, GATEWAY_OFFLINE, GATEWAY_ERROR, MODBUS_EXCEPTION]
+              description: App chỉ hiện một thông báo chung "Thiết bị từ chối thay đổi, thử lại sau" cho MODBUS_EXCEPTION; mã chi tiết `modbus_exception` chỉ dùng cho nhật ký (quyết 01/10/2026).
+            modbus_exception: { type: integer, description: "Mã lỗi Modbus 0x01–0x0B (bảng lỗi SRNE V2.11), chỉ khi MODBUS_EXCEPTION" }
+    Change:
+      type: object
+      required: [parameter, old, new]
+      properties:
+        parameter: { type: string, description: "Tên tham số logic, ví dụ operating_mode, backup_soc_percent, tou.charge_1.start" }
+        register: { type: [string, "null"], description: "Thanh ghi SRNE, ví dụ E00F. Chỉ để tra cứu, app không dùng." }
+        old: { description: Giá trị backend đọc được ngay trước khi ghi }
+        new: { description: Giá trị yêu cầu }
+        readback: { description: Giá trị đọc lại sau khi ghi; null nếu chưa đọc }
+        readback_matched: { type: [boolean, "null"] }
+    WriteSwitch:
+      type: object
+      required: [enabled, changed_at]
+      properties:
+        enabled: { type: boolean }
+        reason: { type: string }
+        changed_by: { type: string }
+        changed_at: { type: string, format: date-time }
+    AllowlistEntry:
+      type: object
+      required: [serial, added_at]
+      properties:
+        serial: { type: string }
+        note: { type: string }
+        added_by: { type: string }
+        added_at: { type: string, format: date-time }
+    FieldError:
+      type: object
+      required: [field, code]
+      properties:
+        field: { type: string, description: Đường dẫn tới trường lỗi }
+        code:
+          type: string
+          enum:
+            - SLOT_LIMIT_REACHED
+            - TIME_FORMAT_INVALID
+            - END_EQUALS_START
+            - SOC_OUT_OF_RANGE
+            - SOC_STEP_INVALID
+            - POWER_OUT_OF_RANGE
+            - SLOT_OVERLAP
+            - STRATEGY_LIMIT_REACHED
+            - WEEKDAY_CONFLICT
+            - WEEKDAY_REQUIRED
+            - NAME_INVALID
+            - MODE_NOT_WRITABLE
+    Error:
+      type: object
+      required: [code]
+      properties:
+        code:
+          type: string
+          enum:
+            - UNAUTHENTICATED
+            - ROLE_NOT_PERMITTED
+            - GROUP_NOT_IN_ALLOWLIST
+            - DEVICE_NOT_FOUND
+            - DEVICE_READ_ONLY
+            - WRITE_DISABLED_BY_SERVER
+            - GATEWAY_OFFLINE
+            - BMS_NOT_CONNECTED
+            - VALIDATION_FAILED
+            - CONFIG_STALE
+            - COMMAND_IN_PROGRESS
+            - IDEMPOTENCY_KEY_REUSED
+            - RATE_LIMITED
+        errors:
+          type: array
+          items: { $ref: "#/components/schemas/FieldError" }
+          description: Chỉ có khi VALIDATION_FAILED
+        retry_after_seconds: { type: integer, description: Chỉ có khi RATE_LIMITED }
+        current_version: { type: string, description: Chỉ có khi CONFIG_STALE }
+        command_id: { type: string, format: uuid, description: Chỉ có khi COMMAND_IN_PROGRESS }

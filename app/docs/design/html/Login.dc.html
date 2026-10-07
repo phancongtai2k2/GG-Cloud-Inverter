@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Đăng nhập</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;font-family:Montserrat,system-ui,-apple-system,"Segoe UI",sans-serif;background:#f5f7f3;color:#13201b}
+a{color:#0f7a3a}a:hover{color:#0b6630}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:none;box-shadow:0 0 0 2px #ffffff,0 0 0 4px #0f7a3a}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; display: flex; flex-direction: column; background: #f5f7f3; color: #13201b; font-family: Montserrat, system-ui, sans-serif; overflow: hidden">
+
+<main style="flex-grow: 1; display: flex; flex-direction: column; padding: 48px 20px 32px; gap: 32px">
+<div style="display: flex; flex-direction: column; gap: 24px">
+<img src="assets/logo_gg_power.png" alt="GG Power" style="width: 180px; height: 71px; object-fit: contain; display: block">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<h1 style="margin: 0; font-size: 32px; line-height: 40px; font-weight: 700; letter-spacing: -0.01em">Đăng nhập</h1>
+<p style="margin: 0; font-size: 15px; line-height: 24px; color: #56625c">Theo dõi điện mặt trời, pin lưu trữ và tiền điện tiết kiệm của bạn.</p>
+</div>
+</div>
+<form style="display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<label for="acc" style="font-size: 13px; line-height: 16px; font-weight: 600">Email hoặc số điện thoại</label>
+<input id="acc" type="text" autocomplete="username" placeholder="0912 345 678" style="height: 52px; box-sizing: border-box; padding: 0 16px; border: 1px solid #7f8b85; border-radius: 10px; background: #ffffff; font-family: inherit; font-size: 15px; color: #13201b">
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<label for="pw" style="font-size: 13px; line-height: 16px; font-weight: 600">Mật khẩu</label>
+<div style="position: relative; display: flex">
+<input id="pw" type="password" autocomplete="current-password" value="matkhau123" style="flex-grow: 1; height: 52px; box-sizing: border-box; padding: 0 52px 0 16px; border: 1px solid #7f8b85; border-radius: 10px; background: #ffffff; font-family: inherit; font-size: 15px; color: #13201b">
+<button type="button" aria-label="Hiện mật khẩu" style="position: absolute; right: 2px; top: 2px; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; color: #56625c; border-radius: 10px; cursor: pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
+</div>
+</div>
+<div style="display: flex; justify-content: flex-end">
+<a href="ForgotPassword.dc.html" style="font-size: 13px; line-height: 20px; font-weight: 600; padding: 12px 0">Quên mật khẩu?</a>
+</div>
+<a href="Projects.dc.html" style="height: 52px; display: flex; align-items: center; justify-content: center; border-radius: 10px; background: #0f7a3a; color: #ffffff; font-size: 15px; font-weight: 600; text-decoration: none">Đăng nhập</a>
+<div style="display: flex; align-items: center; gap: 12px; color: #56625c; font-size: 12px; font-weight: 500">
+<span style="flex-grow: 1; height: 1px; background: #d9dfd8"></span>hoặc<span style="flex-grow: 1; height: 1px; background: #d9dfd8"></span>
+</div>
+<a href="QRScan.dc.html" style="height: 52px; display: flex; align-items: center; justify-content: center; gap: 8px; border-radius: 10px; border: 1px solid #7f8b85; background: #ffffff; color: #13201b; font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer; text-decoration: none"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><rect x="3.5" y="3.5" width="6" height="6" rx="1"></rect><rect x="14.5" y="3.5" width="6" height="6" rx="1"></rect><rect x="3.5" y="14.5" width="6" height="6" rx="1"></rect><path d="M14.5 14.5h2v2M20.5 14.5v6h-6M17.5 18.5v2"></path></svg>Thêm thiết bị bằng mã QR</a>
+</form>
+<div style="flex-grow: 1"></div>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 16px">
+<p style="margin: 0; font-size: 13px; line-height: 20px; color: #56625c">Chưa có tài khoản? <a href="Register.dc.html" style="font-weight: 600">Đăng ký</a></p>
+<span style="font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: 0.2em; color: #0f7a3a">GO GREEN GO GLOBAL</span>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview": {"width": 390, "height": 844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

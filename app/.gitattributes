@@ -1,0 +1,6 @@
+# Script shell phải giữ LF để chạy được trên Linux/macOS và Git Bash.
+gradlew text eol=lf
+*.bat text eol=crlf
+*.jar binary
+*.ttf binary
+*.png binary

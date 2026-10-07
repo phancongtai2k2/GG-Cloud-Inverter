@@ -1,0 +1,24 @@
+# Gradle / Android
+.gradle/
+build/
+/local.properties
+/captures
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+
+# IDE
+.idea/
+*.iml
+.DS_Store
+
+# Ký APK và bí mật (quy trình B0/B8) — không bao giờ commit
+keystore/
+*.jks
+*.keystore
+keystore.properties
+secrets.properties
+
+# File khoá tạm của Word / Excel khi đang mở tài liệu
+~$*

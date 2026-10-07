@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Màn 18 khi chưa có quyền camera (BO_SUNG §24). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:viewportWidth="24" android:viewportHeight="24" android:width="32dp" android:height="32dp">
+    <path android:pathData="M3,3l18,18M9.5,5.5h5l1.5,2h3a2,2 0,0 1,2 2v7.5M17,19.5H5a2,2 0,0 1,-2 -2v-8a2,2 0,0 1,2 -2h2M9.9,10.4a3,3 0,0 0,4.2 4.2" android:strokeWidth="1.75" android:strokeColor="#FF000000" android:strokeLineCap="round" android:strokeLineJoin="round" android:fillColor="#00000000" />
+</vector>
