@@ -16,8 +16,3 @@ Firmware của datalogger nằm ở kho riêng và không thuộc kho này.
   [`backend/docs/SECURITY.md`](backend/docs/SECURITY.md).
 - App: xem [`app/README.md`](app/README.md). Địa chỉ backend cho flavor `live` đặt trong `app/local.properties`
   (`ggp.api.baseUrl.live=...`), tệp này không nằm trong kho.
-
-## Không đưa vào kho
-
-Mật khẩu, khoá ký, tệp `.env`, `local.properties`, `keystore.properties`, địa chỉ máy chủ thật và số serial thiết bị
-thật. Mẫu cấu hình nằm ở `backend/.env.example` và `backend/deploy/.env.example`.
