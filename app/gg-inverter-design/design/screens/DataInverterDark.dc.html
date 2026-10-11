@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="vi" style="color-scheme: dark">
+<head>
+<meta charset="utf-8">
+<title>Theo dõi dữ liệu – Inverter</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&amp;display=swap">
+<style>
+html,body{scrollbar-width:none}html::-webkit-scrollbar,body::-webkit-scrollbar,*::-webkit-scrollbar{display:none;width:0;height:0}
+body{margin:0;font-family:Montserrat,system-ui,-apple-system,"Segoe UI",sans-serif;background:#0c1612;color:#eef3ef}
+a{color:#34c26f}a:hover{color:#5bd68c}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:none;box-shadow:0 0 0 2px #0c1612,0 0 0 4px #34c26f}
+</style>
+</helmet>
+<div style="width: 390px; height: 1600px; box-sizing: border-box; position: relative; display: flex; flex-direction: column; background: #0c1612; color: #eef3ef; font-family: Montserrat, system-ui, sans-serif; overflow: hidden">
+<header style="height: 64px; flex-shrink: 0; display: flex; align-items: center; gap: 4px; padding: 0 8px 0 4px"><a href="DeviceDark.dc.html" aria-label="Quay lại" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 999px; color: #eef3ef; text-decoration: none"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M19 12H5M11 6l-6 6 6 6"></path></svg></a><h1 style="margin: 0; flex-grow: 1; font-size: 22px; line-height: 28px; font-weight: 600">Theo dõi dữ liệu</h1><button type="button" aria-label="Làm mới" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border: none; border-radius: 999px; background: transparent; color: #eef3ef; cursor: pointer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M20 11a8 8 0 1 0-2.3 5.7"></path><path d="M20 5v6h-6"></path></svg></button></header>
+<div style="flex-shrink: 0; display: flex; align-items: center; gap: 10px; padding: 0 20px 10px"><span style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 16px; line-height: 22px; font-weight: 600">Inverter hybrid 5 kW</span><span style="font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; line-height: 16px; color: #9fada6">SN GGI5K-25031501 · cập nhật 3 giây trước</span></span><span style="display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 6px; background: #12301f; color: #34c26f; font-size: 12px; line-height: 16px; font-weight: 600; white-space: nowrap; flex-shrink: 0"><span style="width: 6px; height: 6px; border-radius: 999px; background: #178a47"></span>Online</span></div>
+<main style="flex-grow: 1; display: grid; grid-template-columns: minmax(0, 1fr); grid-auto-rows: max-content; align-content: start; gap: 12px; padding: 0 20px 24px; overflow: hidden">
+<h2 style="margin: 0 0; padding: 0 4px; font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #9fada6">Tổng quan</h2>
+<section style="background: #15221d; border-radius: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.18); padding: 4px 16px"><sc-for list="{{rows_ov}}" as="r" hint-placeholder-count="6"><div style="{{r.rowStyle}}"><span style="{{r.kStyle}}">{{r.k}}</span><span style="{{r.vStyle}}">{{r.v}}</span></div></sc-for></section>
+<h2 style="margin: 8px 0 0; padding: 0 4px; font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #9fada6">PV</h2>
+<section style="background: #15221d; border-radius: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.18); padding: 4px 16px"><sc-for list="{{rows_pv}}" as="r" hint-placeholder-count="6"><div style="{{r.rowStyle}}"><span style="{{r.kStyle}}">{{r.k}}</span><span style="{{r.vStyle}}">{{r.v}}</span></div></sc-for></section>
+<h2 style="margin: 8px 0 0; padding: 0 4px; font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #9fada6">Lưới & tải</h2>
+<section style="background: #15221d; border-radius: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.18); padding: 4px 16px"><sc-for list="{{rows_grid}}" as="r" hint-placeholder-count="6"><div style="{{r.rowStyle}}"><span style="{{r.kStyle}}">{{r.k}}</span><span style="{{r.vStyle}}">{{r.v}}</span></div></sc-for></section>
+<h2 style="margin: 8px 0 0; padding: 0 4px; font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #9fada6">Nhiệt độ</h2>
+<section style="background: #15221d; border-radius: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.18); padding: 4px 16px"><sc-for list="{{rows_temp}}" as="r" hint-placeholder-count="6"><div style="{{r.rowStyle}}"><span style="{{r.kStyle}}">{{r.k}}</span><span style="{{r.vStyle}}">{{r.v}}</span></div></sc-for></section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview": {"width": 390, "height": 1600}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const __zs = this.state || {};
+    const ZM = (id, o) => {
+      const zmax = Math.max.apply(null, o.levels || [1, 2, 4, 8]);
+      const z = Math.max(1, Math.min(zmax, Number(__zs['z_' + id]) || 1));
+      const f0 = Math.max(0, Math.min(1 - 1 / z, __zs['f_' + id] || 0));
+      const X0 = o.x0 || 0, R = o.r || 0;
+      const G = (this.__pz = this.__pz || {}); const g = (G[id] = G[id] || { p: {}, st: null });
+      const pts = () => Object.values(g.p);
+      const begin = (rect) => { const a = pts(); if (a.length !== 2) { g.st = null; return; }
+        const W = rect.width - X0 - R; const mid = (a[0] + a[1]) / 2 - rect.left - X0;
+        g.st = { d: Math.max(8, Math.abs(a[0] - a[1])), W, left: rect.left, z, fa: f0 + (mid / W) / z }; };
+      const raw = String(o.winLabel(z)).replace(/\d+(\.\d+)?/, (m) => { const v = Number(m); return (Math.abs(v - Math.round(v)) < 0.05 ? String(Math.round(v)) : v.toFixed(1)).replace('.', ','); });
+      return { z, f0, f1: f0 + 1 / z, label: raw,
+        pd: (e) => { g.p[e.pointerId] = e.clientX; begin(e.currentTarget.getBoundingClientRect()); },
+        pm: (e) => { if (g.p[e.pointerId] == null) return; g.p[e.pointerId] = e.clientX; const st = g.st; if (!st) return;
+          const a = pts(); if (a.length !== 2) return;
+          const d = Math.max(8, Math.abs(a[0] - a[1])); const nz = Math.max(1, Math.min(zmax, st.z * d / st.d));
+          const mid = (a[0] + a[1]) / 2 - st.left - X0; const nf = Math.max(0, Math.min(1 - 1 / nz, st.fa - (mid / st.W) / nz));
+          this.setState({ ['z_' + id]: nz, ['f_' + id]: nf }); },
+        pu: (e) => { if (g.p[e.pointerId] == null) return; delete g.p[e.pointerId]; g.st = null; },
+        reset: () => this.setState({ ['z_' + id]: 1, ['f_' + id]: 0 }),
+        pillStyle: (z > 1.02 ? 'display: inline-flex' : 'display: none') + '; align-items: center; gap: 6px; height: 26px; padding: 0 8px 0 10px; border: 1px solid #1f4a30; border-radius: 999px; background: #12301f; color: #34c26f; font-family: inherit; font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums; cursor: pointer; flex-shrink: 0; white-space: nowrap' };
+    };
+    const ZT = (zz, span, steps, fmt, X0, W, CW) => {
+      const t0 = zz.f0 * span, t1 = zz.f1 * span; const asc = steps.slice().sort((x, y) => x - y); let st = asc[asc.length - 1];
+      for (const c of asc) { if ((t1 - t0) / c <= 4.01) { st = c; break; } }
+      const out = [];
+      for (let t = Math.ceil(t0 / st - 1e-9) * st; t <= t1 + 1e-6; t += st) {
+        const x = X0 + (t - t0) / (t1 - t0) * W;
+        const tr = x < 14 ? 'none' : (x > CW - 14 ? 'translateX(-100%)' : 'translateX(-50%)');
+        out.push({ label: fmt(t), style: 'position: absolute; top: 0; left: ' + x.toFixed(1) + 'px; transform: ' + tr + '; font-size: 11px; line-height: 14px; font-weight: 500; color: #9fada6; white-space: nowrap; font-variant-numeric: tabular-nums' });
+      }
+      return out;
+    };
+    const ZHM = (t) => { const h = Math.floor(t / 60), m = Math.round(t % 60); return m === 0 ? h + 'h' : (h < 10 ? '0' : '') + h + ':' + (m < 10 ? '0' : '') + m; };
+    const seg = (cur, key, list, fs) => list.map(([id, label]) => { const on = id === cur;
+      return { label, pressed: on ? 'true' : 'false', pick: () => this.setState({ [key]: id }),
+        style: 'flex: 1 1 0; min-width: 0; height: 36px; padding: 0 4px; border: none; border-radius: 10px; font-family: inherit; font-size: ' + (fs || 13) + 'px; font-weight: 600; white-space: nowrap; cursor: pointer; ' + (on ? 'background: #1c2b25; color: #eef3ef; box-shadow: 0 1px 2px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.18)' : 'background: transparent; color: #9fada6') }; });
+    const s = this.state || {};
+    const nz = (t) => Math.sin(t * 0.37) * Math.sin(t * 0.11);
+    const tod = (t) => t % 1440, dayk = (t) => Math.floor(t / 1440);
+    const sun = (t) => { const m = tod(t); return m < 360 || m > 1080 ? 0 : Math.pow(Math.sin(Math.PI * (m - 360) / 720), 1.3); };
+    const pvW = (t) => Math.max(0, 4600 * sun(t) * (0.85 + 0.15 * Math.cos(dayk(t) * 1.7)) * (1 + 0.06 * nz(t)));
+    const loadW = (t) => { const h = tod(t) / 60; return 650 + 140 * Math.sin(t / 53) + 60 * nz(t) + 2300 * Math.exp(-Math.pow((h - 19.5) / 1.6, 2)) + 900 * Math.exp(-Math.pow((h - 6.5) / 0.8, 2)) + 700 * Math.exp(-Math.pow((h - 12) / 1.2, 2)); };
+    const FIELDS = [
+      { id: 'pv', chip: 'Công suất PV', legend: 'Công suất PV', color: '#f7963a', unit: 'W', dgt: 0, fn: pvW },
+      { id: 'load', chip: 'Công suất tải', legend: 'Công suất tải', color: '#9fada6', unit: 'W', dgt: 0, fn: loadW },
+      { id: 'tdcac', chip: 'Nhiệt độ DC-AC', legend: 'Nhiệt độ DC-AC', color: '#ff7a70', unit: '°C', dgt: 1, fn: (t) => 29 + pvW(t) * 0.0032 + loadW(t) * 0.0015 + 0.6 * nz(t * 0.3) },
+      { id: 'gv', chip: 'Điện áp lưới', legend: 'Điện áp lưới', color: '#6fa8e8', unit: 'V', dgt: 1, fn: (t) => 231 + 2.5 * Math.sin(tod(t) / 90) - loadW(t) * 0.0009 + 0.4 * nz(t) },
+      { id: 'gf', chip: 'Tần số lưới', legend: 'Tần số lưới', color: '#b48ae0', unit: 'Hz', dgt: 2, fn: (t) => 50 + 0.03 * Math.sin(t / 37) + 0.012 * nz(t * 1.3) }
+    ];
+    const DEF = ['pv', 'load', 'tdcac'];
+
+    const mk = (list) => list.map(([k, v], i) => { const long = String(v).length > 22;
+      return { k, v, rowStyle: 'min-height: 48px; box-sizing: border-box; display: flex; ' + (long ? 'flex-direction: column; justify-content: center; gap: 4px' : 'align-items: center; gap: 12px') + '; padding: 8px 0; ' + (i ? '' : ''),
+        kStyle: 'font-size: 13px; line-height: 18px; color: #eef3ef' + (long ? '' : '; flex: 1 1 auto; min-width: 0'),
+        vStyle: 'font-size: 14px; line-height: 20px; font-weight: 600; font-variant-numeric: tabular-nums' + (long ? '' : '; text-align: right; white-space: nowrap; flex-shrink: 0') }; });
+    const nf = (v, dgt) => { const r = Math.abs(v) < Math.pow(10, -dgt) / 2 ? 0 : v; return (r < 0 ? '-' : '') + Math.abs(r).toFixed(dgt).replace('.', ',').replace(/^(\d+)/, (m) => m.replace(/\B(?=(\d{3})+(?!\d))/g, '.')); };
+    const p2 = (n) => (n < 10 ? '0' : '') + n;
+    // Lịch sử (HistoryCard.kt, BO_SUNG_v3 §12): mốc T = phút kể từ 18/09 00:00; điểm mới nhất 24/09 23:45.
+    const RG = { h: { n: 61, step: 1, span: 60, t0: 8640 + 22 * 60 + 45 }, d: { n: 96, step: 15, span: 1440, t0: 8640 }, w: { n: 168, step: 60, span: 10080, t0: 0 } };
+    const r = s.r || 'd'; const rg = RG[r];
+    const units = (list) => list.reduce((a, f) => (a.indexOf(f.unit) < 0 ? a.concat([f.unit]) : a), []);
+    const sel = (s.sel || DEF).map((id) => FIELDS.find((f) => f.id === id)).reduce((a, f) => (f && a.length < 3 && units(a.concat([f])).length <= 2 ? a.concat([f]) : a), []);
+    const U = units(sel); const uL = U[0], uR = U[1];
+    const canSel = (f) => sel.indexOf(f) >= 0 || (sel.length < 3 && units(sel.concat([f])).length <= 2);
+    const chips = FIELDS.map((f) => { const on = sel.indexOf(f) >= 0; const en = canSel(f);
+      return { label: f.chip, on, pressed: on ? 'true' : 'false', dis: en ? 'false' : 'true',
+        toggle: () => { if (!en) return; const cur = s.sel || DEF; if (on) { if (cur.length > 1) this.setState({ sel: cur.filter((x) => x !== f.id) }); } else this.setState({ sel: cur.concat([f.id]) }); },
+        style: 'height: 32px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; border-radius: 999px; font-family: inherit; font-size: 12px; font-weight: 600; ' + (on ? 'background: #eef3ef; color: #0c1612; border: 1px solid #eef3ef' : 'background: #1c2b25; color: #eef3ef; border: 1px solid #6b7a73') + '; opacity: ' + (en ? '1' : '0.5') + '; cursor: ' + (en ? 'pointer' : 'default') }; });
+    const val = (f, i) => f.fn(rg.t0 + i * rg.step);
+    const niceStep = (x) => { const e = Math.pow(10, Math.floor(Math.log10(x))); for (const m of [1, 2, 2.5, 5, 10]) { if (m * e >= x - 1e-9) return m * e; } return 10 * e; };
+    const axis = (u) => { if (!u) return null; let lo = Infinity, hi = -Infinity;
+      sel.filter((f) => f.unit === u).forEach((f) => { for (let i = 0; i < rg.n; i++) { const v = val(f, i); lo = Math.min(lo, v); hi = Math.max(hi, v); } });
+      if (hi - lo < 1e-6) { hi = lo + 1; } let st = niceStep((hi - lo) / 3); let a = Math.floor(lo / st) * st;
+      while (a + 3 * st < hi - 1e-9) { st = niceStep(st * 1.01); a = Math.floor(lo / st) * st; } return { lo: a, hi: a + 3 * st }; };
+    const AX = { [uL]: axis(uL) }; if (uR) AX[uR] = axis(uR);
+    const xOf = (i) => i * rg.step / rg.span * 318;
+    const yOf = (f, v) => { const a = AX[f.unit]; return 145 - (v - a.lo) / (a.hi - a.lo) * 135; };
+    const hi = Math.max(0, Math.min(rg.n - 1, s['hi_' + r] != null ? s['hi_' + r] : rg.n - 1));
+    const hX0 = xOf(hi);
+    const zh = ZM('hc', { focus: hX0 / 318, winLabel: (z) => r === 'h' ? (60 / z) + ' phút' : r === 'd' ? (24 / z) + ' giờ' : (7 / z) + ' ngày' });
+    const hX = (hX0 - zh.f0 * 318) * zh.z;
+    const hHide = (hX < -1 || hX > 319) ? '; display: none' : '';
+    const WD = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+    const at = (T) => ({ d: 18 + Math.floor(T / 1440), h: Math.floor((T % 1440) / 60), m: T % 60 });
+    const tick = (x, label) => { const tr = x < 14 ? 'none' : (x > 318 - 14 ? 'translateX(-100%)' : 'translateX(-50%)');
+      return { label, style: 'position: absolute; top: 0; left: ' + x.toFixed(1) + 'px; transform: ' + tr + '; font-size: 11px; line-height: 14px; font-weight: 500; color: #9fada6; white-space: nowrap; font-variant-numeric: tabular-nums' }; };
+    let ticks;
+    if (r === 'h') ticks = ZT(zh, 60, [5, 10, 15, 30], (t) => { const a = at(rg.t0 + Math.round(t)); return p2(a.h) + ':' + p2(a.m); }, 0, 318, 318);
+    else if (r === 'd') ticks = ZT(zh, 1440, [60, 120, 180, 360], (t) => { const h = Math.floor(t / 60), m = Math.round(t % 60); return p2(h) + (m ? ':' + p2(m) : ''); }, 0, 318, 318);
+    else { ticks = []; const t0 = zh.f0 * 10080, t1 = zh.f1 * 10080;
+      for (let d = 0; d < 7; d++) { const t = d * 1440 + 720; if (t >= t0 && t <= t1) ticks.push(tick((t - t0) / (t1 - t0) * 318, WD[(5 + d) % 7])); }
+      if (ticks.length < 2) ticks = ZT(zh, 10080, [180, 360, 720], (t) => { const a = at(Math.round(t)); return WD[(5 + Math.floor(t / 1440)) % 7] + ' ' + p2(a.h) + 'h'; }, 0, 318, 318); }
+    const fmtV = (f, v) => f.unit === 'A' ? (v > 0.05 ? '+' : '') + nf(v, 1) + ' A' : nf(v, f.dgt) + ' ' + f.unit;
+    const T = rg.t0 + hi * rg.step; const A = at(T);
+    const slot = (k) => { const f = sel[k]; if (!f) return { pts: '', color: 'none', dash: 'none', vis: 'display: none' };
+      const pts = []; for (let i = 0; i < rg.n; i++) pts.push(xOf(i).toFixed(2) + ',' + yOf(f, val(f, i)).toFixed(1));
+      return { pts: pts.join(' '), color: f.color, dash: (uR && f.unit === uR) ? '4 4' : 'none', vis: '' }; };
+    const hdot = (k) => { const f = sel[k]; if (!f) return 'display: none'; const y = yOf(f, val(f, hi));
+      return 'position: absolute; left: ' + (hX - 4.5) + 'px; top: ' + (y - 4.5) + 'px; width: 9px; height: 9px; box-sizing: border-box; border-radius: 999px; background: ' + f.color + '; border: 1.5px solid #15221d; pointer-events: none' + hHide; };
+    const hc = { i: hi, vb: (zh.f0 * 318).toFixed(2) + ' 0 ' + (318 / zh.z).toFixed(2) + ' 150', ticks,
+      imin: Math.ceil(zh.f0 * rg.span / rg.step - 1e-6), imax: Math.min(rg.n - 1, Math.floor(zh.f1 * rg.span / rg.step + 1e-6)),
+      stamp: p2(A.d) + '/09 ' + p2(A.h) + ':' + (r === 'w' ? '00' : p2(A.m)), uL: uL || '', uR: uR || '',
+      p0: slot(0), p1: slot(1), p2: slot(2), dot0: hdot(0), dot1: hdot(1), dot2: hdot(2),
+      legend: sel.map((f) => ({ label: f.legend, v: fmtV(f, val(f, hi)), sw: 'width: 12px; height: 3px; border-radius: 999px; flex-shrink: 0; background: ' + f.color })),
+      lineStyle: 'position: absolute; left: ' + hX + 'px; top: 6px; height: 142px; border-left: 1px dashed #6b7a73; pointer-events: none' + hHide,
+      gripStyle: 'position: absolute; left: ' + (hX - 6) + 'px; top: 142px; width: 12px; height: 12px; box-sizing: border-box; border-radius: 999px; background: #1c2b25; border: 2px solid #6b7a73; pointer-events: none' + hHide,
+      scrub: (e) => this.setState({ ['hi_' + r]: Math.max(0, Math.min(rg.n - 1, Math.round(Number(e.target.value)))) }) };
+    hc.aria = hc.stamp;
+    const ranges = seg(r, 'r', [['h', '1 giờ'], ['d', '24 giờ'], ['w', '7 ngày']]).map((o, k) => Object.assign(o, { pick: () => this.setState({ r: ['h', 'd', 'w'][k], z_hc: 1, f_hc: 0 }) }));
+    const g = s.g || 'ov';
+    const D = {
+      ov: [['Công suất PV tổng', '4.200 W'], ['Công suất trao đổi với lưới', '0 W'], ['Công suất tải UPS', '3.100 W'], ['Dòng sạc pin từ PV', '21,5 A'], ['Mã lỗi đang hoạt động', 'Không có']],
+      pv: [['PV1 · điện áp', '386,4 V'], ['PV1 · dòng', '6,2 A'], ['PV1 · công suất', '2.395 W'], ['PV2 · điện áp', '372,0 V'], ['PV2 · dòng', '4,9 A'], ['PV2 · công suất', '1.805 W']],
+      grid: [['Điện áp lưới', '229,6 V'], ['Dòng lưới', '0,0 A'], ['Tần số lưới', '50,01 Hz'], ['Công suất trao đổi với lưới', '0 W'], ['Điện áp · dòng đầu ra', '230,1 V · 13,5 A'], ['Công suất tải UPS', '3.100 W'], ['Công suất biểu kiến tải', '3.260 VA'], ['Tỷ lệ tải', '62 %'], ['Công suất tải thường', '0 W'], ['Dòng sạc pin từ lưới', '0,0 A']],
+      temp: [['Tản nhiệt DC-DC', '41 °C'], ['Tản nhiệt DC-AC', '44 °C'], ['Biến áp', '39 °C'], ['Môi trường', '32 °C'], ['Mã lỗi đang hoạt động', 'Không có']]
+    };
+    return { hc, zh, chips, ranges, groups: seg(g, 'g', [['ov', 'Tổng quan'], ['pv', 'PV'], ['grid', 'Lưới & tải'], ['temp', 'Nhiệt độ']], 12),
+      rows_ov: mk(D.ov), rows_pv: mk(D.pv), rows_grid: mk(D.grid), rows_temp: mk(D.temp), isOv: g === 'ov' };
+  }
+}
+</script>
+</body>
+</html>

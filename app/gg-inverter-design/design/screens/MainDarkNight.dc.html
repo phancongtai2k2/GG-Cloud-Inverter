@@ -1,0 +1,884 @@
+<!doctype html>
+<html lang="vi" style="color-scheme: dark">
+<head>
+<meta charset="utf-8">
+<title>Màn hình chính</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&amp;display=swap">
+<style>
+@keyframes ggCo2Float{0%,100%{transform:translate(-50%,0)}22%{transform:translate(-50%,-6px)}41%{transform:translate(-50%,-2px)}63%{transform:translate(-50%,-8px)}84%{transform:translate(-50%,-3px)}}
+@keyframes ggCo2X{0%,100%{transform:translateX(0)}17%{transform:translateX(-9px)}38%{transform:translateX(5px)}55%{transform:translateX(12px)}72%{transform:translateX(-4px)}88%{transform:translateX(7px)}}
+body{margin:0;font-family:Montserrat,system-ui,-apple-system,"Segoe UI",sans-serif;background:#0c1612;color:#eef3ef}
+a{color:#34c26f}a:hover{color:#5bd68c}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:none;box-shadow:0 0 0 2px #0c1612,0 0 0 4px #34c26f}
+
+@keyframes skyTw{0%,100%{opacity:.25}50%{opacity:1}}
+@keyframes skyShoot{0%{transform:translate(0,0) rotate(-14deg);opacity:0}3%{opacity:1}14%{transform:translate(-460px,115px) rotate(-14deg);opacity:0}100%{transform:translate(-460px,115px) rotate(-14deg);opacity:0}}
+.sky-star{position:absolute;border-radius:999px;background:#ffffff;animation:skyTw 3.2s ease-in-out infinite}
+.sky-shoot{position:absolute;height:2px;width:90px;border-radius:999px;background:linear-gradient(90deg,rgba(255,255,255,1),rgba(190,215,255,0.5) 35%,rgba(190,215,255,0));transform-origin:0 50%;opacity:0;animation:skyShoot 7s linear infinite}
+@media (prefers-reduced-motion: reduce){.sky-star,.sky-shoot{animation:none}.sky-shoot{display:none}}
+.vw-track::-webkit-scrollbar{display:none;width:0;height:0}
+@keyframes ggCo2FloatL{0%,100%{transform:translate(-50%,0)}22%{transform:translate(-50%,-12px)}41%{transform:translate(-50%,-4px)}63%{transform:translate(-50%,-16px)}84%{transform:translate(-50%,-6px)}}
+@keyframes ggCo2XL{0%,100%{transform:translateX(0)}17%{transform:translateX(-18px)}38%{transform:translateX(10px)}55%{transform:translateX(24px)}72%{transform:translateX(-8px)}88%{transform:translateX(14px)}}
+@media (prefers-reduced-motion: reduce){.gg-co2,.gg-co2 > div{animation:none !important}}
+</style>
+</helmet>
+<div style="width: 390px; height: 2130px; box-sizing: border-box; position: relative; display: flex; flex-direction: column; background: #0c1612; color: #eef3ef; font-family: Montserrat, system-ui, sans-serif; overflow: hidden">
+<header style="height: 64px; flex-shrink: 0; display: flex; align-items: center; gap: 4px; padding: 0 8px 0 4px"><a href="ProjectsDark.dc.html" aria-label="Quay lại Dự án" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 999px; color: #eef3ef; text-decoration: none"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M19 12H5M11 6l-6 6 6 6"></path></svg></a><h1 style="margin: 0; flex-grow: 1; font-size: 22px; line-height: 28px; font-weight: 600">Màn hình chính</h1><a href="AlertsDark.dc.html" aria-label="Cảnh báo, 2 chưa xử lý" style="position: relative; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 999px; color: #eef3ef; background: transparent; border: none; padding: 0; text-decoration: none; cursor: pointer"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M6 16v-5a6 6 0 0 1 12 0v5l1.5 2h-15z"></path><path d="M10 20.5a2 2 0 0 0 4 0"></path></svg><span style="position: absolute; top: 10px; right: 10px; width: 8px; height: 8px; border-radius: 999px; background: #c62828; border: 2px solid #0c1612"></span></a></header>
+<main style="flex-grow: 1; display: grid; grid-template-columns: minmax(0, 1fr); grid-auto-rows: max-content; align-content: start; gap: 12px; padding: 0 20px 108px 20px; overflow: hidden">
+<div style="display: flex; align-items: center; gap: 8px; font-size: 13px; line-height: 20px; color: #9fada6">
+<span style="font-weight: 600; color: #eef3ef">Nhà của bạn</span><span style="display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 6px; background: #12301f; color: #34c26f; font-size: 12px; line-height: 16px; font-weight: 600"><span style="width: 6px; height: 6px; border-radius: 999px; background: #178a47"></span>Online</span>
+</div>
+<div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 16px; background: #12301f; color: #34c26f">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M5 19c0-8 5-13 14-14 0 9-5 14-13 14z"></path><path d="M5 19l7-7"></path></svg>
+<p style="margin: 0; font-size: 13px; line-height: 20px; color: #eef3ef">Hôm nay sản lượng cao hơn <strong style="color: rgb(52,194,111)">18 %</strong> so với hôm qua.</p>
+</div>
+<section style="padding: 0; display: flex; flex-direction: column; gap: 12px; position: relative; margin-top: 16px">
+<div aria-hidden="true" style="position: absolute; left: -20px; right: -20px; top: -28px; height: 228px; z-index: 0; pointer-events: none; overflow: hidden">
+<sc-if value="{{isDay}}" hint-placeholder-val="{{true}}">
+<div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(94,90,69,0) 0%, rgba(94,90,69,0.55) 12%, #5e5a45 26%, #5e5a45 68%, rgba(94,90,69,0.55) 84%, rgba(94,90,69,0) 100%)"></div>
+</sc-if>
+<sc-if value="{{isNight}}" hint-placeholder-val="{{false}}">
+<div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,16,36,0) 0%, rgba(10,16,36,0.45) 14%, rgba(10,16,36,0.85) 26%, rgba(16,26,54,0.92) 62%, rgba(28,42,78,0.6) 82%, rgba(28,42,78,0) 100%)"></div>
+<sc-for list="{{stars}}" as="st" hint-placeholder-count="40"><span class="sky-star" style="{{st.style}}"></span></sc-for>
+<div style="position: absolute; right: 56px; top: 44px; width: 26px; height: 26px; border-radius: 999px; box-shadow: inset -7px 3px 0 0 #f1ecd2; filter: drop-shadow(0 0 6px rgba(241,236,210,0.45))"></div>
+<span class="sky-shoot" style="left: 400px; top: 30px; animation-delay: 1.2s"></span>
+<span class="sky-shoot" style="left: 330px; top: 8px; width: 70px; animation-duration: 11s; animation-delay: 5.5s"></span>
+</sc-if>
+</div>
+<div style="display: flex; align-items: center; justify-content: space-between; position: relative; z-index: 1">
+<h2 style="margin: 0; font-size: 18px; line-height: 26px; font-weight: 600">Dòng năng lượng</h2>
+<button type="button" aria-label="Tuỳ chỉnh kiểu sơ đồ" onClick="{{vw.open}}" style="width: 44px; height: 44px; margin: -9px -10px -9px 0; display: flex; align-items: center; justify-content: center; border: none; border-radius: 999px; background: transparent; color: #9fada6; cursor: pointer; padding: 0"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"></rect><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"></rect><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"></rect><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"></rect></svg></button>
+</div>
+<sc-if value="{{vw.house}}" hint-placeholder-val="{{true}}"><div style="position: relative; z-index: 1; width: 100%; height: 345px; overflow: hidden"><div style="position: absolute; left: 0; top: 0; width: 700px; height: 690px; transform: scale(0.5); transform-origin: 0 0"><div style="position: relative; width: 700px; height: 690px; overflow: hidden; font-family: Montserrat, system-ui, -apple-system, 'Segoe UI', sans-serif; color: #13201b">
+<svg width="700" height="552" viewBox="28 2 270 213" style="position: absolute; left: 0px; top: 0px; width: 700px; height: 552px" role="img" aria-label="Dòng năng lượng: điện mặt trời 4,2 kW và lưới điện 0,5 kW vào inverter, inverter sạc pin S16 Pre 1,6 kW và cấp cho tải trong nhà 3,1 kW">
+<defs>
+<linearGradient id="pv" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#34456b"></stop><stop offset="0.55" stop-color="#1c2438"></stop><stop offset="1" stop-color="#121826"></stop></linearGradient>
+<linearGradient id="win" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff3d2"></stop><stop offset="1" stop-color="#f3d99f"></stop></linearGradient>
+<linearGradient id="wallR" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#c3c9c1"></stop><stop offset="1" stop-color="#aab1a8"></stop></linearGradient>
+<linearGradient id="eaveSh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity="0.34"></stop><stop offset="0.5" stop-color="#000" stop-opacity="0.22"></stop><stop offset="1" stop-color="#000" stop-opacity="0"></stop></linearGradient>
+<filter id="flowGlow" filterUnits="userSpaceOnUse" x="0" y="0" width="400" height="300"><feGaussianBlur stdDeviation="0.9" result="b"></feGaussianBlur><feMerge><feMergeNode in="b"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge></filter>
+<linearGradient id="hubFront" x1="0" y1="0" x2="0.35" y2="1"><stop offset="0" stop-color="#fbfbfc"></stop><stop offset="1" stop-color="#e6e7e9"></stop></linearGradient>
+<linearGradient id="hubSide" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#d9dadd"></stop><stop offset="1" stop-color="#c3c5c8"></stop></linearGradient>
+<linearGradient id="footCol" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#f4f5f6"></stop><stop offset="0.55" stop-color="#d6d8db"></stop><stop offset="1" stop-color="#a9acb0"></stop></linearGradient>
+<linearGradient id="footNut" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#eceef0"></stop><stop offset="1" stop-color="#a7aaae"></stop></linearGradient>
+<linearGradient id="footPad" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3a3c40"></stop><stop offset="1" stop-color="#1c1d20"></stop></linearGradient>
+<filter id="hubGlow" x="-100%" y="-30%" width="300%" height="160%"><feGaussianBlur stdDeviation="0.35" result="b"></feGaussianBlur><feMerge><feMergeNode in="b"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge></filter>
+<linearGradient id="invFront" x1="0" y1="0" x2="0.3" y2="1"><stop offset="0" stop-color="#f4f5f7"></stop><stop offset="1" stop-color="#e2e4e8"></stop></linearGradient>
+<linearGradient id="invSide" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#cfd1d4"></stop><stop offset="1" stop-color="#bcbec2"></stop></linearGradient>
+</defs>
+
+<g transform="translate(-20.5,-1.7)">
+<ellipse cx="198.0" cy="196.5" rx="110" ry="14" fill="#13201b" opacity="0.14"></ellipse>
+
+<g aria-label="Cây phía sau nhà">
+<path d="M265.8 176 L267.1 90 L268.9 90 L270.4 176 Z" fill="#4a3b2c"></path>
+<path d="M268.0 92 Q262 82 255 74" fill="none" stroke="#4f3f2f" stroke-width="0.8" stroke-linecap="round"></path>
+<path d="M268.5 95 Q276 84 286 76" fill="none" stroke="#4f3f2f" stroke-width="0.8" stroke-linecap="round"></path>
+<circle cx="250" cy="82" r="8" fill="#6f9a5a"></circle>
+<circle cx="258" cy="72" r="11" fill="#6f9a5a"></circle>
+<circle cx="288" cy="70" r="12" fill="#5f8a4e"></circle>
+<circle cx="294" cy="82" r="8" fill="#4e7a42"></circle>
+<circle cx="281" cy="82" r="11" fill="#4e7a42"></circle>
+<circle cx="263" cy="84" r="10" fill="#5c8a4c"></circle>
+<circle cx="272" cy="62" r="13" fill="#7aa465"></circle>
+<circle cx="278" cy="52" r="9" fill="#86ad6c"></circle>
+<circle cx="270" cy="74" r="12" fill="#86ad6c" opacity="0.9"></circle>
+</g>
+
+<g aria-label="Ngôi nhà">
+<polygon points="92.0,196.0 176.0,207.7 176.0,125.7 134.0,85.9 92.0,114.0" fill="#dce0d9"></polygon>
+<polygon points="176.0,207.7 276.0,185.1 276.0,103.1 176.0,125.7" fill="url(#wallR)"></polygon>
+<polygon points="92.0,196.0 176.0,207.7 176.0,203.7 92.0,192.0" fill="#bcc3bb"></polygon>
+<polygon points="176.0,207.7 276.0,185.1 276.0,181.1 176.0,203.7" fill="#8c958b"></polygon>
+<polygon points="194.5,176.0 257.5,161.8 257.5,122.8 194.5,137.0" fill="#fafafa"></polygon>
+<polygon points="197.0,173.0 255.0,159.9 255.0,125.9 197.0,139.0" fill="url(#win)"></polygon>
+<defs>
+<clipPath id="winClip"><polygon points="197.0,173.0 255.0,159.9 255.0,125.9 197.0,139.0"></polygon></clipPath>
+<linearGradient id="coneGlow" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff6d8" stop-opacity="0.85"></stop><stop offset="1" stop-color="#fff6d8" stop-opacity="0.15"></stop></linearGradient>
+<radialGradient id="lampGlow"><stop offset="0" stop-color="#fff2c4" stop-opacity="0.75"></stop><stop offset="1" stop-color="#fff2c4" stop-opacity="0"></stop></radialGradient>
+</defs>
+<g aria-label="Nội thất nhìn qua cửa kính" clip-path="url(#winClip)">
+<polygon points="197.00,173.00 255.00,159.90 255.00,153.90 197.00,167.00" fill="#ead2a2"></polygon>
+<polygon points="221.36,141.00 224.84,140.21 229.48,149.66 216.72,152.55" fill="url(#coneGlow)"></polygon>
+<polygon points="229.48,155.26 250.36,150.55 250.36,148.95 229.48,153.66" fill="#8c6e4f"></polygon>
+<polygon points="230.06,153.53 249.78,149.08 248.62,148.54 231.22,152.47" fill="#b08a63"></polygon>
+<polygon points="231.22,165.27 231.92,165.11 231.92,154.71 231.22,154.87" fill="#6f563d"></polygon>
+<polygon points="247.92,161.50 248.62,161.34 248.62,150.94 247.92,151.10" fill="#6f563d"></polygon>
+<line x1="223.10" y1="133.10" x2="223.10" y2="138.50" stroke="#4a3d30" stroke-width="0.3"></line>
+<polygon points="221.65,138.63 224.55,137.98 225.42,139.98 220.78,141.03" fill="#3f4448"></polygon>
+<circle cx="223.10" cy="141.00" r="3.5" fill="url(#lampGlow)"></circle>
+<ellipse cx="223.10" cy="141.00" rx="1.2" ry="0.9" fill="#fffbe8"></ellipse>
+<polygon points="197.0,173.0 255.0,159.9 255.0,125.9 197.0,139.0" fill="#ffffff" opacity="0.1"></polygon>
+</g>
+<g aria-label="Chiều sâu cửa sổ">
+<polygon points="251.6,160.7 255.0,159.9 255.0,125.9 251.6,126.7" fill="#d9dcd6"></polygon>
+<polygon points="197.0,173.0 255.0,159.9 251.6,157.6 197.0,169.9" fill="#eceee9"></polygon>
+<polygon points="197.0,139.0 251.6,126.7 251.6,129.9 199.4,141.7" fill="#000" opacity="0.16"></polygon>
+<polygon points="197.0,139.0 199.4,141.7 199.4,169.4 197.0,169.9" fill="#000" opacity="0.10"></polygon>
+<polygon points="216.0,134.7 226.0,132.4 205.0,163.1 199.4,164.4 199.4,158.5" fill="#ffffff" opacity="0.28"></polygon>
+<polygon points="231.0,131.3 236.0,130.2 214.0,161.0 209.0,162.1" fill="#ffffff" opacity="0.18"></polygon>
+<polygon points="193.0,176.3 259.0,161.4 260.5,162.7 191.5,178.2" fill="#ffffff"></polygon>
+<polygon points="191.5,178.2 260.5,162.7 260.5,164.4 191.5,179.9" fill="#c4c9c2"></polygon>
+<polygon points="191.5,179.9 260.5,164.4 260.5,167.2 191.5,182.7" fill="#000" opacity="0.08"></polygon>
+</g>
+<line x1="211.5" y1="169.7" x2="211.5" y2="135.7" stroke="#fafafa" stroke-width="1.5"></line>
+<line x1="226.0" y1="166.4" x2="226.0" y2="132.4" stroke="#fafafa" stroke-width="1.5"></line>
+<line x1="240.5" y1="163.2" x2="240.5" y2="129.2" stroke="#fafafa" stroke-width="1.5"></line>
+<line x1="197.0" y1="156.0" x2="255.0" y2="142.9" stroke="#fafafa" stroke-width="1.0" opacity="0.85"></line>
+<polygon points="176.0,125.7 276.0,103.1 276.0,127.1 176.0,149.7" fill="url(#eaveSh)"></polygon>
+<polygon points="92.0,114.0 134.0,85.9 176.0,125.7 176.0,134.7 134.0,99.6 92.0,123.0" fill="#000" opacity="0.10"></polygon>
+<polygon points="92.0,114.0 134.0,85.9 176.0,125.7 176.0,129.7 134.0,91.5 92.0,118.0" fill="#000" opacity="0.12"></polygon>
+<polygon points="81.0,120.9 127.0,91.1 134.0,89.6 88.0,119.3" fill="#c9cacb"></polygon>
+<polygon points="127.0,87.4 241.0,61.7 291.0,109.1 177.0,134.9" fill="#868c92"></polygon>
+</g>
+
+<g aria-label="5 tấm pin mặt trời dài trên mái" stroke-width="0.45">
+<defs>
+<g id="pvShapes">
+<polygon points="140.6,91.10 158.6,87.00 195.2,121.70 177.1,125.80"></polygon>
+<polygon points="160.7,86.60 178.7,82.50 215.2,117.20 197.2,121.30"></polygon>
+<polygon points="180.7,82.00 198.7,78.00 235.3,112.70 217.3,116.70"></polygon>
+<polygon points="200.8,77.50 218.8,73.40 255.4,108.10 237.3,112.20"></polygon>
+<polygon points="220.8,73.00 238.9,68.90 275.4,103.60 257.4,107.70"></polygon>
+</g>
+</defs>
+<use href="#pvShapes" transform="translate(1.1,1.2)" fill="#13201b" opacity="0.28"></use>
+<g aria-hidden="true" stroke-width="0.12" stroke-linejoin="round">
+<g fill="#3a4766" stroke="#5a6a88">
+<polygon points="177.1,125.80 195.2,121.70 195.2,120.30 177.1,124.40"></polygon>
+<polygon points="197.2,121.30 215.2,117.20 215.2,115.80 197.2,119.90"></polygon>
+<polygon points="217.3,116.70 235.3,112.70 235.3,111.30 217.3,115.30"></polygon>
+<polygon points="237.3,112.20 255.4,108.10 255.4,106.70 237.3,110.80"></polygon>
+<polygon points="257.4,107.70 275.4,103.60 275.4,102.20 257.4,106.30"></polygon>
+</g>
+<g fill="#232b3c" stroke="#4a5876">
+<polygon points="140.6,91.10 177.1,125.80 177.1,124.40 140.6,89.70"></polygon>
+<polygon points="160.7,86.60 197.2,121.30 197.2,119.90 160.7,85.20"></polygon>
+<polygon points="180.7,82.00 217.3,116.70 217.3,115.30 180.7,80.60"></polygon>
+<polygon points="200.8,77.50 237.3,112.20 237.3,110.80 200.8,76.10"></polygon>
+<polygon points="220.8,73.00 257.4,107.70 257.4,106.30 220.8,71.60"></polygon>
+</g>
+</g>
+<use href="#pvShapes" transform="translate(0,-1.4)" fill="url(#pv)" stroke="#7587a6" stroke-width="0.18"></use>
+<g stroke="#4a5876" stroke-width="0.25" transform="translate(0,-1.4)">
+<line x1="146.6" y1="89.73" x2="183.1" y2="124.43"></line><line x1="152.6" y1="88.37" x2="189.2" y2="123.07"></line>
+<line x1="166.7" y1="85.23" x2="203.2" y2="119.93"></line><line x1="172.7" y1="83.87" x2="209.2" y2="118.57"></line>
+<line x1="186.7" y1="80.67" x2="223.3" y2="115.37"></line><line x1="192.7" y1="79.33" x2="229.3" y2="114.03"></line>
+<line x1="206.8" y1="76.13" x2="243.3" y2="110.83"></line><line x1="212.8" y1="74.77" x2="249.4" y2="109.47"></line>
+<line x1="226.8" y1="71.63" x2="263.4" y2="106.33"></line><line x1="232.9" y1="70.27" x2="269.4" y2="104.97"></line>
+</g>
+</g>
+
+<polygon points="177.0,134.9 291.0,109.1 291.0,111.7 177.0,137.5" fill="#6f757b"></polygon>
+<polygon points="81.0,118.3 127.0,87.4 177.0,134.9 177.0,137.5 127.0,91.1 81.0,120.9" fill="#969ca2"></polygon>
+<polyline points="81.0,118.3 127.0,87.4 177.0,134.9 291.0,109.1 241.0,61.7 127.0,87.4" fill="none" stroke="#b3b8bd" stroke-width="0.25" stroke-linejoin="round"></polyline>
+
+</g>
+
+<g aria-label="Cột điện bên trái ngôi nhà">
+<ellipse cx="40" cy="203.6" rx="5.5" ry="1.4" fill="#13201b" opacity="0.16"></ellipse>
+<polygon points="36.9,203.6 43.1,203.6 42.4,100 37.6,100" fill="#a7afab"></polygon>
+<polygon points="40,203.6 43.1,203.6 42.4,100 40,100" fill="#8e9792"></polygon>
+<rect x="31" y="105" width="18" height="2.6" rx="0.7" fill="#8e9792"></rect>
+<g fill="#d9dfd8">
+<rect x="32.4" y="102.4" width="1.8" height="2.6" rx="0.5"></rect>
+<rect x="45.8" y="102.4" width="1.8" height="2.6" rx="0.5"></rect>
+</g>
+</g>
+
+<g aria-label="Đường năng lượng" fill="none" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round">
+<path d="M128.15 94.3 L113.5 96.7 L113.5 133.15" stroke="#C9CDD2"></path>
+<path d="M111.9 157.9 L111.9 170.1" stroke="#C9CDD2"></path>
+<path d="M121 145.2 L155.5 150 L173.5 145.95" stroke="#C9CDD2"></path>
+<path d="M40 203.3 L76.5 195 L76.5 139 L106 143.1" stroke="#C9CDD2"></path>
+
+<path d="M128.15 94.3 L113.5 96.7 L113.5 133.15" stroke="#2FD27A" stroke-opacity="0.25" stroke-dasharray="29.15 99.75" stroke-dashoffset="29.15"><animate attributeName="stroke-dashoffset" values="29.15;-51.3;-51.3" keyTimes="0;0.817;1" dur="2.69s" repeatCount="indefinite"></animate></path>
+<path d="M128.15 94.3 L113.5 96.7 L113.5 133.15" stroke="#2FD27A" stroke-opacity="0.45" stroke-dasharray="21.85 99.75" stroke-dashoffset="21.85"><animate attributeName="stroke-dashoffset" values="21.85;-58.65;-58.65" keyTimes="0;0.817;1" dur="2.69s" repeatCount="indefinite"></animate></path>
+<path d="M128.15 94.3 L113.5 96.7 L113.5 133.15" stroke="#2FD27A" stroke-opacity="0.65" stroke-dasharray="15.15 99.75" stroke-dashoffset="15.15"><animate attributeName="stroke-dashoffset" values="15.15;-65.3;-65.3" keyTimes="0;0.817;1" dur="2.69s" repeatCount="indefinite"></animate></path>
+<path d="M128.15 94.3 L113.5 96.7 L113.5 133.15" stroke="#2FD27A" stroke-opacity="0.85" stroke-dasharray="9.35 99.75" stroke-dashoffset="9.35"><animate attributeName="stroke-dashoffset" values="9.35;-71.15;-71.15" keyTimes="0;0.817;1" dur="2.69s" repeatCount="indefinite"></animate></path>
+<path d="M128.15 94.3 L113.5 96.7 L113.5 133.15" stroke="#2FD27A" stroke-opacity="1.0" stroke-dasharray="4.1 99.75" stroke-dashoffset="4.1"><animate attributeName="stroke-dashoffset" values="4.1;-76.4;-76.4" keyTimes="0;0.817;1" dur="2.69s" repeatCount="indefinite"></animate></path>
+<path d="M111.9 157.9 L111.9 170.1" stroke="#2FD27A" stroke-opacity="0.25" stroke-dasharray="9.75 36.7" stroke-dashoffset="9.75"><animate attributeName="stroke-dashoffset" values="9.75;-12.2;-12.2" keyTimes="0;0.720;1" dur="1.25s" repeatCount="indefinite"></animate></path>
+<path d="M111.9 157.9 L111.9 170.1" stroke="#2FD27A" stroke-opacity="0.45" stroke-dasharray="7.3 36.7" stroke-dashoffset="7.3"><animate attributeName="stroke-dashoffset" values="7.3;-14.65;-14.65" keyTimes="0;0.720;1" dur="1.25s" repeatCount="indefinite"></animate></path>
+<path d="M111.9 157.9 L111.9 170.1" stroke="#2FD27A" stroke-opacity="0.65" stroke-dasharray="5.1 36.7" stroke-dashoffset="5.1"><animate attributeName="stroke-dashoffset" values="5.1;-16.9;-16.9" keyTimes="0;0.720;1" dur="1.25s" repeatCount="indefinite"></animate></path>
+<path d="M111.9 157.9 L111.9 170.1" stroke="#2FD27A" stroke-opacity="0.85" stroke-dasharray="3.1 36.7" stroke-dashoffset="3.1"><animate attributeName="stroke-dashoffset" values="3.1;-18.85;-18.85" keyTimes="0;0.720;1" dur="1.25s" repeatCount="indefinite"></animate></path>
+<path d="M111.9 157.9 L111.9 170.1" stroke="#2FD27A" stroke-opacity="1.0" stroke-dasharray="1.35 36.7" stroke-dashoffset="1.35"><animate attributeName="stroke-dashoffset" values="1.35;-20.6;-20.6" keyTimes="0;0.720;1" dur="1.25s" repeatCount="indefinite"></animate></path>
+<path d="M121 145.2 L155.5 150 L173.5 145.95" stroke="#f5831f" stroke-opacity="0.25" stroke-dasharray="35 128.3" stroke-dashoffset="35"><animate attributeName="stroke-dashoffset" values="35;-53.3;-53.3" keyTimes="0;0.871;1" dur="2.71s" repeatCount="indefinite"></animate></path>
+<path d="M121 145.2 L155.5 150 L173.5 145.95" stroke="#f5831f" stroke-opacity="0.45" stroke-dasharray="26.25 128.3" stroke-dashoffset="26.25"><animate attributeName="stroke-dashoffset" values="26.25;-62.05;-62.05" keyTimes="0;0.871;1" dur="2.71s" repeatCount="indefinite"></animate></path>
+<path d="M121 145.2 L155.5 150 L173.5 145.95" stroke="#f5831f" stroke-opacity="0.65" stroke-dasharray="18.2 128.3" stroke-dashoffset="18.2"><animate attributeName="stroke-dashoffset" values="18.2;-70.1;-70.1" keyTimes="0;0.871;1" dur="2.71s" repeatCount="indefinite"></animate></path>
+<path d="M121 145.2 L155.5 150 L173.5 145.95" stroke="#f5831f" stroke-opacity="0.85" stroke-dasharray="11.2 128.3" stroke-dashoffset="11.2"><animate attributeName="stroke-dashoffset" values="11.2;-77.1;-77.1" keyTimes="0;0.871;1" dur="2.71s" repeatCount="indefinite"></animate></path>
+<path d="M121 145.2 L155.5 150 L173.5 145.95" stroke="#f5831f" stroke-opacity="1.0" stroke-dasharray="4.9 128.3" stroke-dashoffset="4.9"><animate attributeName="stroke-dashoffset" values="4.9;-83.4;-83.4" keyTimes="0;0.871;1" dur="2.71s" repeatCount="indefinite"></animate></path>
+<path d="M40 203.3 L76.5 195 L76.5 139 L106 143.1" stroke="#2FD27A" stroke-opacity="0.25" stroke-dasharray="35 203.85" stroke-dashoffset="35"><animate attributeName="stroke-dashoffset" values="35;-128.85;-128.85" keyTimes="0;0.958;1" dur="8.39s" repeatCount="indefinite"></animate></path>
+<path d="M40 203.3 L76.5 195 L76.5 139 L106 143.1" stroke="#2FD27A" stroke-opacity="0.45" stroke-dasharray="26.25 203.85" stroke-dashoffset="26.25"><animate attributeName="stroke-dashoffset" values="26.25;-137.6;-137.6" keyTimes="0;0.958;1" dur="8.39s" repeatCount="indefinite"></animate></path>
+<path d="M40 203.3 L76.5 195 L76.5 139 L106 143.1" stroke="#2FD27A" stroke-opacity="0.65" stroke-dasharray="18.2 203.85" stroke-dashoffset="18.2"><animate attributeName="stroke-dashoffset" values="18.2;-145.65;-145.65" keyTimes="0;0.958;1" dur="8.39s" repeatCount="indefinite"></animate></path>
+<path d="M40 203.3 L76.5 195 L76.5 139 L106 143.1" stroke="#2FD27A" stroke-opacity="0.85" stroke-dasharray="11.2 203.85" stroke-dashoffset="11.2"><animate attributeName="stroke-dashoffset" values="11.2;-152.65;-152.65" keyTimes="0;0.958;1" dur="8.39s" repeatCount="indefinite"></animate></path>
+<path d="M40 203.3 L76.5 195 L76.5 139 L106 143.1" stroke="#2FD27A" stroke-opacity="1.0" stroke-dasharray="4.9 203.85" stroke-dashoffset="4.9"><animate attributeName="stroke-dashoffset" values="4.9;-158.95;-158.95" keyTimes="0;0.958;1" dur="8.39s" repeatCount="indefinite"></animate></path>
+
+</g>
+
+<g transform="translate(-20.5,-1.7)" aria-hidden="true">
+<polygon points="177.1,125.80 195.2,121.70 195.2,120.30 177.1,124.40" fill="#3a4766" stroke="#5a6a88" stroke-width="0.12" stroke-linejoin="round"></polygon>
+<polygon points="140.6,91.10 177.1,125.80 177.1,124.40 140.6,89.70" fill="#232b3c" stroke="#4a5876" stroke-width="0.12" stroke-linejoin="round"></polygon>
+<g transform="translate(0,-1.4)">
+<polygon points="140.6,91.10 158.6,87.00 195.2,121.70 177.1,125.80" fill="url(#pv)" stroke="#7587a6" stroke-width="0.18"></polygon>
+<line x1="146.6" y1="89.73" x2="183.1" y2="124.43" stroke="#4a5876" stroke-width="0.25"></line>
+<line x1="152.6" y1="88.37" x2="189.2" y2="123.07" stroke="#4a5876" stroke-width="0.25"></line>
+</g>
+</g>
+
+<g aria-label="Energy Hub S16 Pro">
+<ellipse cx="111.00" cy="201.85" rx="14" ry="3.2" fill="#000" opacity="0.16"></ellipse>
+<ellipse cx="118.60" cy="201.48" rx="1.9" ry="0.55" fill="#000" opacity="0.28"></ellipse><path d="M117.00 200.88 A1.3 0.42 0 0 0 119.60 200.88 L119.60 201.38 A1.3 0.42 0 0 1 117.00 201.38 Z" fill="url(#footPad)"></path><ellipse cx="118.30" cy="200.88" rx="1.3" ry="0.42" fill="#4a4d52"></ellipse><path d="M117.68 199.38 A0.62 0.20 0 0 0 118.92 199.38 L118.92 200.88 A0.62 0.20 0 0 1 117.68 200.88 Z" fill="url(#footCol)"></path><path d="M117.35 200.03 A0.95 0.30 0 0 0 119.25 200.03 L119.25 200.43 A0.95 0.30 0 0 1 117.35 200.43 Z" fill="url(#footNut)" stroke="#9a9da1" stroke-width="0.06"></path><ellipse cx="118.30" cy="200.03" rx="0.95" ry="0.30" fill="#d9dbde"></ellipse>
+<polygon points="113.20,201.15 121.50,199.28 121.50,167.69 113.20,169.57" fill="url(#hubSide)"></polygon>
+<g transform="matrix(1 -0.2258 0 1 113.20 169.15)">
+<rect x="0.9" y="1.6" width="6.4" height="10.2" rx="0.4" fill="#eceef0" stroke="#b5b8bc" stroke-width="0.12"></rect>
+<g fill="#1d1f22"><circle cx="1.9" cy="3.0" r="0.62"></circle><circle cx="3.45" cy="3.0" r="0.62"></circle><circle cx="5.0" cy="3.0" r="0.62"></circle><circle cx="6.5" cy="3.0" r="0.62"></circle></g>
+<g fill="#5b5f64"><circle cx="1.9" cy="3.0" r="0.25"></circle><circle cx="3.45" cy="3.0" r="0.25"></circle><circle cx="5.0" cy="3.0" r="0.25"></circle><circle cx="6.5" cy="3.0" r="0.25"></circle></g>
+<rect x="1.4" y="5.0" width="2.6" height="0.7" rx="0.3" fill="#2a2c30"></rect>
+<rect x="1.4" y="6.4" width="2.8" height="0.45" rx="0.15" fill="#2a2c30"></rect>
+<circle cx="5.9" cy="5.4" r="0.45" fill="#d0d2d5" stroke="#9fa2a6" stroke-width="0.08"></circle>
+<rect x="1.4" y="13.6" width="5.2" height="5.4" rx="0.35" fill="#c7c9cc" stroke="#9a9da1" stroke-width="0.12"></rect>
+<rect x="2.2" y="14.6" width="3.6" height="3.4" rx="0.3" fill="#8e9195" stroke="#6f7276" stroke-width="0.1"></rect>
+<rect x="2.6" y="15.0" width="2.8" height="2.6" rx="0.25" fill="#b4b7bb"></rect>
+<g fill="#a0a3a7"><circle cx="1.75" cy="14.0" r="0.14"></circle><circle cx="6.25" cy="14.0" r="0.14"></circle><circle cx="1.75" cy="18.6" r="0.14"></circle><circle cx="6.25" cy="18.6" r="0.14"></circle></g>
+<g fill="#9a9da1"><circle cx="0.6" cy="13" r="0.12"></circle><circle cx="0.6" cy="22" r="0.12"></circle></g>
+</g>
+<polygon points="111.80,201.21 113.20,201.15 113.20,169.45 111.80,169.21" fill="#f4f5f6"></polygon>
+<g transform="matrix(1 0.1395 0 1 96.50 167.08)">
+<rect x="0" y="0" width="15.30" height="32.00" rx="0.7" fill="url(#hubFront)" stroke="#d0d2d5" stroke-width="0.15"></rect>
+<rect x="7.4" y="0.9" width="6.4" height="1.15" rx="0.57" fill="#121315"></rect>
+<text x="10.6" y="1.66" text-anchor="middle" font-family="Montserrat, sans-serif" font-weight="600" font-size="0.52" fill="#ffffff">ENERGY HUB S16 Pro</text>
+<g filter="url(#hubGlow)">
+<path d="M6.680 5.117 L6.523 4.845 L6.322 4.613 L6.086 4.431 L5.824 4.305 L5.545 4.241 L5.261 4.240 L4.982 4.303 L4.719 4.428 L4.483 4.609 L4.281 4.839 L4.123 5.111 L4.013 5.412 L3.957 5.733 L3.951 5.842 L4.391 5.859 L4.404 5.708 L4.456 5.488 L4.543 5.284 L4.664 5.104 L4.813 4.954 L4.984 4.839 L5.165 4.732 L5.366 4.635 L5.594 4.567 L5.845 4.548 L6.108 4.597 L6.360 4.727 L6.573 4.937 L6.680 5.117 Z" fill="#34c26f"></path>
+<path d="M3.954 6.016 L3.988 6.278 L4.057 6.530 L4.161 6.766 L4.296 6.981 L4.458 7.168 L4.645 7.323 L4.850 7.443 L5.069 7.523 L5.296 7.563 L5.526 7.561 L5.753 7.517 L5.971 7.433 L6.175 7.309 L6.359 7.151 L6.519 6.961 L6.651 6.744 L6.751 6.506 L6.817 6.252 L6.848 5.990 L6.842 5.726 L5.700 5.726 L6.318 6.326 L6.246 6.490 L6.153 6.639 L6.040 6.769 L5.910 6.875 L5.768 6.957 L5.615 7.012 L5.458 7.054 L5.293 7.087 L5.116 7.104 L4.928 7.096 L4.733 7.053 L4.538 6.968 L4.352 6.837 L4.189 6.661 L4.060 6.443 L3.978 6.193 L3.954 6.016 Z" fill="#34c26f"></path>
+<line x1="5.40" y1="8.57" x2="5.40" y2="15.17" stroke="#34c26f" stroke-width="0.5" stroke-linecap="round"></line>
+</g>
+<text transform="translate(1.3 19.2) rotate(90)" font-family="Montserrat, sans-serif" font-weight="800" font-size="1.7" letter-spacing="0.08" fill="#f5831f">GG POWER</text>
+</g>
+<polygon points="97.20,167.17 111.80,169.21 113.20,169.45 121.20,167.64 105.90,165.51" fill="#fafafb" stroke="#d5d7da" stroke-width="0.15"></polygon>
+<ellipse cx="100.20" cy="201.10" rx="1.9" ry="0.55" fill="#000" opacity="0.28"></ellipse><path d="M98.60 200.50 A1.3 0.42 0 0 0 101.20 200.50 L101.20 201.00 A1.3 0.42 0 0 1 98.60 201.00 Z" fill="url(#footPad)"></path><ellipse cx="99.90" cy="200.50" rx="1.3" ry="0.42" fill="#4a4d52"></ellipse><path d="M99.28 199.00 A0.62 0.20 0 0 0 100.52 199.00 L100.52 200.50 A0.62 0.20 0 0 1 99.28 200.50 Z" fill="url(#footCol)"></path><path d="M98.95 199.65 A0.95 0.30 0 0 0 100.85 199.65 L100.85 200.05 A0.95 0.30 0 0 1 98.95 200.05 Z" fill="url(#footNut)" stroke="#9a9da1" stroke-width="0.06"></path><ellipse cx="99.90" cy="199.65" rx="0.95" ry="0.30" fill="#d9dbde"></ellipse>
+<ellipse cx="112.30" cy="202.79" rx="1.9" ry="0.55" fill="#000" opacity="0.28"></ellipse><path d="M110.70 202.19 A1.3 0.42 0 0 0 113.30 202.19 L113.30 202.69 A1.3 0.42 0 0 1 110.70 202.69 Z" fill="url(#footPad)"></path><ellipse cx="112.00" cy="202.19" rx="1.3" ry="0.42" fill="#4a4d52"></ellipse><path d="M111.38 200.69 A0.62 0.20 0 0 0 112.62 200.69 L112.62 202.19 A0.62 0.20 0 0 1 111.38 202.19 Z" fill="url(#footCol)"></path><path d="M111.05 201.34 A0.95 0.30 0 0 0 112.95 201.34 L112.95 201.74 A0.95 0.30 0 0 1 111.05 201.74 Z" fill="url(#footNut)" stroke="#9a9da1" stroke-width="0.06"></path><ellipse cx="112.00" cy="201.34" rx="0.95" ry="0.30" fill="#d9dbde"></ellipse>
+</g>
+
+<g aria-label="Biến tần hybrid GG Power gắn tường" transform="translate(17,-3)">
+<polygon points="90.20,158.58 105.60,160.73 105.60,138.33 90.20,136.18" fill="#000" opacity="0.10"></polygon>
+<polygon points="100.80,159.23 104.00,158.51 104.00,137.71 100.80,138.43" fill="url(#invSide)"></polygon>
+<polygon points="86.40,135.82 100.20,137.74 103.40,137.02 89.60,135.10" fill="#f8f9fa"></polygon>
+<g transform="matrix(1 0.1395 0 1 85.80 135.74)">
+<rect x="0" y="0" width="15.0" height="22" rx="0.9" fill="url(#invFront)" stroke="#c6c8cc" stroke-width="0.2"></rect>
+<line x1="0" y1="16.2" x2="15.0" y2="16.2" stroke="#b9bbbf" stroke-width="0.14"></line>
+<g fill="#d0d2d6" stroke="#a7a9ad" stroke-width="0.08"><circle cx="0.5" cy="0.75" r="0.26"></circle><circle cx="14.5" cy="0.75" r="0.26"></circle><circle cx="0.5" cy="12.9" r="0.26"></circle><circle cx="14.5" cy="12.9" r="0.26"></circle><circle cx="0.5" cy="16.9" r="0.26"></circle><circle cx="14.5" cy="16.9" r="0.26"></circle><circle cx="0.5" cy="21.25" r="0.26"></circle><circle cx="14.5" cy="21.25" r="0.26"></circle></g>
+<g fill="#1f2023"><rect x="1.7" y="22" width="1.1" height="1.1" rx="0.25"></rect><rect x="3.9" y="22" width="1.1" height="1.1" rx="0.25"></rect><rect x="6.1" y="22" width="1.1" height="1.1" rx="0.25"></rect><rect x="8.9" y="22" width="3.0" height="2.3" rx="0.25"></rect><rect x="12.4" y="22" width="1.1" height="1.1" rx="0.25"></rect></g>
+<text x="2.0" y="4.0" font-family="Montserrat, sans-serif" font-weight="800" font-size="1.55" letter-spacing="-0.03"><tspan fill="#f5831f">GG</tspan><tspan fill="#149c4a" font-size="1.35" dx="0.05">POWER</tspan></text>
+<circle cx="7.5" cy="9.1" r="3.85" fill="#0d0e10"></circle>
+<circle cx="7.5" cy="9.1" r="3.45" fill="none" stroke="#f5831f" stroke-width="0.22"></circle>
+<rect x="5.45" y="7.75" width="4.1" height="2.5" rx="0.12" fill="#16243a" stroke="#2c3d58" stroke-width="0.06"></rect>
+<circle cx="7.5" cy="8.85" r="0.55" fill="#149c4a"></circle>
+<circle cx="6.15" cy="8.45" r="0.35" fill="#2f6fb3"></circle><circle cx="8.85" cy="8.45" r="0.35" fill="#2f6fb3"></circle>
+<circle cx="6.15" cy="9.35" r="0.35" fill="#2f6fb3"></circle><circle cx="8.85" cy="9.35" r="0.35" fill="#2f6fb3"></circle>
+<rect x="5.6" y="9.95" width="3.8" height="0.2" fill="#149c4a" opacity="0.8"></rect>
+<g fill="none" stroke="#9a9ca0" stroke-width="0.07"><circle cx="6.2" cy="11.15" r="0.27"></circle><circle cx="7.07" cy="11.15" r="0.27"></circle><circle cx="7.94" cy="11.15" r="0.27"></circle><circle cx="8.8" cy="11.15" r="0.27"></circle></g>
+<circle cx="10.4" cy="8.55" r="0.09" fill="#c62828"></circle><circle cx="10.4" cy="8.95" r="0.09" fill="#34c26f"></circle><circle cx="10.4" cy="9.35" r="0.09" fill="#e0b341"></circle>
+</g>
+</g>
+</svg>
+
+<div class="gg-co2" aria-label="Giảm phát thải CO₂ 10,4 kg" style="position: absolute; left: 526.6px; top: 113.7px; width: 0px; height: 0px; pointer-events: none">
+<div style="position: absolute; left: 0px; bottom: 0px; animation: ggCo2XL 7.3s ease-in-out infinite">
+<div style="position: absolute; left: 0px; bottom: 0px; transform: translateX(-50%); animation: ggCo2FloatL 4.7s ease-in-out infinite; display: flex; flex-direction: column; align-items: center">
+<div style="display: flex; align-items: center; padding: 8px 24px; border-radius: 999px; background: rgba(21,34,29,0.55); border: 2px solid rgba(52,194,111,0.35); box-shadow: 0 8px 24px rgba(0,0,0,0.22); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); white-space: nowrap">
+<span style="display: flex; flex-direction: column; align-items: center"><span style="font-size: 18px; line-height: 22px; color: #9fada6">Giảm CO₂</span><span style="font-size: 24px; line-height: 30px; font-weight: 700; color: #34c26f; font-variant-numeric: tabular-nums">10,4 kg</span></span>
+</div>
+<span style="width: 16px; height: 16px; margin-top: -10px; background: rgba(21,34,29,0.55); border-right: 2px solid rgba(52,194,111,0.35); border-bottom: 2px solid rgba(52,194,111,0.35); transform: rotate(45deg)"></span>
+<span style="width: 10px; height: 10px; margin-top: 6px; border-radius: 999px; background: rgba(21,34,29,0.55); border: 2px solid rgba(52,194,111,0.35)"></span>
+</div>
+</div>
+</div>
+
+<div style="position: absolute; left: 238.6px; top: 85.6px; transform: translate(-50%,-50%); display: flex; flex-direction: column; align-items: center; white-space: nowrap">
+<span style="font-size: 20px; line-height: 24px; color: #9fada6">PV</span>
+<span style="font-size: 24px; line-height: 30px; font-weight: 700; color: #eef3ef; font-variant-numeric: tabular-nums">4,2 kW</span>
+</div>
+
+<svg width="700" height="690" viewBox="0 0 700 690" style="position: absolute; left: 0px; top: 0px; width: 700px; height: 690px; pointer-events: none" aria-hidden="true">
+<g stroke="#9fada6" stroke-opacity="0.45" stroke-width="1.6" stroke-dasharray="2 6" stroke-linecap="round">
+<line x1="238" y1="128" x2="238" y2="216"></line>
+<line x1="68" y1="558" x2="68" y2="518"></line>
+<line x1="230" y1="558" x2="230" y2="506"></line>
+<line x1="530" y1="558" x2="530" y2="420"></line>
+</g>
+</svg>
+
+<div style="position: absolute; left: 68px; top: 560px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; white-space: nowrap">
+<span style="font-size: 22px; line-height: 28px; color: #9fada6">Lưới</span>
+<span style="font-size: 28px; line-height: 36px; font-weight: 700; color: #eef3ef; font-variant-numeric: tabular-nums">0,5 kW</span>
+<span style="font-size: 20px; line-height: 26px; font-weight: 600; color: #6fa8e8">Mua điện</span>
+</div>
+
+<div style="position: absolute; left: 230px; top: 560px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; white-space: nowrap">
+<span style="font-size: 22px; line-height: 28px; color: #9fada6">Pin</span>
+<span style="font-size: 28px; line-height: 36px; font-weight: 700; color: #eef3ef; font-variant-numeric: tabular-nums">1,6 kW</span>
+<span style="font-size: 20px; line-height: 26px; font-weight: 600; color: #34c26f">Đang sạc · 76 %</span>
+</div>
+
+<div style="position: absolute; left: 530px; top: 560px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; white-space: nowrap">
+<span style="font-size: 22px; line-height: 28px; color: #9fada6">Tải</span>
+<span style="font-size: 28px; line-height: 36px; font-weight: 700; color: #eef3ef; font-variant-numeric: tabular-nums">3,1 kW</span>
+</div>
+
+
+</div></div></div></sc-if><sc-if value="{{vw.nodes}}" hint-placeholder-val="{{false}}"><div role="img" aria-label="Dòng năng lượng: điện mặt trời 4,2 kW và lưới điện 0,5 kW vào GG SmartBox, SmartBox sạc pin S16 Pre 1,6 kW và cấp cho tải trong nhà 3,1 kW" style="position: relative; z-index: 1; width: 100%; height: 300px"><svg width="350" height="300" viewBox="0 0 350 300" aria-hidden="true" style="position: absolute; inset: 0"><path d="M88 46 C140 46 140 132 175 132" stroke="#3a4743" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-linejoin="round"></path><path d="M88 46 C140 46 140 132 175 132" stroke="#2FD27A" stroke-opacity="0.25" stroke-width="3.4" stroke-dasharray="103.6 354.9" stroke-dashoffset="103.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="stroke-dashoffset" values="103.6;-129.5;-129.5" keyTimes="0;0.82;1" dur="3.37s" repeatCount="indefinite"></animate></path><path d="M88 46 C140 46 140 132 175 132" stroke="#2FD27A" stroke-opacity="0.45" stroke-width="3.4" stroke-dasharray="77.7 354.9" stroke-dashoffset="77.7" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="stroke-dashoffset" values="77.7;-155.4;-155.4" keyTimes="0;0.82;1" dur="3.37s" repeatCount="indefinite"></animate></path><path d="M88 46 C140 46 140 132 175 132" stroke="#2FD27A" stroke-opacity="0.65" stroke-width="3.4" stroke-dasharray="53.9 354.9" stroke-dashoffset="53.9" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="stroke-dashoffset" values="53.9;-179.3;-179.3" keyTimes="0;0.82;1" dur="3.37s" repeatCount="indefinite"></animate></path><path d="M88 46 C140 46 140 132 175 132" stroke="#2FD27A" stroke-opacity="0.85" stroke-width="3.4" stroke-dasharray="33.3 354.9" stroke-dashoffset="33.3" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="stroke-dashoffset" values="33.3;-199.9;-199.9" keyTimes="0;0.82;1" dur="3.37s" repeatCount="indefinite"></animate></path><path d="M88 46 C140 46 140 132 175 132" stroke="#2FD27A" stroke-opacity="1.0" stroke-width="3.4" stroke-dasharray="14.5 354.9" stroke-dashoffset="14.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="stroke-dashoffset" values="14.5;-218.7;-218.7" keyTimes="0;0.82;1" dur="3.37s" repeatCount="indefinite"></animate></path><path d="M262 46 C210 46 210 132 175 132" stroke="#3a4743" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-linejoin="round"></path><path d="M262 46 C210 46 210 132 175 132" stroke="#2FD27A" stroke-opacity="0.25" stroke-width="3.4" stroke-dasharray="103.6 354.9" stroke-dashoffset="103.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="stroke-dashoffset" values="103.6;-129.5;-129.5" keyTimes="0;0.82;1" dur="3.37s" repeatCount="indefinite"></animate></path><path d="M262 46 C210 46 210 132 175 132" stroke="#2FD27A" stroke-opacity="0.45" stroke-width="3.4" stroke-dasharray="77.7 354.9" stroke-dashoffset="77.7" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="stroke-dashoffset" values="77.7;-155.4;-155.4" keyTimes="0;0.82;1" dur="3.37s" repeatCount="indefinite"></animate></path><path d="M262 46 C210 46 210 132 175 132" stroke="#2FD27A" stroke-opacity="0.65" stroke-width="3.4" stroke-dasharray="53.9 354.9" stroke-dashoffset="53.9" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="stroke-dashoffset" values="53.9;-179.3;-179.3" keyTimes="0;0.82;1" dur="3.37s" repeatCount="indefinite"></animate></path><path d="M262 46 C210 46 210 132 175 132" stroke="#2FD27A" stroke-opacity="0.85" stroke-width="3.4" stroke-dasharray="33.3 354.9" stroke-dashoffset="33.3" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="stroke-dashoffset" values="33.3;-199.9;-199.9" keyTimes="0;0.82;1" dur="3.37s" repeatCount="indefinite"></animate></path><path d="M262 46 C210 46 210 132 175 132" stroke="#2FD27A" stroke-opacity="1.0" stroke-width="3.4" stroke-dasharray="14.5 354.9" stroke-dashoffset="14.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="stroke-dashoffset" values="14.5;-218.7;-218.7" keyTimes="0;0.82;1" dur="3.37s" repeatCount="indefinite"></animate></path><path d="M175 132 C140 132 140 214 88 214" stroke="#3a4743" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-linejoin="round"></path><path d="M175 132 C140 132 140 214 88 214" stroke="#2FD27A" stroke-opacity="0.25" stroke-width="3.4" stroke-dasharray="101.2 346.6" stroke-dashoffset="101.2" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="stroke-dashoffset" values="101.2;-126.5;-126.5" keyTimes="0;0.82;1" dur="3.29s" repeatCount="indefinite"></animate></path><path d="M175 132 C140 132 140 214 88 214" stroke="#2FD27A" stroke-opacity="0.45" stroke-width="3.4" stroke-dasharray="75.9 346.6" stroke-dashoffset="75.9" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="stroke-dashoffset" values="75.9;-151.8;-151.8" keyTimes="0;0.82;1" dur="3.29s" repeatCount="indefinite"></animate></path><path d="M175 132 C140 132 140 214 88 214" stroke="#2FD27A" stroke-opacity="0.65" stroke-width="3.4" stroke-dasharray="52.6 346.6" stroke-dashoffset="52.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="stroke-dashoffset" values="52.6;-175.1;-175.1" keyTimes="0;0.82;1" dur="3.29s" repeatCount="indefinite"></animate></path><path d="M175 132 C140 132 140 214 88 214" stroke="#2FD27A" stroke-opacity="0.85" stroke-width="3.4" stroke-dasharray="32.5 346.6" stroke-dashoffset="32.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="stroke-dashoffset" values="32.5;-195.2;-195.2" keyTimes="0;0.82;1" dur="3.29s" repeatCount="indefinite"></animate></path><path d="M175 132 C140 132 140 214 88 214" stroke="#2FD27A" stroke-opacity="1.0" stroke-width="3.4" stroke-dasharray="14.2 346.6" stroke-dashoffset="14.2" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="stroke-dashoffset" values="14.2;-213.5;-213.5" keyTimes="0;0.82;1" dur="3.29s" repeatCount="indefinite"></animate></path><path d="M175 132 C210 132 210 214 262 214" stroke="#3a4743" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-linejoin="round"></path><path d="M175 132 C210 132 210 214 262 214" stroke="#f5831f" stroke-opacity="0.25" stroke-width="3.4" stroke-dasharray="101.2 346.6" stroke-dashoffset="101.2" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="stroke-dashoffset" values="101.2;-126.5;-126.5" keyTimes="0;0.82;1" dur="3.29s" repeatCount="indefinite"></animate></path><path d="M175 132 C210 132 210 214 262 214" stroke="#f5831f" stroke-opacity="0.45" stroke-width="3.4" stroke-dasharray="75.9 346.6" stroke-dashoffset="75.9" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="stroke-dashoffset" values="75.9;-151.8;-151.8" keyTimes="0;0.82;1" dur="3.29s" repeatCount="indefinite"></animate></path><path d="M175 132 C210 132 210 214 262 214" stroke="#f5831f" stroke-opacity="0.65" stroke-width="3.4" stroke-dasharray="52.6 346.6" stroke-dashoffset="52.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="stroke-dashoffset" values="52.6;-175.1;-175.1" keyTimes="0;0.82;1" dur="3.29s" repeatCount="indefinite"></animate></path><path d="M175 132 C210 132 210 214 262 214" stroke="#f5831f" stroke-opacity="0.85" stroke-width="3.4" stroke-dasharray="32.5 346.6" stroke-dashoffset="32.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="stroke-dashoffset" values="32.5;-195.2;-195.2" keyTimes="0;0.82;1" dur="3.29s" repeatCount="indefinite"></animate></path><path d="M175 132 C210 132 210 214 262 214" stroke="#f5831f" stroke-opacity="1.0" stroke-width="3.4" stroke-dasharray="14.2 346.6" stroke-dashoffset="14.2" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="stroke-dashoffset" values="14.2;-213.5;-213.5" keyTimes="0;0.82;1" dur="3.29s" repeatCount="indefinite"></animate></path></svg><div style="position: absolute; left: 60px; top: 18px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center"><span style="width: 56px; height: 56px; border-radius: 999px; background: #3a2410; color: #f7963a; display: flex; align-items: center; justify-content: center; margin-bottom: 4px"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h14l2 9H3z"></path><path d="M4 8.5h16M9.3 4l-.8 9M14.7 4l.8 9M12 13v4M8 20h8M12 17v3"></path></svg></span><span style="font-size: 11px; line-height: 14px; color: #9fada6; white-space: nowrap">PV</span><span style="font-size: 14px; line-height: 18px; font-weight: 700; color: #eef3ef; font-variant-numeric: tabular-nums; white-space: nowrap">4,2 kW</span></div><div style="position: absolute; left: 290px; top: 18px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center"><span style="width: 56px; height: 56px; border-radius: 999px; background: #102436; color: #6fa8e8; display: flex; align-items: center; justify-content: center; margin-bottom: 4px"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M7 21l5-14 5 14M6 8h12M8 12h8"></path></svg></span><span style="font-size: 11px; line-height: 14px; color: #9fada6; white-space: nowrap">Lưới</span><span style="font-size: 14px; line-height: 18px; font-weight: 700; color: #eef3ef; font-variant-numeric: tabular-nums; white-space: nowrap">0,5 kW</span><span style="font-size: 10px; line-height: 13px; font-weight: 600; color: #6fa8e8; white-space: nowrap">Mua điện</span></div><div style="position: absolute; left: 60px; top: 186px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center"><span style="width: 56px; height: 56px; border-radius: 999px; background: #12301f; color: #34c26f; display: flex; align-items: center; justify-content: center; margin-bottom: 4px"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7.5" width="16" height="9" rx="2"></rect><path d="M21.5 10.5v3M7 10.5v3M10 10.5v3"></path></svg></span><span style="font-size: 11px; line-height: 14px; color: #9fada6; white-space: nowrap">Pin · 76 %</span><span style="font-size: 14px; line-height: 18px; font-weight: 700; color: #eef3ef; font-variant-numeric: tabular-nums; white-space: nowrap">1,6 kW</span><span style="font-size: 10px; line-height: 13px; font-weight: 600; color: #34c26f; white-space: nowrap">Đang sạc</span></div><div style="position: absolute; left: 290px; top: 186px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center"><span style="width: 56px; height: 56px; border-radius: 999px; background: #0e1814; color: #9fada6; display: flex; align-items: center; justify-content: center; margin-bottom: 4px"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"></path><path d="M5 9.5V20h14V9.5"></path><path d="M10 20v-5h4v5"></path></svg></span><span style="font-size: 11px; line-height: 14px; color: #9fada6; white-space: nowrap">Tải</span><span style="font-size: 14px; line-height: 18px; font-weight: 700; color: #eef3ef; font-variant-numeric: tabular-nums; white-space: nowrap">3,1 kW</span></div><div style="position: absolute; left: 175px; top: 92px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 6px"><span style="width: 80px; height: 80px; border-radius: 999px; background: #149c4a; color: #ffffff; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 16px rgba(20,156,74,0.28)"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"></rect><path d="M7.5 12c1.5-3 3-3 4.5 0s3 3 4.5 0"></path></svg></span><span style="font-size: 12px; line-height: 16px; font-weight: 600; color: #9fada6; white-space: nowrap">GG SmartBox</span></div></div></sc-if>
+</section>
+<section style="{{wg.sum}}">
+<div style="display: flex; align-items: center; gap: 12px; padding: 12px 0">
+<span style="color: #34c26f; display: flex"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M3 11l9-7 9 7"></path><path d="M5 9.5V20h14V9.5"></path><path d="M10 20v-5h4v5"></path></svg></span>
+<span style="flex-grow: 1; font-size: 15px; line-height: 24px">Tiêu thụ</span>
+<span style="font-size: 15px; line-height: 24px; font-weight: 600; font-variant-numeric: tabular-nums">{{d.loadSum}}</span></div>
+<div style="display: flex; align-items: center; gap: 12px; padding: 12px 0"><span style="color: #34c26f; display: flex"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z"></path><path d="M9 12l2 2 4-4"></path></svg></span><span style="flex-grow: 1; font-size: 15px; line-height: 24px">Tỷ lệ tự dùng</span><span style="font-size: 15px; line-height: 24px; font-weight: 600; font-variant-numeric: tabular-nums">{{d.self}}</span></div>
+<div style="display: flex; align-items: center; gap: 12px; padding: 12px 0"><span style="color: #34c26f; display: flex"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><circle cx="12" cy="12" r="9"></circle><path d="M14.5 9.5c-.5-1-1.4-1.5-2.5-1.5-1.5 0-2.5.8-2.5 2s1 1.7 2.5 2 2.5.8 2.5 2-1 2-2.5 2c-1.1 0-2-.5-2.5-1.5M12 6.5V8M12 16v1.5"></path></svg></span><span style="flex-grow: 1; font-size: 15px; line-height: 24px">Tiền điện tiết kiệm</span><span style="font-size: 15px; line-height: 24px; font-weight: 600; font-variant-numeric: tabular-nums">{{d.save}}</span></div>
+<div style="display: flex; align-items: center; gap: 12px; padding: 12px 0"><span style="color: #34c26f; display: flex"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M5 19c0-8 5-13 14-14 0 9-5 14-13 14z"></path><path d="M5 19l7-7"></path></svg></span><span style="flex-grow: 1; font-size: 15px; line-height: 24px">Giảm phát thải CO₂</span><span style="font-size: 15px; line-height: 24px; font-weight: 600; font-variant-numeric: tabular-nums">{{d.co2}}</span></div>
+</section>
+<section aria-label="Chế độ và pin" style="{{wg.mode}}"><a href="ConfigDark.dc.html" aria-label="Chế độ hoạt động: Tự tiêu thụ tối đa. Mở cấu hình dự án" style="background: #15221d; border-radius: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.18); padding: 14px; display: flex; flex-direction: column; gap: 6px; min-width: 0; text-decoration: none; color: #eef3ef; cursor: pointer"><span style="display: flex; align-items: center; gap: 6px"><span style="width: 32px; height: 32px; border-radius: 10px; background: #12301f; color: #34c26f; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><circle cx="12" cy="12" r="4"></circle><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"></path></svg></span><span style="margin-left: auto; color: #9fada6; display: flex"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M9 6l6 6-6 6"></path></svg></span></span><span style="font-size: 12px; line-height: 16px; font-weight: 500; color: #9fada6">Chế độ hoạt động</span><span style="font-size: 15px; line-height: 20px; font-weight: 600">Tự tiêu thụ tối đa</span><span style="font-size: 11px; line-height: 15px; color: #9fada6">PV cấp tải trước, dư sạc pin · SOC dự phòng 20 %</span></a><a href="BatteryEnergyDark.dc.html" aria-label="Pin S16 Pre 76 %, gồm 10,2 kWh từ PV và 1,9 kWh từ lưới điện. Xem nguồn năng lượng trong pin" style="background: #15221d; border-radius: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.18); padding: 14px; display: flex; flex-direction: column; gap: 6px; min-width: 0; text-decoration: none; color: #eef3ef; cursor: pointer"><span style="display: flex; align-items: center; gap: 6px; font-size: 12px; line-height: 16px; font-weight: 500; color: #9fada6"><span style="color: #34c26f; display: flex"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><rect x="2.5" y="7" width="17" height="10" rx="2"></rect><path d="M22 10.5v3M6 10.5v3M9.5 10.5v3"></path></svg></span><span>Pin S16 Pre</span><span style="margin-left: auto; color: #9fada6; display: flex"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></span><span style="display: flex; align-items: baseline; gap: 4px; margin-top: 2px"><span style="font-size: 24px; line-height: 28px; font-weight: 600; font-variant-numeric: tabular-nums">76</span><span style="font-size: 12px; line-height: 16px; font-weight: 500; color: #9fada6">%</span></span><span style="font-size: 11px; line-height: 14px; color: #9fada6; margin-top: -4px">Dung lượng sạc hôm nay</span><span style="display: flex; flex-direction: column; gap: 4px; margin-top: auto"><span style="display: flex; align-items: center; gap: 6px; font-size: 12px; line-height: 16px; font-weight: 500; color: #9fada6"><span style="width: 8px; height: 8px; flex-shrink: 0; border-radius: 2px; background: #e0700f"></span>Từ PV<strong style="margin-left: auto; color: #eef3ef; font-weight: 600; font-variant-numeric: tabular-nums">10,2 kWh</strong></span><span style="display: flex; align-items: center; gap: 6px; font-size: 12px; line-height: 16px; font-weight: 500; color: #9fada6"><span style="width: 8px; height: 8px; flex-shrink: 0; border-radius: 2px; background: #3d7cc0"></span>Từ lưới<strong style="margin-left: auto; color: #eef3ef; font-weight: 600; font-variant-numeric: tabular-nums">1,9 kWh</strong></span></span></a></section>
+<section aria-label="Thống kê" style="display: contents">
+
+<div role="group" aria-label="Khoảng thời gian" style="{{wg.tabs}}">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="3">
+<button type="button" aria-pressed="{{t.pressed}}" onClick="{{t.pick}}" style="{{t.style}}">{{t.label}}</button>
+</sc-for>
+</div>
+<div style="{{wg.range}}">
+<button type="button" aria-label="Kỳ trước" style="position: relative; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 999px; color: #eef3ef; background: transparent; border: none; padding: 0; text-decoration: none; cursor: pointer"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M15 6l-6 6 6 6"></path></svg></button>
+<span style="font-size: 13px; line-height: 20px; font-weight: 600">{{d.range}}</span>
+<button type="button" aria-label="Kỳ sau" disabled="" style="position: relative; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 999px; color: #eef3ef; background: transparent; border: none; padding: 0; text-decoration: none; cursor: default"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0; opacity: 0.3"><path d="M9 6l6 6-6 6"></path></svg></button>
+</div>
+<section style="{{wg.pw}}">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 8px"><h3 style="margin: 0; font-size: 18px; line-height: 26px; font-weight: 600">Công suất</h3><button type="button" aria-label="Đặt lại thu phóng" onClick="{{zp.reset}}" style="{{zp.pillStyle}}">{{zp.label}}<span aria-hidden="true" style="font-size: 13px; line-height: 1">×</span></button></div>
+<div style="display: flex; align-items: center; gap: 6px; font-size: 12px; line-height: 16px; color: #9fada6; margin-top: -4px"><span style="font-variant-numeric: tabular-nums">{{pw.stamp}}</span></div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 16px"><div style="display: flex; align-items: center; justify-content: space-between; gap: 6px"><span style="display: flex; align-items: center; gap: 6px; font-size: 11px; line-height: 16px; font-weight: 500; color: #9fada6"><span style="width: 10px; height: 2.5px; flex-shrink: 0; border-radius: 999px; background: rgb(247,150,58)"></span>PV</span><span style="font-size: 12px; line-height: 16px; white-space: nowrap; font-weight: 600; font-variant-numeric: tabular-nums">{{pw.pv}}</span></div><div style="display: flex; align-items: center; justify-content: space-between; gap: 6px"><span style="display: flex; align-items: center; gap: 6px; font-size: 11px; line-height: 16px; font-weight: 500; color: #9fada6"><span style="width: 10px; height: 2.5px; flex-shrink: 0; border-radius: 999px; background: rgb(111,168,232)"></span>Lưới điện</span><span style="font-size: 12px; line-height: 16px; white-space: nowrap; font-weight: 600; font-variant-numeric: tabular-nums">{{pw.grid}}</span></div><div style="display: flex; align-items: center; justify-content: space-between; gap: 6px"><span style="display: flex; align-items: center; gap: 6px; font-size: 11px; line-height: 16px; font-weight: 500; color: #9fada6"><span style="width: 10px; height: 2.5px; flex-shrink: 0; border-radius: 999px; background: rgb(52,194,111)"></span>S16 Pre</span><span style="font-size: 12px; line-height: 16px; white-space: nowrap; font-weight: 600; font-variant-numeric: tabular-nums">{{pw.bat}}</span></div><div style="display: flex; align-items: center; justify-content: space-between; gap: 6px"><span style="display: flex; align-items: center; gap: 6px; font-size: 11px; line-height: 16px; font-weight: 500; color: #9fada6"><span style="width: 10px; height: 2.5px; flex-shrink: 0; border-radius: 999px; background: rgb(159,173,166)"></span>Tải tiêu thụ</span><span style="font-size: 12px; line-height: 16px; white-space: nowrap; font-weight: 600; font-variant-numeric: tabular-nums">{{pw.load}}</span></div></div>
+<div style="position: relative; touch-action: pan-y" onPointerDown="{{zp.pd}}" onPointerMove="{{zp.pm}}" onPointerUp="{{zp.pu}}" onPointerCancel="{{zp.pu}}" onPointerLeave="{{zp.pu}}"><div role="img" aria-label="Biểu đồ đường công suất hôm nay đến 09:41: PV tăng từ 6 giờ lên 4,2 kW; lưới khoảng 0,2 kW ban đêm, 0 kW từ 6 giờ; pin S16 Pre xả ban đêm và sáng sớm, hiện đang sạc 1,1 kW; tải tiêu thụ khoảng 0,8 kW ban đêm, tăng vào buổi sáng, hiện 3,1 kW"><svg width="318" height="174" viewBox="0 0 318 174" fill="none" aria-hidden="true" style="display: block; font-family: Montserrat, system-ui, sans-serif"><line x1="30" y1="150.0" x2="316" y2="150.0" stroke="#26352f" stroke-width="1" stroke-dasharray="3 4"></line><text x="24" y="154.0" text-anchor="end" font-size="11" font-weight="500" fill="#9fada6">-2</text><line x1="30" y1="110.0" x2="316" y2="110.0" stroke="#8d9a94" stroke-width="1"></line><text x="24" y="114.0" text-anchor="end" font-size="11" font-weight="500" fill="#9fada6">0</text><line x1="30" y1="70.0" x2="316" y2="70.0" stroke="#26352f" stroke-width="1" stroke-dasharray="3 4"></line><text x="24" y="74.0" text-anchor="end" font-size="11" font-weight="500" fill="#9fada6">2</text><line x1="30" y1="30.0" x2="316" y2="30.0" stroke="#26352f" stroke-width="1" stroke-dasharray="3 4"></line><text x="24" y="34.0" text-anchor="end" font-size="11" font-weight="500" fill="#9fada6">4</text><svg x="30" y="0" width="286" height="156" viewBox="{{pw.vb}}" preserveAspectRatio="none" overflow="hidden"><path vector-effect="non-scaling-stroke" d="M30.0 110.0 L33.0 110.0 L36.0 110.0 L38.9 110.0 L41.9 110.0 L44.9 110.0 L47.9 110.0 L50.9 110.0 L53.8 110.0 L56.8 110.0 L59.8 110.0 L62.8 110.0 L65.8 110.0 L68.7 110.0 L71.7 110.0 L74.7 110.0 L77.7 110.0 L80.6 110.0 L83.6 110.0 L86.6 110.0 L89.6 110.0 L92.6 110.0 L95.5 110.0 L98.5 110.0 L101.5 108.2 L104.5 105.3 L107.5 101.7 L110.4 97.7 L113.4 93.1 L116.4 88.2 L119.4 83.0 L122.4 77.4 L125.3 71.6 L128.3 65.5 L131.3 59.1 L134.3 52.5 L137.2 45.7 L140.2 38.7 L143.2 31.4 L145.4 26.0" stroke="#f7963a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path vector-effect="non-scaling-stroke" d="M30.0 106.0 L33.0 106.0 L36.0 106.0 L38.9 106.0 L41.9 106.0 L44.9 106.0 L47.9 106.0 L50.9 106.0 L53.8 106.0 L56.8 106.0 L59.8 106.0 L62.8 106.0 L65.8 106.0 L68.7 106.0 L71.7 106.0 L74.7 106.0 L77.7 106.0 L80.6 106.0 L83.6 106.0 L86.6 106.0 L89.6 106.0 L92.6 106.0 L95.5 106.0 L98.5 106.0 L101.5 110.0 L104.5 110.0 L107.5 110.0 L110.4 110.0 L113.4 110.0 L116.4 110.0 L119.4 110.0 L122.4 110.0 L125.3 110.0 L128.3 110.0 L131.3 110.0 L134.3 110.0 L137.2 110.0 L140.2 110.0 L143.2 110.0 L145.4 110.0" stroke="#6fa8e8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path vector-effect="non-scaling-stroke" d="M30.0 122.0 L33.0 122.0 L36.0 122.0 L38.9 122.0 L41.9 122.0 L44.9 122.0 L47.9 122.0 L50.9 122.0 L53.8 122.0 L56.8 122.0 L59.8 122.0 L62.8 122.0 L65.8 122.0 L68.7 122.0 L71.7 122.0 L74.7 122.0 L77.7 122.0 L80.6 122.0 L83.6 122.0 L86.6 122.0 L89.6 122.0 L92.6 122.1 L95.5 122.3 L98.5 123.3 L101.5 128.4 L104.5 131.5 L107.5 137.0 L110.4 141.9 L113.4 141.2 L116.4 132.6 L119.4 118.8 L122.4 104.9 L125.3 94.7 L128.3 89.1 L131.3 87.8 L134.3 89.7 L137.2 92.1 L140.2 92.3 L143.2 89.4 L145.4 88.0" stroke="#34c26f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path vector-effect="non-scaling-stroke" d="M30.0 94.0 L33.0 94.0 L36.0 94.0 L38.9 94.0 L41.9 94.0 L44.9 94.0 L47.9 94.0 L50.9 94.0 L53.8 94.0 L56.8 94.0 L59.8 94.0 L62.8 94.0 L65.8 94.0 L68.7 94.0 L71.7 94.0 L74.7 94.0 L77.7 94.0 L80.6 94.0 L83.6 94.0 L86.6 94.0 L89.6 94.0 L92.6 93.9 L95.5 93.7 L98.5 92.7 L101.5 89.8 L104.5 83.8 L107.5 74.8 L110.4 65.8 L113.4 61.9 L116.4 65.6 L119.4 74.2 L122.4 82.5 L125.3 86.9 L128.3 86.3 L131.3 81.3 L134.3 72.9 L137.2 63.6 L140.2 56.4 L143.2 52.1 L145.4 48.0" stroke="#9fada6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></svg></div><span aria-hidden="true" style="{{pw.lineStyle}}"></span><span aria-hidden="true" style="{{pw.gripStyle}}"></span><span aria-hidden="true" style="{{pw.dot0}}"></span><span aria-hidden="true" style="{{pw.dot1}}"></span><span aria-hidden="true" style="{{pw.dot2}}"></span><span aria-hidden="true" style="{{pw.dot3}}"></span><input type="range" min="{{pw.imin}}" max="{{pw.imax}}" step="1" value="{{pw.i}}" onChange="{{pw.scrub}}" aria-label="Kéo để xem công suất theo thời gian" aria-valuetext="{{pw.aria}}" style="position: absolute; left: 22px; top: 0px; width: 302px; height: 156px; margin: 0; opacity: 0; cursor: ew-resize; touch-action: none"><div aria-hidden="true" style="position: absolute; left: 0; top: 160px; width: 318px; height: 14px; pointer-events: none"><sc-for list="{{pw.ticks}}" as="t" hint-placeholder-count="5"><span style="{{t.style}}">{{t.label}}</span></sc-for></div></div>
+
+</section>
+<section style="{{wg.yl}}">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+<h3 style="margin: 0; font-size: 18px; line-height: 26px; font-weight: 600">Sản lượng PV</h3><button type="button" aria-label="Đặt lại thu phóng" onClick="{{zy.reset}}" style="{{zy.pillStyle}}">{{zy.label}}<span aria-hidden="true" style="font-size: 13px; line-height: 1">×</span></button></div>
+<div style="display: flex; align-items: center; gap: 6px; font-size: 12px; line-height: 16px; color: #9fada6; margin-top: -4px"><span style="font-variant-numeric: tabular-nums">{{yl.stamp}}</span></div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 16px; font-size: 11px; line-height: 16px; font-weight: 500; color: #9fada6">
+<span style="display: flex; align-items: center; gap: 6px; min-width: 0"><span style="width: 10px; height: 10px; flex-shrink: 0; border-radius: 3px; background: #e0700f"></span>PV tiêu thụ<span style="margin-left: auto; font-weight: 600; color: #eef3ef; font-variant-numeric: tabular-nums; white-space: nowrap">{{yl.self}}</span></span>
+<span style="display: flex; align-items: center; gap: 6px; min-width: 0"><span style="width: 10px; height: 10px; flex-shrink: 0; border-radius: 3px; background: #149c4a"></span>PV sạc pin<span style="margin-left: auto; font-weight: 600; color: #eef3ef; font-variant-numeric: tabular-nums; white-space: nowrap">{{yl.chg}}</span></span>
+<span style="display: flex; align-items: center; gap: 6px; min-width: 0"><span style="width: 10px; height: 10px; flex-shrink: 0; border-radius: 3px; background: #3d7cc0"></span>PV lên lưới<span style="margin-left: auto; font-weight: 600; color: #eef3ef; font-variant-numeric: tabular-nums; white-space: nowrap">{{yl.exp}}</span></span>
+<span style="display: flex; align-items: center; gap: 6px; min-width: 0"><span style="width: 14px; height: 0; flex-shrink: 0; border-top: 1px dashed rgba(159,173,166,0.4)"></span>Hệ số hiệu quả (kW)<span style="margin-left: auto; font-weight: 600; color: #eef3ef; font-variant-numeric: tabular-nums; white-space: nowrap">{{yl.eff}}</span></span>
+</div>
+
+<div style="display: flex; gap: 6px"><div aria-hidden="true" style="position: relative; width: 30px; height: 150px; flex-shrink: 0"><span style="font-size: 11px; line-height: 16px; font-weight: 500; color: #9fada6; font-variant-numeric: tabular-nums; position: absolute; right: 0; top: -8px">{{yTop}}</span><span style="font-size: 11px; line-height: 16px; font-weight: 500; color: #9fada6; font-variant-numeric: tabular-nums; position: absolute; right: 0; top: 67px">{{yMid}}</span><span style="font-size: 11px; line-height: 16px; font-weight: 500; color: #9fada6; font-variant-numeric: tabular-nums; position: absolute; right: 0; top: 142px">0</span></div><div onPointerDown="{{zy.pd}}" onPointerMove="{{zy.pm}}" onPointerUp="{{zy.pu}}" onPointerCancel="{{zy.pu}}" onPointerLeave="{{zy.pu}}" role="img" aria-label="Biểu đồ cột chồng sản lượng điện mặt trời, chia theo phần tự tiêu thụ, sạc vào pin và phát lên lưới, kèm đường nét đứt hệ số hiệu quả bằng sản lượng chia thời gian" style="position: relative; flex-grow: 1; height: 150px; display: flex; align-items: flex-end; gap: 2px; border-bottom: 1px dashed #2c3b35; touch-action: pan-y">
+<span style="position: absolute; left: 0; right: 0; top: 0; border-top: 1px dashed #2c3b35"></span>
+<span style="position: absolute; left: 0; right: 0; top: 75px; border-top: 1px dashed #2c3b35"></span>
+<sc-for list="{{bars}}" as="b" hint-placeholder-count="12">
+<div style="flex: 1 1 0; display: flex; align-items: flex-end; justify-content: center; gap: 1px; position: relative">
+<div style="{{b.colStyle}}"><div style="{{b.expStyle}}"></div><div style="{{b.chgStyle}}"></div><div style="{{b.selfStyle}}"></div></div>
+</div>
+</sc-for>
+<svg viewBox="0 0 1000 150" preserveAspectRatio="none" aria-hidden="true" style="position: absolute; left: 0; top: 0; width: 100%; height: 150px; overflow: hidden; pointer-events: none"><path d="{{effPath}}" fill="none" stroke="#8d9a94" stroke-opacity="0.35" stroke-width="1" stroke-dasharray="3 3" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"></path></svg><span aria-hidden="true" style="{{yl.lineStyle}}"></span><input type="range" min="0" max="{{yl.max}}" step="1" value="{{yl.i}}" onChange="{{yl.scrub}}" aria-label="Kéo để xem sản lượng từng cột" aria-valuetext="{{yl.aria}}" style="position: absolute; left: 0; top: 0px; width: 100%; height: 150px; margin: 0; opacity: 0; cursor: ew-resize; touch-action: none">
+</div><div aria-hidden="true" style="position: relative; width: 30px; height: 150px; flex-shrink: 0"><span style="font-size: 11px; line-height: 16px; font-weight: 500; color: #9fada6; font-variant-numeric: tabular-nums; position: absolute; left: 0; top: -8px">{{eTop}}</span><span style="font-size: 11px; line-height: 16px; font-weight: 500; color: #9fada6; font-variant-numeric: tabular-nums; position: absolute; left: 0; top: 67px">{{eMid}}</span><span style="font-size: 11px; line-height: 16px; font-weight: 500; color: #9fada6; font-variant-numeric: tabular-nums; position: absolute; left: 0; top: 142px">0</span></div></div>
+<div style="display: flex; gap: 2px; margin-top: -6px; padding: 0 36px">
+<sc-for list="{{bars}}" as="b" hint-placeholder-count="12">
+<span style="flex: 1 1 0; text-align: center; font-size: 11px; line-height: 16px; font-weight: 500; color: #9fada6; white-space: nowrap">{{b.label}}</span>
+</sc-for>
+</div>
+</section>
+
+<section style="{{wg.bat}}">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 8px"><h3 style="margin: 0; font-size: 18px; line-height: 26px; font-weight: 600">Pin S16 Pre</h3><button type="button" aria-label="Đặt lại thu phóng" onClick="{{zb.reset}}" style="{{zb.pillStyle}}">{{zb.label}}<span aria-hidden="true" style="font-size: 13px; line-height: 1">×</span></button></div>
+<div style="display: flex; align-items: center; gap: 6px; font-size: 12px; line-height: 16px; color: #9fada6; margin-top: -4px"><span style="font-variant-numeric: tabular-nums">24/09 {{bat.time}}</span></div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 16px"><div style="display: flex; align-items: center; justify-content: space-between; gap: 6px"><span style="display: flex; align-items: center; gap: 6px; font-size: 11px; line-height: 16px; font-weight: 500; color: #9fada6"><span style="width: 10px; height: 2.5px; flex-shrink: 0; border-radius: 999px; background: #149c4a"></span>Dòng BMS</span><span style="font-size: 12px; line-height: 16px; white-space: nowrap; font-weight: 600; font-variant-numeric: tabular-nums">{{bat.amp}}</span></div><div style="display: flex; align-items: center; justify-content: space-between; gap: 6px"><span style="display: flex; align-items: center; gap: 6px; font-size: 11px; line-height: 16px; font-weight: 500; color: #9fada6"><span style="width: 10px; height: 8px; flex-shrink: 0; border-radius: 2px; background: rgba(52,194,111,0.22); border-top: 1.5px dashed #34c26f; box-sizing: border-box"></span>SOC</span><span style="font-size: 12px; line-height: 16px; white-space: nowrap; font-weight: 600; font-variant-numeric: tabular-nums">{{bat.soc}}</span></div></div>
+<div style="position: relative; touch-action: pan-y" onPointerDown="{{zb.pd}}" onPointerMove="{{zb.pm}}" onPointerUp="{{zb.pu}}" onPointerCancel="{{zb.pu}}" onPointerLeave="{{zb.pu}}"><div role="img" aria-label="Biểu đồ pin S16 Pre hôm nay đến 09:41: dòng BMS (sạc là dương, xả là âm) khoảng −12 A ban đêm, xả mạnh nhất khoảng −31 A lúc 7 giờ, hiện đang sạc +21,5 A; SOC giảm từ 99 % lúc 0 giờ xuống thấp nhất 65 %, hiện 76 %"><svg width="318" height="174" viewBox="0 0 318 174" fill="none" aria-hidden="true" style="display: block; font-family: Montserrat, system-ui, sans-serif"><line x1="30" y1="150.0" x2="286" y2="150.0" stroke="#26352f" stroke-width="1" stroke-dasharray="3 4"></line><text x="24" y="154.0" text-anchor="end" font-size="11" font-weight="500" fill="#9fada6">-40</text><line x1="30" y1="115.0" x2="286" y2="115.0" stroke="#26352f" stroke-width="1" stroke-dasharray="3 4"></line><text x="24" y="119.0" text-anchor="end" font-size="11" font-weight="500" fill="#9fada6">-20</text><line x1="30" y1="80.0" x2="286" y2="80.0" stroke="#8d9a94" stroke-width="1"></line><text x="24" y="84.0" text-anchor="end" font-size="11" font-weight="500" fill="#9fada6">0</text><line x1="30" y1="45.0" x2="286" y2="45.0" stroke="#26352f" stroke-width="1" stroke-dasharray="3 4"></line><text x="24" y="49.0" text-anchor="end" font-size="11" font-weight="500" fill="#9fada6">20</text><line x1="30" y1="10.0" x2="286" y2="10.0" stroke="#26352f" stroke-width="1" stroke-dasharray="3 4"></line><text x="24" y="14.0" text-anchor="end" font-size="11" font-weight="500" fill="#9fada6">40</text><text x="292" y="154.0" text-anchor="start" font-size="11" font-weight="500" fill="#9fada6">0%</text><text x="292" y="84.0" text-anchor="start" font-size="11" font-weight="500" fill="#9fada6">50%</text><text x="292" y="14.0" text-anchor="start" font-size="11" font-weight="500" fill="#9fada6">100%</text><svg x="30" y="0" width="256" height="156" viewBox="{{bat.vb}}" preserveAspectRatio="none" overflow="hidden"><path vector-effect="non-scaling-stroke" d="M30.0 10.8 L32.7 12.1 L35.3 13.4 L38.0 14.8 L40.7 16.1 L43.3 17.4 L46.0 18.7 L48.7 20.0 L51.3 21.3 L54.0 22.6 L56.7 23.9 L59.3 25.3 L62.0 26.6 L64.7 27.9 L67.3 29.2 L70.0 30.5 L72.7 31.8 L75.3 33.1 L78.0 34.4 L80.7 35.8 L83.3 37.1 L86.0 38.4 L88.7 39.7 L91.3 41.1 L94.0 42.9 L96.7 45.0 L99.3 47.7 L102.0 50.9 L104.7 54.4 L107.3 57.3 L110.0 59.0 L112.7 59.2 L115.3 58.1 L118.0 56.1 L120.7 53.8 L123.3 51.4 L126.0 49.4 L128.7 47.4 L131.3 45.3 L133.3 43.6 L133.3 150 L30.0 150 Z" fill="#34c26f" fill-opacity="0.12"></path><path vector-effect="non-scaling-stroke" d="M30.0 10.8 L32.7 12.1 L35.3 13.4 L38.0 14.8 L40.7 16.1 L43.3 17.4 L46.0 18.7 L48.7 20.0 L51.3 21.3 L54.0 22.6 L56.7 23.9 L59.3 25.3 L62.0 26.6 L64.7 27.9 L67.3 29.2 L70.0 30.5 L72.7 31.8 L75.3 33.1 L78.0 34.4 L80.7 35.8 L83.3 37.1 L86.0 38.4 L88.7 39.7 L91.3 41.1 L94.0 42.9 L96.7 45.0 L99.3 47.7 L102.0 50.9 L104.7 54.4 L107.3 57.3 L110.0 59.0 L112.7 59.2 L115.3 58.1 L118.0 56.1 L120.7 53.8 L123.3 51.4 L126.0 49.4 L128.7 47.4 L131.3 45.3 L133.3 43.6" stroke="#34c26f" stroke-width="1.5" stroke-dasharray="4 3" stroke-linecap="round" stroke-linejoin="round"></path><path vector-effect="non-scaling-stroke" d="M30.0 100.5 L32.7 100.5 L35.3 100.5 L38.0 100.5 L40.7 100.5 L43.3 100.5 L46.0 100.5 L48.7 100.5 L51.3 100.5 L54.0 100.5 L56.7 100.5 L59.3 100.5 L62.0 100.5 L64.7 100.5 L67.3 100.5 L70.0 100.5 L72.7 100.5 L75.3 100.5 L78.0 100.5 L80.7 100.5 L83.3 100.5 L86.0 100.6 L88.7 101.1 L91.3 102.8 L94.0 111.4 L96.7 116.7 L99.3 126.1 L102.0 134.5 L104.7 133.4 L107.3 118.7 L110.0 95.0 L112.7 71.3 L115.3 53.9 L118.0 44.3 L120.7 42.1 L123.3 45.2 L126.0 49.4 L128.7 49.7 L131.3 44.7 L133.3 42.4" stroke="#34c26f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></svg></div><span aria-hidden="true" style="{{bat.lineStyle}}"></span><span aria-hidden="true" style="{{bat.gripStyle}}"></span><span aria-hidden="true" style="{{bat.socDot}}"></span><span aria-hidden="true" style="{{bat.ampDot}}"></span><input type="range" min="{{bat.imin}}" max="{{bat.imax}}" step="1" value="{{bat.i}}" onChange="{{bat.scrub}}" aria-label="Kéo để xem dòng BMS và SOC theo thời gian" aria-valuetext="{{bat.aria}}" style="position: absolute; left: 22px; top: 0; width: 272px; height: 156px; margin: 0; opacity: 0; cursor: ew-resize; touch-action: none"><div aria-hidden="true" style="position: absolute; left: 0; top: 160px; width: 318px; height: 14px; pointer-events: none"><sc-for list="{{bat.ticks}}" as="t" hint-placeholder-count="5"><span style="{{t.style}}">{{t.label}}</span></sc-for></div></div>
+</section>
+</section>
+</main>
+<div aria-hidden="true" style="position: absolute; left: 0; right: 0; bottom: 0; height: 112px; pointer-events: none; background: linear-gradient(to bottom, rgba(12,22,18,0), #0c1612 55%)"></div><nav aria-label="Điều hướng chính" style="position: absolute; left: 20px; right: 20px; bottom: 20px; height: 68px; box-sizing: border-box; padding: 6px; display: flex; gap: 4px; border-radius: 999px; background: #1c2b25; border: 1px solid #26352f; box-shadow: 0 8px 24px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.22)"><a href="MainDark.dc.html" aria-current="page" style="flex: 2.2 1 0; min-width: 0; height: 56px; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 8px; padding: 0 12px; border-radius: 999px; text-decoration: none; overflow: hidden; background: #12301f; color: #34c26f"><span style="position: relative; display: flex"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><rect x="3.5" y="3.5" width="7" height="9" rx="1.5"></rect><rect x="13.5" y="3.5" width="7" height="5" rx="1.5"></rect><rect x="13.5" y="11.5" width="7" height="9" rx="1.5"></rect><rect x="3.5" y="15.5" width="7" height="5" rx="1.5"></rect></svg></span><span style="font-size: 13px; line-height: 18px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Màn hình chính</span></a><a aria-label="Thiết bị" href="DeviceDark.dc.html" style="flex: 1 1 0; min-width: 0; height: 56px; display: flex; align-items: center; justify-content: center; border-radius: 999px; text-decoration: none; color: #9fada6"><span style="position: relative; display: flex"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><rect x="4" y="3" width="16" height="18" rx="3"></rect><path d="M8 8h8M8 12h5"></path><circle cx="15.5" cy="16.5" r="1"></circle></svg></span></a><a aria-label="Dịch vụ" href="ServiceDark.dc.html" style="flex: 1 1 0; min-width: 0; height: 56px; display: flex; align-items: center; justify-content: center; border-radius: 999px; text-decoration: none; color: #9fada6"><span style="position: relative; display: flex"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M11 14h2a2 2 0 1 0 0-4h-3c-.6 0-1.1.2-1.4.6L3 16"></path><path d="M7 20l1.6-1.4c.3-.4.8-.6 1.4-.6h4c1.1 0 2.1-.4 2.8-1.2l4.6-4.4a2 2 0 0 0-2.75-2.91l-4.2 3.9"></path><path d="M2 15l6 6"></path><path d="M19.5 8.5c.7-.7 1.5-1.6 1.5-2.7A2.73 2.73 0 0 0 16 4a2.78 2.78 0 0 0-5 1.8c0 1.2.8 2 1.5 2.8L16 12z"></path></svg></span></a></nav><sc-if value="{{vw.sheet}}" hint-placeholder-val="{{false}}"><div role="dialog" aria-modal="true" aria-labelledby="vw-t" style="position: absolute; inset: 0; z-index: 30; background: #0c1612; display: flex; flex-direction: column; overflow-y: auto; padding-bottom: 32px"><header style="height: 64px; flex-shrink: 0; display: flex; align-items: center; gap: 4px; padding: 0 8px 0 4px"><button type="button" aria-label="Đóng" onClick="{{vw.close}}" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border: none; border-radius: 999px; background: transparent; color: #eef3ef; cursor: pointer; padding: 0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button><h2 id="vw-t" style="margin: 0; flex-grow: 1; font-size: 22px; line-height: 28px; font-weight: 600">Tuỳ chỉnh màn hình chính</h2></header><h3 style="margin: 0; padding: 4px 20px 4px; font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: #9fada6">Kiểu sơ đồ dòng năng lượng</h3><p style="margin: 0; padding: 0 20px 12px; font-size: 13px; line-height: 20px; color: #9fada6">Vuốt ngang để xem và chọn.</p><div class="vw-track" ref="{{vw.trackRef}}" style="display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 4px 55px 12px; -webkit-overflow-scrolling: touch; scrollbar-width: none; -ms-overflow-style: none"><button type="button" aria-pressed="{{vw.housePressed}}" onClick="{{vw.sel_house}}" style="{{vw.houseCard}}"><div style="height: 240px; display: flex; align-items: center; justify-content: center"><div style="width: 252px; height: 248px; overflow: hidden; pointer-events: none"><div style="width: 350px; transform: scale(0.72); transform-origin: 0 0"><div style="position: relative; width: 100%; height: 345px; overflow: hidden"><div style="position: absolute; left: 0; top: 0; width: 700px; height: 690px; transform: scale(0.5); transform-origin: 0 0"><div style="position: relative; width: 700px; height: 690px; overflow: hidden; font-family: Montserrat, system-ui, -apple-system, 'Segoe UI', sans-serif; color: #13201b">
+<svg width="700" height="552" viewBox="28 2 270 213" style="position: absolute; left: 0px; top: 0px; width: 700px; height: 552px" aria-label="Dòng năng lượng: điện mặt trời 4,2 kW và lưới điện 0,5 kW vào inverter, inverter sạc pin S16 Pre 1,6 kW và cấp cho tải trong nhà 3,1 kW">
+<defs>
+<linearGradient id="pv" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#34456b"></stop><stop offset="0.55" stop-color="#1c2438"></stop><stop offset="1" stop-color="#121826"></stop></linearGradient>
+<linearGradient id="win" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff3d2"></stop><stop offset="1" stop-color="#f3d99f"></stop></linearGradient>
+<linearGradient id="wallR" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#c3c9c1"></stop><stop offset="1" stop-color="#aab1a8"></stop></linearGradient>
+<linearGradient id="eaveSh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity="0.34"></stop><stop offset="0.5" stop-color="#000" stop-opacity="0.22"></stop><stop offset="1" stop-color="#000" stop-opacity="0"></stop></linearGradient>
+<filter id="flowGlow" filterUnits="userSpaceOnUse" x="0" y="0" width="400" height="300"><feGaussianBlur stdDeviation="0.9" result="b"></feGaussianBlur><feMerge><feMergeNode in="b"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge></filter>
+<linearGradient id="hubFront" x1="0" y1="0" x2="0.35" y2="1"><stop offset="0" stop-color="#fbfbfc"></stop><stop offset="1" stop-color="#e6e7e9"></stop></linearGradient>
+<linearGradient id="hubSide" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#d9dadd"></stop><stop offset="1" stop-color="#c3c5c8"></stop></linearGradient>
+<linearGradient id="footCol" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#f4f5f6"></stop><stop offset="0.55" stop-color="#d6d8db"></stop><stop offset="1" stop-color="#a9acb0"></stop></linearGradient>
+<linearGradient id="footNut" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#eceef0"></stop><stop offset="1" stop-color="#a7aaae"></stop></linearGradient>
+<linearGradient id="footPad" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3a3c40"></stop><stop offset="1" stop-color="#1c1d20"></stop></linearGradient>
+<filter id="hubGlow" x="-100%" y="-30%" width="300%" height="160%"><feGaussianBlur stdDeviation="0.35" result="b"></feGaussianBlur><feMerge><feMergeNode in="b"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge></filter>
+<linearGradient id="invFront" x1="0" y1="0" x2="0.3" y2="1"><stop offset="0" stop-color="#f4f5f7"></stop><stop offset="1" stop-color="#e2e4e8"></stop></linearGradient>
+<linearGradient id="invSide" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#cfd1d4"></stop><stop offset="1" stop-color="#bcbec2"></stop></linearGradient>
+</defs>
+
+<g transform="translate(-20.5,-1.7)">
+<ellipse cx="198.0" cy="196.5" rx="110" ry="14" fill="#13201b" opacity="0.14"></ellipse>
+
+<g aria-label="Cây phía sau nhà">
+<path d="M265.8 176 L267.1 90 L268.9 90 L270.4 176 Z" fill="#4a3b2c"></path>
+<path d="M268.0 92 Q262 82 255 74" fill="none" stroke="#4f3f2f" stroke-width="0.8" stroke-linecap="round"></path>
+<path d="M268.5 95 Q276 84 286 76" fill="none" stroke="#4f3f2f" stroke-width="0.8" stroke-linecap="round"></path>
+<circle cx="250" cy="82" r="8" fill="#6f9a5a"></circle>
+<circle cx="258" cy="72" r="11" fill="#6f9a5a"></circle>
+<circle cx="288" cy="70" r="12" fill="#5f8a4e"></circle>
+<circle cx="294" cy="82" r="8" fill="#4e7a42"></circle>
+<circle cx="281" cy="82" r="11" fill="#4e7a42"></circle>
+<circle cx="263" cy="84" r="10" fill="#5c8a4c"></circle>
+<circle cx="272" cy="62" r="13" fill="#7aa465"></circle>
+<circle cx="278" cy="52" r="9" fill="#86ad6c"></circle>
+<circle cx="270" cy="74" r="12" fill="#86ad6c" opacity="0.9"></circle>
+</g>
+
+<g aria-label="Ngôi nhà">
+<polygon points="92.0,196.0 176.0,207.7 176.0,125.7 134.0,85.9 92.0,114.0" fill="#dce0d9"></polygon>
+<polygon points="176.0,207.7 276.0,185.1 276.0,103.1 176.0,125.7" fill="url(#wallR)"></polygon>
+<polygon points="92.0,196.0 176.0,207.7 176.0,203.7 92.0,192.0" fill="#bcc3bb"></polygon>
+<polygon points="176.0,207.7 276.0,185.1 276.0,181.1 176.0,203.7" fill="#8c958b"></polygon>
+<polygon points="194.5,176.0 257.5,161.8 257.5,122.8 194.5,137.0" fill="#fafafa"></polygon>
+<polygon points="197.0,173.0 255.0,159.9 255.0,125.9 197.0,139.0" fill="url(#win)"></polygon>
+<defs>
+<clipPath id="winClip"><polygon points="197.0,173.0 255.0,159.9 255.0,125.9 197.0,139.0"></polygon></clipPath>
+<linearGradient id="coneGlow" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff6d8" stop-opacity="0.85"></stop><stop offset="1" stop-color="#fff6d8" stop-opacity="0.15"></stop></linearGradient>
+<radialGradient id="lampGlow"><stop offset="0" stop-color="#fff2c4" stop-opacity="0.75"></stop><stop offset="1" stop-color="#fff2c4" stop-opacity="0"></stop></radialGradient>
+</defs>
+<g aria-label="Nội thất nhìn qua cửa kính" clip-path="url(#winClip)">
+<polygon points="197.00,173.00 255.00,159.90 255.00,153.90 197.00,167.00" fill="#ead2a2"></polygon>
+<polygon points="221.36,141.00 224.84,140.21 229.48,149.66 216.72,152.55" fill="url(#coneGlow)"></polygon>
+<polygon points="229.48,155.26 250.36,150.55 250.36,148.95 229.48,153.66" fill="#8c6e4f"></polygon>
+<polygon points="230.06,153.53 249.78,149.08 248.62,148.54 231.22,152.47" fill="#b08a63"></polygon>
+<polygon points="231.22,165.27 231.92,165.11 231.92,154.71 231.22,154.87" fill="#6f563d"></polygon>
+<polygon points="247.92,161.50 248.62,161.34 248.62,150.94 247.92,151.10" fill="#6f563d"></polygon>
+<line x1="223.10" y1="133.10" x2="223.10" y2="138.50" stroke="#4a3d30" stroke-width="0.3"></line>
+<polygon points="221.65,138.63 224.55,137.98 225.42,139.98 220.78,141.03" fill="#3f4448"></polygon>
+<circle cx="223.10" cy="141.00" r="3.5" fill="url(#lampGlow)"></circle>
+<ellipse cx="223.10" cy="141.00" rx="1.2" ry="0.9" fill="#fffbe8"></ellipse>
+<polygon points="197.0,173.0 255.0,159.9 255.0,125.9 197.0,139.0" fill="#ffffff" opacity="0.1"></polygon>
+</g>
+<g aria-label="Chiều sâu cửa sổ">
+<polygon points="251.6,160.7 255.0,159.9 255.0,125.9 251.6,126.7" fill="#d9dcd6"></polygon>
+<polygon points="197.0,173.0 255.0,159.9 251.6,157.6 197.0,169.9" fill="#eceee9"></polygon>
+<polygon points="197.0,139.0 251.6,126.7 251.6,129.9 199.4,141.7" fill="#000" opacity="0.16"></polygon>
+<polygon points="197.0,139.0 199.4,141.7 199.4,169.4 197.0,169.9" fill="#000" opacity="0.10"></polygon>
+<polygon points="216.0,134.7 226.0,132.4 205.0,163.1 199.4,164.4 199.4,158.5" fill="#ffffff" opacity="0.28"></polygon>
+<polygon points="231.0,131.3 236.0,130.2 214.0,161.0 209.0,162.1" fill="#ffffff" opacity="0.18"></polygon>
+<polygon points="193.0,176.3 259.0,161.4 260.5,162.7 191.5,178.2" fill="#ffffff"></polygon>
+<polygon points="191.5,178.2 260.5,162.7 260.5,164.4 191.5,179.9" fill="#c4c9c2"></polygon>
+<polygon points="191.5,179.9 260.5,164.4 260.5,167.2 191.5,182.7" fill="#000" opacity="0.08"></polygon>
+</g>
+<line x1="211.5" y1="169.7" x2="211.5" y2="135.7" stroke="#fafafa" stroke-width="1.5"></line>
+<line x1="226.0" y1="166.4" x2="226.0" y2="132.4" stroke="#fafafa" stroke-width="1.5"></line>
+<line x1="240.5" y1="163.2" x2="240.5" y2="129.2" stroke="#fafafa" stroke-width="1.5"></line>
+<line x1="197.0" y1="156.0" x2="255.0" y2="142.9" stroke="#fafafa" stroke-width="1.0" opacity="0.85"></line>
+<polygon points="176.0,125.7 276.0,103.1 276.0,127.1 176.0,149.7" fill="url(#eaveSh)"></polygon>
+<polygon points="92.0,114.0 134.0,85.9 176.0,125.7 176.0,134.7 134.0,99.6 92.0,123.0" fill="#000" opacity="0.10"></polygon>
+<polygon points="92.0,114.0 134.0,85.9 176.0,125.7 176.0,129.7 134.0,91.5 92.0,118.0" fill="#000" opacity="0.12"></polygon>
+<polygon points="81.0,120.9 127.0,91.1 134.0,89.6 88.0,119.3" fill="#c9cacb"></polygon>
+<polygon points="127.0,87.4 241.0,61.7 291.0,109.1 177.0,134.9" fill="#868c92"></polygon>
+</g>
+
+<g aria-label="5 tấm pin mặt trời dài trên mái" stroke-width="0.45">
+<defs>
+<g id="pvShapes">
+<polygon points="140.6,91.10 158.6,87.00 195.2,121.70 177.1,125.80"></polygon>
+<polygon points="160.7,86.60 178.7,82.50 215.2,117.20 197.2,121.30"></polygon>
+<polygon points="180.7,82.00 198.7,78.00 235.3,112.70 217.3,116.70"></polygon>
+<polygon points="200.8,77.50 218.8,73.40 255.4,108.10 237.3,112.20"></polygon>
+<polygon points="220.8,73.00 238.9,68.90 275.4,103.60 257.4,107.70"></polygon>
+</g>
+</defs>
+<use href="#pvShapes" transform="translate(1.1,1.2)" fill="#13201b" opacity="0.28"></use>
+<g aria-hidden="true" stroke-width="0.12" stroke-linejoin="round">
+<g fill="#3a4766" stroke="#5a6a88">
+<polygon points="177.1,125.80 195.2,121.70 195.2,120.30 177.1,124.40"></polygon>
+<polygon points="197.2,121.30 215.2,117.20 215.2,115.80 197.2,119.90"></polygon>
+<polygon points="217.3,116.70 235.3,112.70 235.3,111.30 217.3,115.30"></polygon>
+<polygon points="237.3,112.20 255.4,108.10 255.4,106.70 237.3,110.80"></polygon>
+<polygon points="257.4,107.70 275.4,103.60 275.4,102.20 257.4,106.30"></polygon>
+</g>
+<g fill="#232b3c" stroke="#4a5876">
+<polygon points="140.6,91.10 177.1,125.80 177.1,124.40 140.6,89.70"></polygon>
+<polygon points="160.7,86.60 197.2,121.30 197.2,119.90 160.7,85.20"></polygon>
+<polygon points="180.7,82.00 217.3,116.70 217.3,115.30 180.7,80.60"></polygon>
+<polygon points="200.8,77.50 237.3,112.20 237.3,110.80 200.8,76.10"></polygon>
+<polygon points="220.8,73.00 257.4,107.70 257.4,106.30 220.8,71.60"></polygon>
+</g>
+</g>
+<use href="#pvShapes" transform="translate(0,-1.4)" fill="url(#pv)" stroke="#7587a6" stroke-width="0.18"></use>
+<g stroke="#4a5876" stroke-width="0.25" transform="translate(0,-1.4)">
+<line x1="146.6" y1="89.73" x2="183.1" y2="124.43"></line><line x1="152.6" y1="88.37" x2="189.2" y2="123.07"></line>
+<line x1="166.7" y1="85.23" x2="203.2" y2="119.93"></line><line x1="172.7" y1="83.87" x2="209.2" y2="118.57"></line>
+<line x1="186.7" y1="80.67" x2="223.3" y2="115.37"></line><line x1="192.7" y1="79.33" x2="229.3" y2="114.03"></line>
+<line x1="206.8" y1="76.13" x2="243.3" y2="110.83"></line><line x1="212.8" y1="74.77" x2="249.4" y2="109.47"></line>
+<line x1="226.8" y1="71.63" x2="263.4" y2="106.33"></line><line x1="232.9" y1="70.27" x2="269.4" y2="104.97"></line>
+</g>
+</g>
+
+<polygon points="177.0,134.9 291.0,109.1 291.0,111.7 177.0,137.5" fill="#6f757b"></polygon>
+<polygon points="81.0,118.3 127.0,87.4 177.0,134.9 177.0,137.5 127.0,91.1 81.0,120.9" fill="#969ca2"></polygon>
+<polyline points="81.0,118.3 127.0,87.4 177.0,134.9 291.0,109.1 241.0,61.7 127.0,87.4" fill="none" stroke="#b3b8bd" stroke-width="0.25" stroke-linejoin="round"></polyline>
+
+</g>
+
+<g aria-label="Cột điện bên trái ngôi nhà">
+<ellipse cx="40" cy="203.6" rx="5.5" ry="1.4" fill="#13201b" opacity="0.16"></ellipse>
+<polygon points="36.9,203.6 43.1,203.6 42.4,100 37.6,100" fill="#a7afab"></polygon>
+<polygon points="40,203.6 43.1,203.6 42.4,100 40,100" fill="#8e9792"></polygon>
+<rect x="31" y="105" width="18" height="2.6" rx="0.7" fill="#8e9792"></rect>
+<g fill="#d9dfd8">
+<rect x="32.4" y="102.4" width="1.8" height="2.6" rx="0.5"></rect>
+<rect x="45.8" y="102.4" width="1.8" height="2.6" rx="0.5"></rect>
+</g>
+</g>
+
+<g aria-label="Đường năng lượng" fill="none" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round">
+<path d="M128.15 94.3 L113.5 96.7 L113.5 133.15" stroke="#C9CDD2"></path>
+<path d="M111.9 157.9 L111.9 170.1" stroke="#C9CDD2"></path>
+<path d="M121 145.2 L155.5 150 L173.5 145.95" stroke="#C9CDD2"></path>
+<path d="M40 203.3 L76.5 195 L76.5 139 L106 143.1" stroke="#C9CDD2"></path>
+
+<path d="M128.15 94.3 L113.5 96.7 L113.5 133.15" stroke="#2FD27A" stroke-opacity="0.25" stroke-dasharray="29.15 99.75" stroke-dashoffset="29.15"><animate attributeName="stroke-dashoffset" values="29.15;-51.3;-51.3" keyTimes="0;0.817;1" dur="2.69s" repeatCount="indefinite"></animate></path>
+<path d="M128.15 94.3 L113.5 96.7 L113.5 133.15" stroke="#2FD27A" stroke-opacity="0.45" stroke-dasharray="21.85 99.75" stroke-dashoffset="21.85"><animate attributeName="stroke-dashoffset" values="21.85;-58.65;-58.65" keyTimes="0;0.817;1" dur="2.69s" repeatCount="indefinite"></animate></path>
+<path d="M128.15 94.3 L113.5 96.7 L113.5 133.15" stroke="#2FD27A" stroke-opacity="0.65" stroke-dasharray="15.15 99.75" stroke-dashoffset="15.15"><animate attributeName="stroke-dashoffset" values="15.15;-65.3;-65.3" keyTimes="0;0.817;1" dur="2.69s" repeatCount="indefinite"></animate></path>
+<path d="M128.15 94.3 L113.5 96.7 L113.5 133.15" stroke="#2FD27A" stroke-opacity="0.85" stroke-dasharray="9.35 99.75" stroke-dashoffset="9.35"><animate attributeName="stroke-dashoffset" values="9.35;-71.15;-71.15" keyTimes="0;0.817;1" dur="2.69s" repeatCount="indefinite"></animate></path>
+<path d="M128.15 94.3 L113.5 96.7 L113.5 133.15" stroke="#2FD27A" stroke-opacity="1.0" stroke-dasharray="4.1 99.75" stroke-dashoffset="4.1"><animate attributeName="stroke-dashoffset" values="4.1;-76.4;-76.4" keyTimes="0;0.817;1" dur="2.69s" repeatCount="indefinite"></animate></path>
+<path d="M111.9 157.9 L111.9 170.1" stroke="#2FD27A" stroke-opacity="0.25" stroke-dasharray="9.75 36.7" stroke-dashoffset="9.75"><animate attributeName="stroke-dashoffset" values="9.75;-12.2;-12.2" keyTimes="0;0.720;1" dur="1.25s" repeatCount="indefinite"></animate></path>
+<path d="M111.9 157.9 L111.9 170.1" stroke="#2FD27A" stroke-opacity="0.45" stroke-dasharray="7.3 36.7" stroke-dashoffset="7.3"><animate attributeName="stroke-dashoffset" values="7.3;-14.65;-14.65" keyTimes="0;0.720;1" dur="1.25s" repeatCount="indefinite"></animate></path>
+<path d="M111.9 157.9 L111.9 170.1" stroke="#2FD27A" stroke-opacity="0.65" stroke-dasharray="5.1 36.7" stroke-dashoffset="5.1"><animate attributeName="stroke-dashoffset" values="5.1;-16.9;-16.9" keyTimes="0;0.720;1" dur="1.25s" repeatCount="indefinite"></animate></path>
+<path d="M111.9 157.9 L111.9 170.1" stroke="#2FD27A" stroke-opacity="0.85" stroke-dasharray="3.1 36.7" stroke-dashoffset="3.1"><animate attributeName="stroke-dashoffset" values="3.1;-18.85;-18.85" keyTimes="0;0.720;1" dur="1.25s" repeatCount="indefinite"></animate></path>
+<path d="M111.9 157.9 L111.9 170.1" stroke="#2FD27A" stroke-opacity="1.0" stroke-dasharray="1.35 36.7" stroke-dashoffset="1.35"><animate attributeName="stroke-dashoffset" values="1.35;-20.6;-20.6" keyTimes="0;0.720;1" dur="1.25s" repeatCount="indefinite"></animate></path>
+<path d="M121 145.2 L155.5 150 L173.5 145.95" stroke="#f5831f" stroke-opacity="0.25" stroke-dasharray="35 128.3" stroke-dashoffset="35"><animate attributeName="stroke-dashoffset" values="35;-53.3;-53.3" keyTimes="0;0.871;1" dur="2.71s" repeatCount="indefinite"></animate></path>
+<path d="M121 145.2 L155.5 150 L173.5 145.95" stroke="#f5831f" stroke-opacity="0.45" stroke-dasharray="26.25 128.3" stroke-dashoffset="26.25"><animate attributeName="stroke-dashoffset" values="26.25;-62.05;-62.05" keyTimes="0;0.871;1" dur="2.71s" repeatCount="indefinite"></animate></path>
+<path d="M121 145.2 L155.5 150 L173.5 145.95" stroke="#f5831f" stroke-opacity="0.65" stroke-dasharray="18.2 128.3" stroke-dashoffset="18.2"><animate attributeName="stroke-dashoffset" values="18.2;-70.1;-70.1" keyTimes="0;0.871;1" dur="2.71s" repeatCount="indefinite"></animate></path>
+<path d="M121 145.2 L155.5 150 L173.5 145.95" stroke="#f5831f" stroke-opacity="0.85" stroke-dasharray="11.2 128.3" stroke-dashoffset="11.2"><animate attributeName="stroke-dashoffset" values="11.2;-77.1;-77.1" keyTimes="0;0.871;1" dur="2.71s" repeatCount="indefinite"></animate></path>
+<path d="M121 145.2 L155.5 150 L173.5 145.95" stroke="#f5831f" stroke-opacity="1.0" stroke-dasharray="4.9 128.3" stroke-dashoffset="4.9"><animate attributeName="stroke-dashoffset" values="4.9;-83.4;-83.4" keyTimes="0;0.871;1" dur="2.71s" repeatCount="indefinite"></animate></path>
+<path d="M40 203.3 L76.5 195 L76.5 139 L106 143.1" stroke="#2FD27A" stroke-opacity="0.25" stroke-dasharray="35 203.85" stroke-dashoffset="35"><animate attributeName="stroke-dashoffset" values="35;-128.85;-128.85" keyTimes="0;0.958;1" dur="8.39s" repeatCount="indefinite"></animate></path>
+<path d="M40 203.3 L76.5 195 L76.5 139 L106 143.1" stroke="#2FD27A" stroke-opacity="0.45" stroke-dasharray="26.25 203.85" stroke-dashoffset="26.25"><animate attributeName="stroke-dashoffset" values="26.25;-137.6;-137.6" keyTimes="0;0.958;1" dur="8.39s" repeatCount="indefinite"></animate></path>
+<path d="M40 203.3 L76.5 195 L76.5 139 L106 143.1" stroke="#2FD27A" stroke-opacity="0.65" stroke-dasharray="18.2 203.85" stroke-dashoffset="18.2"><animate attributeName="stroke-dashoffset" values="18.2;-145.65;-145.65" keyTimes="0;0.958;1" dur="8.39s" repeatCount="indefinite"></animate></path>
+<path d="M40 203.3 L76.5 195 L76.5 139 L106 143.1" stroke="#2FD27A" stroke-opacity="0.85" stroke-dasharray="11.2 203.85" stroke-dashoffset="11.2"><animate attributeName="stroke-dashoffset" values="11.2;-152.65;-152.65" keyTimes="0;0.958;1" dur="8.39s" repeatCount="indefinite"></animate></path>
+<path d="M40 203.3 L76.5 195 L76.5 139 L106 143.1" stroke="#2FD27A" stroke-opacity="1.0" stroke-dasharray="4.9 203.85" stroke-dashoffset="4.9"><animate attributeName="stroke-dashoffset" values="4.9;-158.95;-158.95" keyTimes="0;0.958;1" dur="8.39s" repeatCount="indefinite"></animate></path>
+
+</g>
+
+<g transform="translate(-20.5,-1.7)" aria-hidden="true">
+<polygon points="177.1,125.80 195.2,121.70 195.2,120.30 177.1,124.40" fill="#3a4766" stroke="#5a6a88" stroke-width="0.12" stroke-linejoin="round"></polygon>
+<polygon points="140.6,91.10 177.1,125.80 177.1,124.40 140.6,89.70" fill="#232b3c" stroke="#4a5876" stroke-width="0.12" stroke-linejoin="round"></polygon>
+<g transform="translate(0,-1.4)">
+<polygon points="140.6,91.10 158.6,87.00 195.2,121.70 177.1,125.80" fill="url(#pv)" stroke="#7587a6" stroke-width="0.18"></polygon>
+<line x1="146.6" y1="89.73" x2="183.1" y2="124.43" stroke="#4a5876" stroke-width="0.25"></line>
+<line x1="152.6" y1="88.37" x2="189.2" y2="123.07" stroke="#4a5876" stroke-width="0.25"></line>
+</g>
+</g>
+
+<g aria-label="Energy Hub S16 Pro">
+<ellipse cx="111.00" cy="201.85" rx="14" ry="3.2" fill="#000" opacity="0.16"></ellipse>
+<ellipse cx="118.60" cy="201.48" rx="1.9" ry="0.55" fill="#000" opacity="0.28"></ellipse><path d="M117.00 200.88 A1.3 0.42 0 0 0 119.60 200.88 L119.60 201.38 A1.3 0.42 0 0 1 117.00 201.38 Z" fill="url(#footPad)"></path><ellipse cx="118.30" cy="200.88" rx="1.3" ry="0.42" fill="#4a4d52"></ellipse><path d="M117.68 199.38 A0.62 0.20 0 0 0 118.92 199.38 L118.92 200.88 A0.62 0.20 0 0 1 117.68 200.88 Z" fill="url(#footCol)"></path><path d="M117.35 200.03 A0.95 0.30 0 0 0 119.25 200.03 L119.25 200.43 A0.95 0.30 0 0 1 117.35 200.43 Z" fill="url(#footNut)" stroke="#9a9da1" stroke-width="0.06"></path><ellipse cx="118.30" cy="200.03" rx="0.95" ry="0.30" fill="#d9dbde"></ellipse>
+<polygon points="113.20,201.15 121.50,199.28 121.50,167.69 113.20,169.57" fill="url(#hubSide)"></polygon>
+<g transform="matrix(1 -0.2258 0 1 113.20 169.15)">
+<rect x="0.9" y="1.6" width="6.4" height="10.2" rx="0.4" fill="#eceef0" stroke="#b5b8bc" stroke-width="0.12"></rect>
+<g fill="#1d1f22"><circle cx="1.9" cy="3.0" r="0.62"></circle><circle cx="3.45" cy="3.0" r="0.62"></circle><circle cx="5.0" cy="3.0" r="0.62"></circle><circle cx="6.5" cy="3.0" r="0.62"></circle></g>
+<g fill="#5b5f64"><circle cx="1.9" cy="3.0" r="0.25"></circle><circle cx="3.45" cy="3.0" r="0.25"></circle><circle cx="5.0" cy="3.0" r="0.25"></circle><circle cx="6.5" cy="3.0" r="0.25"></circle></g>
+<rect x="1.4" y="5.0" width="2.6" height="0.7" rx="0.3" fill="#2a2c30"></rect>
+<rect x="1.4" y="6.4" width="2.8" height="0.45" rx="0.15" fill="#2a2c30"></rect>
+<circle cx="5.9" cy="5.4" r="0.45" fill="#d0d2d5" stroke="#9fa2a6" stroke-width="0.08"></circle>
+<rect x="1.4" y="13.6" width="5.2" height="5.4" rx="0.35" fill="#c7c9cc" stroke="#9a9da1" stroke-width="0.12"></rect>
+<rect x="2.2" y="14.6" width="3.6" height="3.4" rx="0.3" fill="#8e9195" stroke="#6f7276" stroke-width="0.1"></rect>
+<rect x="2.6" y="15.0" width="2.8" height="2.6" rx="0.25" fill="#b4b7bb"></rect>
+<g fill="#a0a3a7"><circle cx="1.75" cy="14.0" r="0.14"></circle><circle cx="6.25" cy="14.0" r="0.14"></circle><circle cx="1.75" cy="18.6" r="0.14"></circle><circle cx="6.25" cy="18.6" r="0.14"></circle></g>
+<g fill="#9a9da1"><circle cx="0.6" cy="13" r="0.12"></circle><circle cx="0.6" cy="22" r="0.12"></circle></g>
+</g>
+<polygon points="111.80,201.21 113.20,201.15 113.20,169.45 111.80,169.21" fill="#f4f5f6"></polygon>
+<g transform="matrix(1 0.1395 0 1 96.50 167.08)">
+<rect x="0" y="0" width="15.30" height="32.00" rx="0.7" fill="url(#hubFront)" stroke="#d0d2d5" stroke-width="0.15"></rect>
+<rect x="7.4" y="0.9" width="6.4" height="1.15" rx="0.57" fill="#121315"></rect>
+<text x="10.6" y="1.66" text-anchor="middle" font-family="Montserrat, sans-serif" font-weight="600" font-size="0.52" fill="#ffffff">ENERGY HUB S16 Pro</text>
+<g filter="url(#hubGlow)">
+<path d="M6.680 5.117 L6.523 4.845 L6.322 4.613 L6.086 4.431 L5.824 4.305 L5.545 4.241 L5.261 4.240 L4.982 4.303 L4.719 4.428 L4.483 4.609 L4.281 4.839 L4.123 5.111 L4.013 5.412 L3.957 5.733 L3.951 5.842 L4.391 5.859 L4.404 5.708 L4.456 5.488 L4.543 5.284 L4.664 5.104 L4.813 4.954 L4.984 4.839 L5.165 4.732 L5.366 4.635 L5.594 4.567 L5.845 4.548 L6.108 4.597 L6.360 4.727 L6.573 4.937 L6.680 5.117 Z" fill="#34c26f"></path>
+<path d="M3.954 6.016 L3.988 6.278 L4.057 6.530 L4.161 6.766 L4.296 6.981 L4.458 7.168 L4.645 7.323 L4.850 7.443 L5.069 7.523 L5.296 7.563 L5.526 7.561 L5.753 7.517 L5.971 7.433 L6.175 7.309 L6.359 7.151 L6.519 6.961 L6.651 6.744 L6.751 6.506 L6.817 6.252 L6.848 5.990 L6.842 5.726 L5.700 5.726 L6.318 6.326 L6.246 6.490 L6.153 6.639 L6.040 6.769 L5.910 6.875 L5.768 6.957 L5.615 7.012 L5.458 7.054 L5.293 7.087 L5.116 7.104 L4.928 7.096 L4.733 7.053 L4.538 6.968 L4.352 6.837 L4.189 6.661 L4.060 6.443 L3.978 6.193 L3.954 6.016 Z" fill="#34c26f"></path>
+<line x1="5.40" y1="8.57" x2="5.40" y2="15.17" stroke="#34c26f" stroke-width="0.5" stroke-linecap="round"></line>
+</g>
+<text transform="translate(1.3 19.2) rotate(90)" font-family="Montserrat, sans-serif" font-weight="800" font-size="1.7" letter-spacing="0.08" fill="#f5831f">GG POWER</text>
+</g>
+<polygon points="97.20,167.17 111.80,169.21 113.20,169.45 121.20,167.64 105.90,165.51" fill="#fafafb" stroke="#d5d7da" stroke-width="0.15"></polygon>
+<ellipse cx="100.20" cy="201.10" rx="1.9" ry="0.55" fill="#000" opacity="0.28"></ellipse><path d="M98.60 200.50 A1.3 0.42 0 0 0 101.20 200.50 L101.20 201.00 A1.3 0.42 0 0 1 98.60 201.00 Z" fill="url(#footPad)"></path><ellipse cx="99.90" cy="200.50" rx="1.3" ry="0.42" fill="#4a4d52"></ellipse><path d="M99.28 199.00 A0.62 0.20 0 0 0 100.52 199.00 L100.52 200.50 A0.62 0.20 0 0 1 99.28 200.50 Z" fill="url(#footCol)"></path><path d="M98.95 199.65 A0.95 0.30 0 0 0 100.85 199.65 L100.85 200.05 A0.95 0.30 0 0 1 98.95 200.05 Z" fill="url(#footNut)" stroke="#9a9da1" stroke-width="0.06"></path><ellipse cx="99.90" cy="199.65" rx="0.95" ry="0.30" fill="#d9dbde"></ellipse>
+<ellipse cx="112.30" cy="202.79" rx="1.9" ry="0.55" fill="#000" opacity="0.28"></ellipse><path d="M110.70 202.19 A1.3 0.42 0 0 0 113.30 202.19 L113.30 202.69 A1.3 0.42 0 0 1 110.70 202.69 Z" fill="url(#footPad)"></path><ellipse cx="112.00" cy="202.19" rx="1.3" ry="0.42" fill="#4a4d52"></ellipse><path d="M111.38 200.69 A0.62 0.20 0 0 0 112.62 200.69 L112.62 202.19 A0.62 0.20 0 0 1 111.38 202.19 Z" fill="url(#footCol)"></path><path d="M111.05 201.34 A0.95 0.30 0 0 0 112.95 201.34 L112.95 201.74 A0.95 0.30 0 0 1 111.05 201.74 Z" fill="url(#footNut)" stroke="#9a9da1" stroke-width="0.06"></path><ellipse cx="112.00" cy="201.34" rx="0.95" ry="0.30" fill="#d9dbde"></ellipse>
+</g>
+
+<g aria-label="Biến tần hybrid GG Power gắn tường" transform="translate(17,-3)">
+<polygon points="90.20,158.58 105.60,160.73 105.60,138.33 90.20,136.18" fill="#000" opacity="0.10"></polygon>
+<polygon points="100.80,159.23 104.00,158.51 104.00,137.71 100.80,138.43" fill="url(#invSide)"></polygon>
+<polygon points="86.40,135.82 100.20,137.74 103.40,137.02 89.60,135.10" fill="#f8f9fa"></polygon>
+<g transform="matrix(1 0.1395 0 1 85.80 135.74)">
+<rect x="0" y="0" width="15.0" height="22" rx="0.9" fill="url(#invFront)" stroke="#c6c8cc" stroke-width="0.2"></rect>
+<line x1="0" y1="16.2" x2="15.0" y2="16.2" stroke="#b9bbbf" stroke-width="0.14"></line>
+<g fill="#d0d2d6" stroke="#a7a9ad" stroke-width="0.08"><circle cx="0.5" cy="0.75" r="0.26"></circle><circle cx="14.5" cy="0.75" r="0.26"></circle><circle cx="0.5" cy="12.9" r="0.26"></circle><circle cx="14.5" cy="12.9" r="0.26"></circle><circle cx="0.5" cy="16.9" r="0.26"></circle><circle cx="14.5" cy="16.9" r="0.26"></circle><circle cx="0.5" cy="21.25" r="0.26"></circle><circle cx="14.5" cy="21.25" r="0.26"></circle></g>
+<g fill="#1f2023"><rect x="1.7" y="22" width="1.1" height="1.1" rx="0.25"></rect><rect x="3.9" y="22" width="1.1" height="1.1" rx="0.25"></rect><rect x="6.1" y="22" width="1.1" height="1.1" rx="0.25"></rect><rect x="8.9" y="22" width="3.0" height="2.3" rx="0.25"></rect><rect x="12.4" y="22" width="1.1" height="1.1" rx="0.25"></rect></g>
+<text x="2.0" y="4.0" font-family="Montserrat, sans-serif" font-weight="800" font-size="1.55" letter-spacing="-0.03"><tspan fill="#f5831f">GG</tspan><tspan fill="#149c4a" font-size="1.35" dx="0.05">POWER</tspan></text>
+<circle cx="7.5" cy="9.1" r="3.85" fill="#0d0e10"></circle>
+<circle cx="7.5" cy="9.1" r="3.45" fill="none" stroke="#f5831f" stroke-width="0.22"></circle>
+<rect x="5.45" y="7.75" width="4.1" height="2.5" rx="0.12" fill="#16243a" stroke="#2c3d58" stroke-width="0.06"></rect>
+<circle cx="7.5" cy="8.85" r="0.55" fill="#149c4a"></circle>
+<circle cx="6.15" cy="8.45" r="0.35" fill="#2f6fb3"></circle><circle cx="8.85" cy="8.45" r="0.35" fill="#2f6fb3"></circle>
+<circle cx="6.15" cy="9.35" r="0.35" fill="#2f6fb3"></circle><circle cx="8.85" cy="9.35" r="0.35" fill="#2f6fb3"></circle>
+<rect x="5.6" y="9.95" width="3.8" height="0.2" fill="#149c4a" opacity="0.8"></rect>
+<g fill="none" stroke="#9a9ca0" stroke-width="0.07"><circle cx="6.2" cy="11.15" r="0.27"></circle><circle cx="7.07" cy="11.15" r="0.27"></circle><circle cx="7.94" cy="11.15" r="0.27"></circle><circle cx="8.8" cy="11.15" r="0.27"></circle></g>
+<circle cx="10.4" cy="8.55" r="0.09" fill="#c62828"></circle><circle cx="10.4" cy="8.95" r="0.09" fill="#34c26f"></circle><circle cx="10.4" cy="9.35" r="0.09" fill="#e0b341"></circle>
+</g>
+</g>
+</svg>
+
+<div class="gg-co2" aria-hidden="true" aria-label="Giảm phát thải CO₂ 10,4 kg" style="position: absolute; left: 526.6px; top: 113.7px; width: 0px; height: 0px; pointer-events: none">
+<div style="position: absolute; left: 0px; bottom: 0px; animation: ggCo2XL 7.3s ease-in-out infinite">
+<div style="position: absolute; left: 0px; bottom: 0px; transform: translateX(-50%); animation: ggCo2FloatL 4.7s ease-in-out infinite; display: flex; flex-direction: column; align-items: center">
+<div style="display: flex; align-items: center; padding: 8px 24px; border-radius: 999px; background: rgba(21,34,29,0.55); border: 2px solid rgba(52,194,111,0.35); box-shadow: 0 8px 24px rgba(0,0,0,0.22); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); white-space: nowrap">
+<span style="display: flex; flex-direction: column; align-items: center"><span style="font-size: 18px; line-height: 22px; color: #9fada6">Giảm CO₂</span><span style="font-size: 24px; line-height: 30px; font-weight: 700; color: #34c26f; font-variant-numeric: tabular-nums">10,4 kg</span></span>
+</div>
+<span style="width: 16px; height: 16px; margin-top: -10px; background: rgba(21,34,29,0.55); border-right: 2px solid rgba(52,194,111,0.35); border-bottom: 2px solid rgba(52,194,111,0.35); transform: rotate(45deg)"></span>
+<span style="width: 10px; height: 10px; margin-top: 6px; border-radius: 999px; background: rgba(21,34,29,0.55); border: 2px solid rgba(52,194,111,0.35)"></span>
+</div>
+</div>
+</div>
+
+<div style="position: absolute; left: 238.6px; top: 85.6px; transform: translate(-50%,-50%); display: flex; flex-direction: column; align-items: center; white-space: nowrap">
+<span style="font-size: 20px; line-height: 24px; color: #9fada6">PV</span>
+<span style="font-size: 24px; line-height: 30px; font-weight: 700; color: #eef3ef; font-variant-numeric: tabular-nums">4,2 kW</span>
+</div>
+
+<svg width="700" height="690" viewBox="0 0 700 690" style="position: absolute; left: 0px; top: 0px; width: 700px; height: 690px; pointer-events: none" aria-hidden="true">
+<g stroke="#9fada6" stroke-opacity="0.45" stroke-width="1.6" stroke-dasharray="2 6" stroke-linecap="round">
+<line x1="238" y1="128" x2="238" y2="216"></line>
+<line x1="68" y1="558" x2="68" y2="518"></line>
+<line x1="230" y1="558" x2="230" y2="506"></line>
+<line x1="530" y1="558" x2="530" y2="420"></line>
+</g>
+</svg>
+
+<div style="position: absolute; left: 68px; top: 560px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; white-space: nowrap">
+<span style="font-size: 22px; line-height: 28px; color: #9fada6">Lưới</span>
+<span style="font-size: 28px; line-height: 36px; font-weight: 700; color: #eef3ef; font-variant-numeric: tabular-nums">0,5 kW</span>
+<span style="font-size: 20px; line-height: 26px; font-weight: 600; color: #6fa8e8">Mua điện</span>
+</div>
+
+<div style="position: absolute; left: 230px; top: 560px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; white-space: nowrap">
+<span style="font-size: 22px; line-height: 28px; color: #9fada6">Pin</span>
+<span style="font-size: 28px; line-height: 36px; font-weight: 700; color: #eef3ef; font-variant-numeric: tabular-nums">1,6 kW</span>
+<span style="font-size: 20px; line-height: 26px; font-weight: 600; color: #34c26f">Đang sạc · 76 %</span>
+</div>
+
+<div style="position: absolute; left: 530px; top: 560px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; white-space: nowrap">
+<span style="font-size: 22px; line-height: 28px; color: #9fada6">Tải</span>
+<span style="font-size: 28px; line-height: 36px; font-weight: 700; color: #eef3ef; font-variant-numeric: tabular-nums">3,1 kW</span>
+</div>
+
+
+</div></div></div></div></div></div><div style="display: flex; align-items: center; gap: 10px; text-align: left"><span style="{{vw.houseRadio}}"><sc-if value="{{vw.houseSel}}" hint-placeholder-val="{{false}}"><span style="width: 10px; height: 10px; border-radius: 999px; background: #178a47"></span></sc-if></span><span style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px; line-height: 22px; font-weight: 600; color: #eef3ef">Hình nhà</span><span style="font-size: 12px; line-height: 16px; color: #9fada6">Minh hoạ ngôi nhà, dòng điện chạy theo dây thật</span></span></div></button><button type="button" aria-pressed="{{vw.nodesPressed}}" onClick="{{vw.sel_nodes}}" style="{{vw.nodesCard}}"><div style="height: 240px; display: flex; align-items: center; justify-content: center"><div style="width: 252px; height: 216px; overflow: hidden; pointer-events: none"><div style="width: 350px; transform: scale(0.72); transform-origin: 0 0"><div aria-hidden="true" aria-label="Dòng năng lượng: điện mặt trời 4,2 kW và lưới điện 0,5 kW vào GG SmartBox, SmartBox sạc pin S16 Pre 1,6 kW và cấp cho tải trong nhà 3,1 kW" style="position: relative; width: 100%; height: 300px"><svg width="350" height="300" viewBox="0 0 350 300" aria-hidden="true" style="position: absolute; inset: 0"><path d="M88 46 C140 46 140 132 175 132" stroke="#3a4743" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-linejoin="round"></path><path d="M88 46 C140 46 140 132 175 132" stroke="#2FD27A" stroke-opacity="0.25" stroke-width="3.4" stroke-dasharray="103.6 354.9" stroke-dashoffset="103.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="stroke-dashoffset" values="103.6;-129.5;-129.5" keyTimes="0;0.82;1" dur="3.37s" repeatCount="indefinite"></animate></path><path d="M88 46 C140 46 140 132 175 132" stroke="#2FD27A" stroke-opacity="0.45" stroke-width="3.4" stroke-dasharray="77.7 354.9" stroke-dashoffset="77.7" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="stroke-dashoffset" values="77.7;-155.4;-155.4" keyTimes="0;0.82;1" dur="3.37s" repeatCount="indefinite"></animate></path><path d="M88 46 C140 46 140 132 175 132" stroke="#2FD27A" stroke-opacity="0.65" stroke-width="3.4" stroke-dasharray="53.9 354.9" stroke-dashoffset="53.9" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="stroke-dashoffset" values="53.9;-179.3;-179.3" keyTimes="0;0.82;1" dur="3.37s" repeatCount="indefinite"></animate></path><path d="M88 46 C140 46 140 132 175 132" stroke="#2FD27A" stroke-opacity="0.85" stroke-width="3.4" stroke-dasharray="33.3 354.9" stroke-dashoffset="33.3" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="stroke-dashoffset" values="33.3;-199.9;-199.9" keyTimes="0;0.82;1" dur="3.37s" repeatCount="indefinite"></animate></path><path d="M88 46 C140 46 140 132 175 132" stroke="#2FD27A" stroke-opacity="1.0" stroke-width="3.4" stroke-dasharray="14.5 354.9" stroke-dashoffset="14.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="stroke-dashoffset" values="14.5;-218.7;-218.7" keyTimes="0;0.82;1" dur="3.37s" repeatCount="indefinite"></animate></path><path d="M262 46 C210 46 210 132 175 132" stroke="#3a4743" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-linejoin="round"></path><path d="M262 46 C210 46 210 132 175 132" stroke="#2FD27A" stroke-opacity="0.25" stroke-width="3.4" stroke-dasharray="103.6 354.9" stroke-dashoffset="103.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="stroke-dashoffset" values="103.6;-129.5;-129.5" keyTimes="0;0.82;1" dur="3.37s" repeatCount="indefinite"></animate></path><path d="M262 46 C210 46 210 132 175 132" stroke="#2FD27A" stroke-opacity="0.45" stroke-width="3.4" stroke-dasharray="77.7 354.9" stroke-dashoffset="77.7" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="stroke-dashoffset" values="77.7;-155.4;-155.4" keyTimes="0;0.82;1" dur="3.37s" repeatCount="indefinite"></animate></path><path d="M262 46 C210 46 210 132 175 132" stroke="#2FD27A" stroke-opacity="0.65" stroke-width="3.4" stroke-dasharray="53.9 354.9" stroke-dashoffset="53.9" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="stroke-dashoffset" values="53.9;-179.3;-179.3" keyTimes="0;0.82;1" dur="3.37s" repeatCount="indefinite"></animate></path><path d="M262 46 C210 46 210 132 175 132" stroke="#2FD27A" stroke-opacity="0.85" stroke-width="3.4" stroke-dasharray="33.3 354.9" stroke-dashoffset="33.3" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="stroke-dashoffset" values="33.3;-199.9;-199.9" keyTimes="0;0.82;1" dur="3.37s" repeatCount="indefinite"></animate></path><path d="M262 46 C210 46 210 132 175 132" stroke="#2FD27A" stroke-opacity="1.0" stroke-width="3.4" stroke-dasharray="14.5 354.9" stroke-dashoffset="14.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="stroke-dashoffset" values="14.5;-218.7;-218.7" keyTimes="0;0.82;1" dur="3.37s" repeatCount="indefinite"></animate></path><path d="M175 132 C140 132 140 214 88 214" stroke="#3a4743" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-linejoin="round"></path><path d="M175 132 C140 132 140 214 88 214" stroke="#2FD27A" stroke-opacity="0.25" stroke-width="3.4" stroke-dasharray="101.2 346.6" stroke-dashoffset="101.2" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="stroke-dashoffset" values="101.2;-126.5;-126.5" keyTimes="0;0.82;1" dur="3.29s" repeatCount="indefinite"></animate></path><path d="M175 132 C140 132 140 214 88 214" stroke="#2FD27A" stroke-opacity="0.45" stroke-width="3.4" stroke-dasharray="75.9 346.6" stroke-dashoffset="75.9" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="stroke-dashoffset" values="75.9;-151.8;-151.8" keyTimes="0;0.82;1" dur="3.29s" repeatCount="indefinite"></animate></path><path d="M175 132 C140 132 140 214 88 214" stroke="#2FD27A" stroke-opacity="0.65" stroke-width="3.4" stroke-dasharray="52.6 346.6" stroke-dashoffset="52.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="stroke-dashoffset" values="52.6;-175.1;-175.1" keyTimes="0;0.82;1" dur="3.29s" repeatCount="indefinite"></animate></path><path d="M175 132 C140 132 140 214 88 214" stroke="#2FD27A" stroke-opacity="0.85" stroke-width="3.4" stroke-dasharray="32.5 346.6" stroke-dashoffset="32.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="stroke-dashoffset" values="32.5;-195.2;-195.2" keyTimes="0;0.82;1" dur="3.29s" repeatCount="indefinite"></animate></path><path d="M175 132 C140 132 140 214 88 214" stroke="#2FD27A" stroke-opacity="1.0" stroke-width="3.4" stroke-dasharray="14.2 346.6" stroke-dashoffset="14.2" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="stroke-dashoffset" values="14.2;-213.5;-213.5" keyTimes="0;0.82;1" dur="3.29s" repeatCount="indefinite"></animate></path><path d="M175 132 C210 132 210 214 262 214" stroke="#3a4743" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-linejoin="round"></path><path d="M175 132 C210 132 210 214 262 214" stroke="#f5831f" stroke-opacity="0.25" stroke-width="3.4" stroke-dasharray="101.2 346.6" stroke-dashoffset="101.2" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="stroke-dashoffset" values="101.2;-126.5;-126.5" keyTimes="0;0.82;1" dur="3.29s" repeatCount="indefinite"></animate></path><path d="M175 132 C210 132 210 214 262 214" stroke="#f5831f" stroke-opacity="0.45" stroke-width="3.4" stroke-dasharray="75.9 346.6" stroke-dashoffset="75.9" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="stroke-dashoffset" values="75.9;-151.8;-151.8" keyTimes="0;0.82;1" dur="3.29s" repeatCount="indefinite"></animate></path><path d="M175 132 C210 132 210 214 262 214" stroke="#f5831f" stroke-opacity="0.65" stroke-width="3.4" stroke-dasharray="52.6 346.6" stroke-dashoffset="52.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="stroke-dashoffset" values="52.6;-175.1;-175.1" keyTimes="0;0.82;1" dur="3.29s" repeatCount="indefinite"></animate></path><path d="M175 132 C210 132 210 214 262 214" stroke="#f5831f" stroke-opacity="0.85" stroke-width="3.4" stroke-dasharray="32.5 346.6" stroke-dashoffset="32.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="stroke-dashoffset" values="32.5;-195.2;-195.2" keyTimes="0;0.82;1" dur="3.29s" repeatCount="indefinite"></animate></path><path d="M175 132 C210 132 210 214 262 214" stroke="#f5831f" stroke-opacity="1.0" stroke-width="3.4" stroke-dasharray="14.2 346.6" stroke-dashoffset="14.2" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="stroke-dashoffset" values="14.2;-213.5;-213.5" keyTimes="0;0.82;1" dur="3.29s" repeatCount="indefinite"></animate></path></svg><div style="position: absolute; left: 60px; top: 18px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center"><span style="width: 56px; height: 56px; border-radius: 999px; background: #3a2410; color: #f7963a; display: flex; align-items: center; justify-content: center; margin-bottom: 4px"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h14l2 9H3z"></path><path d="M4 8.5h16M9.3 4l-.8 9M14.7 4l.8 9M12 13v4M8 20h8M12 17v3"></path></svg></span><span style="font-size: 11px; line-height: 14px; color: #9fada6; white-space: nowrap">PV</span><span style="font-size: 14px; line-height: 18px; font-weight: 700; color: #eef3ef; font-variant-numeric: tabular-nums; white-space: nowrap">4,2 kW</span></div><div style="position: absolute; left: 290px; top: 18px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center"><span style="width: 56px; height: 56px; border-radius: 999px; background: #102436; color: #6fa8e8; display: flex; align-items: center; justify-content: center; margin-bottom: 4px"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M7 21l5-14 5 14M6 8h12M8 12h8"></path></svg></span><span style="font-size: 11px; line-height: 14px; color: #9fada6; white-space: nowrap">Lưới</span><span style="font-size: 14px; line-height: 18px; font-weight: 700; color: #eef3ef; font-variant-numeric: tabular-nums; white-space: nowrap">0,5 kW</span><span style="font-size: 10px; line-height: 13px; font-weight: 600; color: #6fa8e8; white-space: nowrap">Mua điện</span></div><div style="position: absolute; left: 60px; top: 186px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center"><span style="width: 56px; height: 56px; border-radius: 999px; background: #12301f; color: #34c26f; display: flex; align-items: center; justify-content: center; margin-bottom: 4px"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7.5" width="16" height="9" rx="2"></rect><path d="M21.5 10.5v3M7 10.5v3M10 10.5v3"></path></svg></span><span style="font-size: 11px; line-height: 14px; color: #9fada6; white-space: nowrap">Pin · 76 %</span><span style="font-size: 14px; line-height: 18px; font-weight: 700; color: #eef3ef; font-variant-numeric: tabular-nums; white-space: nowrap">1,6 kW</span><span style="font-size: 10px; line-height: 13px; font-weight: 600; color: #34c26f; white-space: nowrap">Đang sạc</span></div><div style="position: absolute; left: 290px; top: 186px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center"><span style="width: 56px; height: 56px; border-radius: 999px; background: #0e1814; color: #9fada6; display: flex; align-items: center; justify-content: center; margin-bottom: 4px"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"></path><path d="M5 9.5V20h14V9.5"></path><path d="M10 20v-5h4v5"></path></svg></span><span style="font-size: 11px; line-height: 14px; color: #9fada6; white-space: nowrap">Tải</span><span style="font-size: 14px; line-height: 18px; font-weight: 700; color: #eef3ef; font-variant-numeric: tabular-nums; white-space: nowrap">3,1 kW</span></div><div style="position: absolute; left: 175px; top: 92px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 6px"><span style="width: 80px; height: 80px; border-radius: 999px; background: #149c4a; color: #ffffff; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 16px rgba(20,156,74,0.28)"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"></rect><path d="M7.5 12c1.5-3 3-3 4.5 0s3 3 4.5 0"></path></svg></span><span style="font-size: 12px; line-height: 16px; font-weight: 600; color: #9fada6; white-space: nowrap">GG SmartBox</span></div></div></div></div></div><div style="display: flex; align-items: center; gap: 10px; text-align: left"><span style="{{vw.nodesRadio}}"><sc-if value="{{vw.nodesSel}}" hint-placeholder-val="{{false}}"><span style="width: 10px; height: 10px; border-radius: 999px; background: #178a47"></span></sc-if></span><span style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px; line-height: 22px; font-weight: 600; color: #eef3ef">Sơ đồ khối</span><span style="font-size: 12px; line-height: 16px; color: #9fada6">Các khối nối với GG SmartBox ở giữa</span></span></div></button></div><div aria-hidden="true" style="display: flex; justify-content: center; gap: 6px; padding: 8px 0 0"><span style="{{vw.dot0}}"></span><span style="{{vw.dot1}}"></span></div><h3 style="margin: 0; padding: 28px 20px 4px; font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: #9fada6">Thẻ trên màn hình chính</h3><p style="margin: 0; padding: 0 20px 12px; font-size: 13px; line-height: 20px; color: #9fada6">Giữ và kéo biểu tượng ⋮⋮ để đổi vị trí, nhấn dấu trừ để ẩn thẻ.</p><div style="margin: 0 20px; background: #15221d; border-radius: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.18); overflow: hidden"><div style="position: relative"><sc-for list="{{wl.shown}}" as="w" hint-placeholder-count="5"><div style="{{w.rowStyle}}"><span style="width: 36px; height: 36px; flex-shrink: 0; border-radius: 10px; background: #12301f; color: #34c26f; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums">{{w.pos}}</span><span style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column"><span style="font-size: 14px; line-height: 20px; font-weight: 600; color: #eef3ef">{{w.name}}</span><span style="font-size: 12px; line-height: 16px; color: #9fada6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{w.desc}}</span></span><button type="button" aria-label="Ẩn {{w.name}}" aria-disabled="{{w.removeDis}}" onClick="{{w.remove}}" style="{{w.removeStyle}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><circle cx="12" cy="12" r="9"></circle><path d="M8 12h8"></path></svg></button><button type="button" aria-label="Kéo để sắp xếp {{w.name}}" onPointerDown="{{w.pd}}" onPointerMove="{{w.pm}}" onPointerUp="{{w.pu}}" onPointerCancel="{{w.pu}}" style="{{w.gripStyle}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="flex-shrink: 0"><circle cx="9" cy="6" r="1.6"></circle><circle cx="15" cy="6" r="1.6"></circle><circle cx="9" cy="12" r="1.6"></circle><circle cx="15" cy="12" r="1.6"></circle><circle cx="9" cy="18" r="1.6"></circle><circle cx="15" cy="18" r="1.6"></circle></svg></button></div></sc-for></div><sc-if value="{{wl.noneShown}}" hint-placeholder-val="{{false}}"><div style="padding: 16px; font-size: 13px; line-height: 20px; color: #9fada6">Chưa có thẻ nào. Thêm thẻ ở bên dưới.</div></sc-if></div><h3 style="margin: 0; padding: 24px 20px 12px; font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: #9fada6">Thẻ có thể thêm</h3><div style="margin: 0 20px; background: #15221d; border-radius: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.18); overflow: hidden"><sc-for list="{{wl.hidden}}" as="w" hint-placeholder-count="0"><div style="{{w.rowStyle}}"><span style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; padding-left: 4px"><span style="font-size: 14px; line-height: 20px; font-weight: 600; color: #eef3ef">{{w.name}}</span><span style="font-size: 12px; line-height: 16px; color: #9fada6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{w.desc}}</span></span><button type="button" aria-label="Thêm {{w.name}}" onClick="{{w.add}}" style="width: 40px; height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border: none; border-radius: 10px; background: transparent; padding: 0; color: #34c26f; cursor: pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v8M8 12h8"></path></svg></button></div></sc-for><sc-if value="{{wl.noneHidden}}" hint-placeholder-val="{{true}}"><div style="padding: 16px; font-size: 13px; line-height: 20px; color: #9fada6">Tất cả thẻ đang được hiển thị.</div></sc-if></div><div style="padding: 24px 20px 0"><button type="button" onClick="{{vw.apply}}" style="width: 100%; height: 52px; border: none; border-radius: 10px; background: #178a47; color: #ffffff; font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer">Áp dụng</button></div></div></sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"sky": {"editor": "enum", "options": ["auto", "day", "night"], "default": "night"}, "$preview": {"width": 390, "height": 2130}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const skyP = this.props.sky ?? 'night';
+    const hr = new Date().getHours();
+    const night = skyP === 'night' || (skyP === 'auto' && (hr < 6 || hr >= 18));
+    let seed = 7; const rnd = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
+    const stars = [];
+    for (let i = 0; i < 46; i++) { const sz = rnd() < 0.18 ? 2.5 : (rnd() < 0.5 ? 1.5 : 1); stars.push({ style: 'left: ' + (rnd() * 100).toFixed(1) + '%; top: ' + (8 + rnd() * 120).toFixed(0) + 'px; width: ' + sz + 'px; height: ' + sz + 'px; animation-delay: ' + (rnd() * 3.2).toFixed(2) + 's; animation-duration: ' + (2.4 + rnd() * 2.4).toFixed(2) + 's' }); }
+    return Object.assign(this.__rvSky(), { isDay: !night, isNight: night, stars });
+  }
+  __rvSky() {
+    const st0 = this.state || {};
+    const WDEF = ['sum', 'pw', 'yl', 'bat'];
+    const WMETA = { sum: ['Tổng quan hôm nay', 'Tiêu thụ, tự dùng, tiết kiệm, CO₂'], mode: ['Chế độ & pin', 'Chế độ hoạt động và mức pin'], pw: ['Biểu đồ công suất', 'PV, lưới, pin, tải theo thời gian'], yl: ['Sản lượng PV', 'PV tự dùng, sạc pin, lên lưới'], bat: ['Biểu đồ pin S16 Pre', 'Dòng BMS và SOC'] };
+    const WBASE = {"bat": "background: #15221d; border-radius: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.18); padding: 16px; display: flex; flex-direction: column; gap: 12px", "yl": "background: #15221d; border-radius: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.18); padding: 16px; display: flex; flex-direction: column; gap: 12px", "pw": "background: #15221d; border-radius: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.18); padding: 16px; display: flex; flex-direction: column; gap: 12px", "range": "display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px", "tabs": "display: flex; gap: 4px; padding: 4px; border-radius: 12px; background: #0e1814", "mode": "display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px", "sum": "background: #15221d; border-radius: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.18); padding: 4px 16px; display: flex; flex-direction: column"};
+    const wOrd = (st0.wOrder || WDEF).filter((id) => id !== 'mode');
+    const wg = {};
+    WDEF.forEach((id) => { const i = wOrd.indexOf(id); wg[id] = WBASE[id] + (i < 0 ? '; display: none' : '; order: ' + (10 + i * 10)); });
+    wg.mode = WBASE.mode + '; order: 5';
+    const firstChart = wOrd.findIndex((id) => id === 'pw' || id === 'yl' || id === 'bat');
+    wg.tabs = WBASE.tabs + (firstChart < 0 ? '; display: none' : '; order: ' + (10 + firstChart * 10 - 2));
+    wg.range = WBASE.range + (firstChart < 0 ? '; display: none' : '; order: ' + (10 + firstChart * 10 - 1) + '; margin-bottom: -4px');
+    const wp = st0.wPend || wOrd;
+    const setP = (arr) => this.setState({ wPend: arr });
+    const btnS = (dis, col) => 'width: 40px; height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border: none; border-radius: 10px; background: transparent; padding: 0; font-family: inherit; color: ' + col + '; ' + (dis ? 'opacity: 0.3; cursor: not-allowed' : 'cursor: pointer');
+    const rowS = (i) => 'height: 64px; box-sizing: border-box; display: flex; align-items: center; gap: 8px; padding: 8px 8px 8px 12px' + (i ? '' : '');
+    const drag = st0.wDrag;
+    const RH = 64;
+    const to = drag ? Math.max(0, Math.min(wp.length - 1, Math.round(drag.from + drag.dy / RH))) : -1;
+    const wl = { shown: wp.map((id, i) => {
+        let tr = 0, extra = '; transition: transform 160ms ease';
+        if (drag) {
+          if (i === drag.from) { tr = drag.dy; extra = '; position: relative; z-index: 3; background: #1c2b25; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.54)'; }
+          else if (drag.from < to && i > drag.from && i <= to) tr = -RH;
+          else if (drag.from > to && i < drag.from && i >= to) tr = RH;
+        }
+        return { name: WMETA[id][0], desc: WMETA[id][1], pos: String(i + 1),
+        rowStyle: rowS(i) + '; transform: translateY(' + tr + 'px)' + extra,
+        removeDis: 'false', removeStyle: btnS(false, '#ff7a70'),
+        gripStyle: 'width: 44px; height: 48px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border: none; border-radius: 10px; background: transparent; padding: 0; color: #8d9a94; touch-action: none; cursor: ' + (drag && drag.from === i ? 'grabbing' : 'grab'),
+        pd: (e) => { try { e.currentTarget.setPointerCapture(e.pointerId); } catch (_) {} this._wy0 = e.clientY; this.setState({ wDrag: { from: i, dy: 0 } }); },
+        pm: (e) => { const d = this.state && this.state.wDrag; if (!d) return; this.setState({ wDrag: { from: d.from, dy: e.clientY - this._wy0 } }); },
+        pu: () => { const d = this.state && this.state.wDrag; if (!d) return; const t = Math.max(0, Math.min(wp.length - 1, Math.round(d.from + d.dy / RH))); const arr = wp.slice(); const [m] = arr.splice(d.from, 1); arr.splice(t, 0, m); this.setState({ wDrag: null, wPend: arr }); },
+        remove: () => setP(wp.filter((x) => x !== id)) }; }),
+      hidden: WDEF.filter((id) => wp.indexOf(id) < 0).map((id, i) => ({ name: WMETA[id][0], desc: WMETA[id][1], rowStyle: rowS(i), add: () => setP(wp.concat([id])) })) };
+    wl.noneShown = wl.shown.length === 0; wl.noneHidden = wl.hidden.length === 0;
+    const vwv = st0.vw || 'house', pend = st0.vwPick || vwv;
+    const cardS = (on) => 'flex: 0 0 280px; scroll-snap-align: center; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px; padding: 14px; border-radius: 16px; font-family: inherit; cursor: pointer; background: #1c2b25; ' + (on ? 'border: 2px solid #34c26f; box-shadow: 0 6px 16px rgba(0,0,0,0.3)' : 'border: 2px solid transparent; box-shadow: 0 1px 2px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.18)');
+    const radioS = (on) => 'width: 22px; height: 22px; flex-shrink: 0; box-sizing: border-box; border-radius: 999px; display: flex; align-items: center; justify-content: center; border: 2px solid ' + (on ? '#34c26f' : '#8d9a94');
+    const dotS = (on) => 'height: 6px; border-radius: 999px; transition: width 200ms ease; width: ' + (on ? '18px; background: #178a47' : '6px; background: #3a4743');
+    const vw = { house: vwv === 'house', nodes: vwv === 'nodes', sheet: !!st0.vwSheet,
+      open: () => { this.setState({ vwSheet: true, vwPick: vwv, wPend: (st0.wOrder || WDEF).slice() }); const go = () => { if (this._vwTrack) this._vwTrack.scrollLeft = (vwv === 'nodes' ? 1 : 0) * 292; }; setTimeout(go, 0); setTimeout(go, 60); }, trackRef: (el) => { this._vwTrack = el; }, close: () => this.setState({ vwSheet: false, vwPick: null, wPend: null }),
+      apply: () => this.setState({ vw: pend, vwSheet: false, vwPick: null, wOrder: (st0.wPend || st0.wOrder || WDEF).slice(), wPend: null }),
+      sel_house: () => { this.setState({ vwPick: 'house' }); if (this._vwTrack && this._vwTrack.scrollTo) this._vwTrack.scrollTo({ left: 0, behavior: 'smooth' }); }, sel_nodes: () => { this.setState({ vwPick: 'nodes' }); if (this._vwTrack && this._vwTrack.scrollTo) this._vwTrack.scrollTo({ left: 292, behavior: 'smooth' }); },
+      houseSel: pend === 'house', nodesSel: pend === 'nodes', housePressed: pend === 'house' ? 'true' : 'false', nodesPressed: pend === 'nodes' ? 'true' : 'false',
+      houseCard: cardS(pend === 'house'), nodesCard: cardS(pend === 'nodes'), houseRadio: radioS(pend === 'house'), nodesRadio: radioS(pend === 'nodes'),
+      dot0: dotS(pend === 'house'), dot1: dotS(pend === 'nodes') };
+    return Object.assign(this.__renderVals0(), { vw, wg, wl });
+  }
+  __renderVals0() {
+    const __zs = this.state || {};
+    const ZM = (id, o) => {
+      const zmax = Math.max.apply(null, o.levels || [1, 2, 4, 8]);
+      const z = Math.max(1, Math.min(zmax, Number(__zs['z_' + id]) || 1));
+      const f0 = Math.max(0, Math.min(1 - 1 / z, __zs['f_' + id] || 0));
+      const X0 = o.x0 || 0, R = o.r || 0;
+      const G = (this.__pz = this.__pz || {}); const g = (G[id] = G[id] || { p: {}, st: null });
+      const pts = () => Object.values(g.p);
+      const begin = (rect) => { const a = pts(); if (a.length !== 2) { g.st = null; return; }
+        const W = rect.width - X0 - R; const mid = (a[0] + a[1]) / 2 - rect.left - X0;
+        g.st = { d: Math.max(8, Math.abs(a[0] - a[1])), W, left: rect.left, z, fa: f0 + (mid / W) / z }; };
+      const raw = String(o.winLabel(z)).replace(/\d+(\.\d+)?/, (m) => { const v = Number(m); return (Math.abs(v - Math.round(v)) < 0.05 ? String(Math.round(v)) : v.toFixed(1)).replace('.', ','); });
+      return { z, f0, f1: f0 + 1 / z, label: raw,
+        pd: (e) => { g.p[e.pointerId] = e.clientX; begin(e.currentTarget.getBoundingClientRect()); },
+        pm: (e) => { if (g.p[e.pointerId] == null) return; g.p[e.pointerId] = e.clientX; const st = g.st; if (!st) return;
+          const a = pts(); if (a.length !== 2) return;
+          const d = Math.max(8, Math.abs(a[0] - a[1])); const nz = Math.max(1, Math.min(zmax, st.z * d / st.d));
+          const mid = (a[0] + a[1]) / 2 - st.left - X0; const nf = Math.max(0, Math.min(1 - 1 / nz, st.fa - (mid / st.W) / nz));
+          this.setState({ ['z_' + id]: nz, ['f_' + id]: nf }); },
+        pu: (e) => { if (g.p[e.pointerId] == null) return; delete g.p[e.pointerId]; g.st = null; },
+        reset: () => this.setState({ ['z_' + id]: 1, ['f_' + id]: 0 }),
+        pillStyle: (z > 1.02 ? 'display: inline-flex' : 'display: none') + '; align-items: center; gap: 6px; height: 26px; padding: 0 8px 0 10px; border: 1px solid #1f4a30; border-radius: 999px; background: #12301f; color: #34c26f; font-family: inherit; font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums; cursor: pointer; flex-shrink: 0; white-space: nowrap' };
+    };
+    const ZT = (zz, span, steps, fmt, X0, W, CW) => {
+      const t0 = zz.f0 * span, t1 = zz.f1 * span; const asc = steps.slice().sort((x, y) => x - y); let st = asc[asc.length - 1];
+      for (const c of asc) { if ((t1 - t0) / c <= 4.01) { st = c; break; } }
+      const out = [];
+      for (let t = Math.ceil(t0 / st - 1e-9) * st; t <= t1 + 1e-6; t += st) {
+        const x = X0 + (t - t0) / (t1 - t0) * W;
+        const tr = x < 14 ? 'none' : (x > CW - 14 ? 'translateX(-100%)' : 'translateX(-50%)');
+        out.push({ label: fmt(t), style: 'position: absolute; top: 0; left: ' + x.toFixed(1) + 'px; transform: ' + tr + '; font-size: 11px; line-height: 14px; font-weight: 500; color: #9fada6; white-space: nowrap; font-variant-numeric: tabular-nums' });
+      }
+      return out;
+    };
+    const ZHM = (t) => { const h = Math.floor(t / 60), m = Math.round(t % 60); return m === 0 ? h + 'h' : (h < 10 ? '0' : '') + h + ':' + (m < 10 ? '0' : '') + m; };
+    const P = {"day": {"pv": [0, 0, 0.3, 2.1, 3.6, 4.2, 4.0, 3.0, 1.2, 0.2, 0, 0], "load": [0.8, 0.6, 0.9, 1.0, 1.2, 1.4, 1.3, 1.1, 1.6, 2.1, 1.4, 0.8], "labels": ["0h", "", "4h", "", "8h", "", "12h", "", "16h", "", "20h", ""], "range": "24/09/2026", "pvSum": "18,6 kWh", "loadSum": "14,2 kWh", "save": "48.000 đ", "co2": "10,4 kg", "self": "82 %", "compare": "+18 % so với tuần trước", "pvSelf": [0.0, 0.0, 0.285, 1.819, 2.904, 3.314, 3.179, 2.481, 1.079, 0.192, 0.0, 0.0], "pvChg": [0.0, 0.0, 0.015, 0.281, 0.631, 0.795, 0.739, 0.48, 0.121, 0.008, 0.0, 0.0], "pvExp": [0.0, 0.0, 0.0, 0.0, 0.065, 0.092, 0.083, 0.039, 0.0, 0.0, 0.0, 0.0]}, "month": {"pv": [19.5, 22.5, 22.7, 19.8, 15.5, 12.4, 6.4, 8.9, 17.7, 18.4, 16.5, 13.7, 12.4, 14.2, 18.3, 22.1, 23.2, 21.1, 11.4, 14.9, 15.1, 17.4, 19.5, 19.3, 16.4, 12.6, 10.6, 11.9, 15.8, 19.6], "load": [15.5, 15.8, 15.5, 14.6, 13.5, 14.6, 14.2, 12.4, 13.2, 14.2, 15.2, 15.7, 17.7, 17.1, 14.0, 13.0, 12.3, 12.2, 12.8, 15.7, 16.8, 15.5, 15.8, 15.4, 14.5, 13.5, 14.6, 14.2, 12.4, 13.2], "labels": ["1", "", "", "", "", "6", "", "", "", "", "11", "", "", "", "", "16", "", "", "", "", "21", "", "", "", "", "26", "", "", "", ""], "range": "Tháng 09/2026", "pvSum": "490 kWh", "loadSum": "435 kWh", "save": "1.273.480 đ", "co2": "274 kg", "self": "82 %", "compare": "+6 % so với tháng trước", "pvSelf": [15.738, 17.082, 17.17, 15.875, 13.071, 10.662, 5.755, 7.843, 14.736, 15.23, 13.832, 11.681, 10.662, 12.07, 15.184, 16.907, 17.388, 16.462, 9.868, 12.61, 12.764, 14.511, 15.738, 15.646, 13.756, 10.82, 9.226, 10.266, 13.3, 15.784], "pvChg": [3.428, 4.249, 4.305, 3.507, 2.429, 1.738, 0.645, 1.057, 2.964, 3.142, 2.668, 2.019, 1.738, 2.13, 3.116, 4.136, 4.449, 3.858, 1.532, 2.29, 2.336, 2.889, 3.428, 3.375, 2.644, 1.78, 1.374, 1.634, 2.5, 3.454], "pvExp": [0.334, 1.169, 1.224, 0.417, 0.0, 0.0, 0.0, 0.0, 0.0, 0.028, 0.0, 0.0, 0.0, 0.0, 0.0, 1.058, 1.364, 0.779, 0.0, 0.0, 0.0, 0.0, 0.334, 0.278, 0.0, 0.0, 0.0, 0.0, 0.0, 0.362]}, "year": {"pv": [398, 420, 512, 548, 571, 520, 498, 505, 512, 470, 430, 402], "load": [410, 385, 430, 465, 520, 540, 548, 535, 436, 420, 400, 415], "labels": ["T1", "", "T3", "", "T5", "", "T7", "", "T9", "", "T11", ""], "range": "Năm 2026", "pvSum": "5,79 MWh", "loadSum": "5,50 MWh", "save": "15.043.600 đ", "co2": "3,24 t", "self": "82 %", "compare": "+11 % so với năm 2025", "pvSelf": [338.629, 355.639, 425.372, 421.743, 419.261, 424.593, 414.901, 420.143, 425.372, 393.81, 363.326, 341.731], "pvChg": [59.371, 64.361, 86.628, 95.923, 102.025, 88.666, 83.099, 84.857, 86.628, 76.19, 66.674, 60.269], "pvExp": [0.0, 0.0, 0.0, 30.334, 49.715, 6.741, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}};
+    const s = this.state || {};
+    const key = s.period || 'day';
+    const d = P[key];
+    const n = d.pv.length;
+    const nice = (raw) => { const mag = Math.pow(10, Math.floor(Math.log10(raw))); for (const m of [1, 2, 2.5, 4, 5, 10]) { if (m * mag >= raw) return m * mag; } return 10 * mag; };
+    const fmt = (v) => (v >= 10 ? String(Math.round(v)) : String(Math.round(v * 100) / 100)).replace('.', ',');
+    const max = nice(Math.max.apply(null, d.pv) * 1.05);
+    const H = 150;
+    const bw = n > 20 ? 5 : 12;
+    const zy = ZM('y_' + key, { levels: n > 20 ? [1, 2, 4, 8] : [1, 2, 4], focus: ((s['yl_' + key] != null ? s['yl_' + key] : ({ day: 4, month: 23, year: 8 })[key]) + 0.5) / n, winLabel: (z) => key === 'day' ? (24 / z) + ' giờ' : key === 'month' ? Math.round(30 / z) + ' ngày' : Math.round(12 / z) + ' tháng' });
+    const ys0 = Math.min(n - 1, Math.round(zy.f0 * n)), ycnt = Math.max(1, Math.min(n - ys0, Math.round(n / zy.z)));
+    const yLab = (i) => key === 'day' ? (i * 2) + 'h' : key === 'month' ? String(i + 1) : 'T' + (i + 1);
+    const bars = d.pv.slice(ys0, ys0 + ycnt).map((v, j) => { const i = ys0 + j;
+      const self = d.pvSelf[i], chg = d.pvChg[i], exp = d.pvExp[i];
+      const h = (x) => Math.round(x / max * H);
+      const hs = h(self), hc = h(chg), he = h(exp);
+      const line = '; box-shadow: inset 0 1px 0 #15221d';
+      return {
+        colStyle: 'width: ' + Math.min(24, bw * zy.z) + 'px; display: flex; flex-direction: column; border-radius: 3px 3px 0 0; overflow: hidden; opacity: ' + (i === Math.min(n - 1, s['yl_' + key] != null ? s['yl_' + key] : ({ day: 4, month: 23, year: 8 })[key]) ? 1 : 0.45),
+        expStyle: 'height: ' + he + 'px; background: #3d7cc0',
+        chgStyle: 'height: ' + hc + 'px; background: #149c4a' + (he > 0 && hc > 1 ? line : ''),
+        selfStyle: 'height: ' + Math.max(v > 0 ? 1 : 0, hs) + 'px; background: #e0700f' + (he + hc > 0 && hs > 1 ? line : ''),
+        label: ycnt <= 8 ? yLab(i) : d.labels[i]
+      };
+    });
+    const tabs = [['day', 'Ngày'], ['month', 'Tháng'], ['year', 'Năm']].map(([id, label]) => ({
+      label,
+      pressed: id === key ? 'true' : 'false',
+      style: id === key
+        ? 'flex: 1 1 0; height: 34px; border: none; border-radius: 10px; background: #1c2b25; color: #eef3ef; font-family: inherit; font-size: 12px; font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.18); cursor: pointer'
+        : 'flex: 1 1 0; height: 34px; border: none; border-radius: 10px; background: transparent; color: #9fada6; font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer',
+      pick: () => this.setState({ period: id })
+    }));
+    const unit = key === 'year' ? 'kWh / tháng' : (key === 'month' ? 'kWh / ngày' : 'kWh / 2 giờ');
+    const hrs = key === 'year' ? 730 : (key === 'month' ? 24 : 2);
+    const eff = d.pv.map((v) => v / hrs);
+    const effMax = nice(Math.max.apply(null, eff) * 1.05 || 1);
+    const ea = Math.max(0, ys0 - 1), eb = Math.min(n - 1, ys0 + ycnt);
+    const pts = eff.slice(ea, eb + 1).map((e, j) => [((ea + j - ys0 + 0.5) / ycnt) * 1000, 150 - (e / effMax) * 150]);
+    const clampY = (y) => Math.min(150, Math.max(0, y));
+    let effPath = 'M' + pts[0][0].toFixed(1) + ' ' + pts[0][1].toFixed(1);
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p0 = pts[Math.max(0, i - 1)], p1 = pts[i], p2 = pts[i + 1], p3 = pts[Math.min(pts.length - 1, i + 2)];
+      const c1x = p1[0] + (p2[0] - p0[0]) / 6, c1y = clampY(p1[1] + (p2[1] - p0[1]) / 6);
+      const c2x = p2[0] - (p3[0] - p1[0]) / 6, c2y = clampY(p2[1] - (p3[1] - p1[1]) / 6);
+      effPath += ' C' + c1x.toFixed(1) + ' ' + c1y.toFixed(1) + ' ' + c2x.toFixed(1) + ' ' + c2y.toFixed(1) + ' ' + p2[0].toFixed(1) + ' ' + p2[1].toFixed(1);
+    }
+    const effTop = (effMax / 1.15).toFixed(2).replace('.', ',');
+    const pad2 = (n) => (n < 10 ? '0' : '') + n;
+    const PX = [30.0, 33.0, 36.0, 38.9, 41.9, 44.9, 47.9, 50.9, 53.8, 56.8, 59.8, 62.8, 65.8, 68.7, 71.7, 74.7, 77.7, 80.6, 83.6, 86.6, 89.6, 92.6, 95.5, 98.5, 101.5, 104.5, 107.5, 110.4, 113.4, 116.4, 119.4, 122.4, 125.3, 128.3, 131.3, 134.3, 137.2, 140.2, 143.2, 145.4];
+    const PY = [[110.0, 110.0, 110.0, 110.0, 110.0, 110.0, 110.0, 110.0, 110.0, 110.0, 110.0, 110.0, 110.0, 110.0, 110.0, 110.0, 110.0, 110.0, 110.0, 110.0, 110.0, 110.0, 110.0, 110.0, 108.2, 105.3, 101.7, 97.7, 93.1, 88.2, 83.0, 77.4, 71.6, 65.5, 59.1, 52.5, 45.7, 38.7, 31.4, 26.0], [106.0, 106.0, 106.0, 106.0, 106.0, 106.0, 106.0, 106.0, 106.0, 106.0, 106.0, 106.0, 106.0, 106.0, 106.0, 106.0, 106.0, 106.0, 106.0, 106.0, 106.0, 106.0, 106.0, 106.0, 110.0, 110.0, 110.0, 110.0, 110.0, 110.0, 110.0, 110.0, 110.0, 110.0, 110.0, 110.0, 110.0, 110.0, 110.0, 110.0], [122.0, 122.0, 122.0, 122.0, 122.0, 122.0, 122.0, 122.0, 122.0, 122.0, 122.0, 122.0, 122.0, 122.0, 122.0, 122.0, 122.0, 122.0, 122.0, 122.0, 122.0, 122.1, 122.3, 123.3, 128.4, 131.5, 137.0, 141.9, 141.2, 132.6, 118.8, 104.9, 94.7, 89.1, 87.8, 89.7, 92.1, 92.3, 89.4, 88.0], [94.0, 94.0, 94.0, 94.0, 94.0, 94.0, 94.0, 94.0, 94.0, 94.0, 94.0, 94.0, 94.0, 94.0, 94.0, 94.0, 94.0, 94.0, 94.0, 94.0, 94.0, 93.9, 93.7, 92.7, 89.8, 83.8, 74.8, 65.8, 61.9, 65.6, 74.2, 82.5, 86.9, 86.3, 81.3, 72.9, 63.6, 56.4, 52.1, 48.0]];
+    const pi = (s.pi != null) ? s.pi : PX.length - 1;
+    const pmin = pi === PX.length - 1 ? 9 * 60 + 41 : pi * 15;
+    const kw = (y, sign) => { const v = (110 - y) / 20; const t = Math.abs(v).toFixed(1).replace('.', ','); return (sign ? (v > 0.04 ? '+' : v < -0.04 ? '−' : '') : (v < -0.04 ? '−' : '')) + t + ' kW'; };
+    const zp = ZM('pw', { x0: 30, r: 2, focus: (PX[pi] - 30) / 286, winLabel: (z) => (24 / z) + ' giờ' });
+    const pwX = 30 + (PX[pi] - 30 - zp.f0 * 286) * zp.z;
+    const pwHide = (pwX < 29 || pwX > 317) ? '; display: none' : '';
+    const pwDot = (y, c) => 'position: absolute; left: ' + (pwX - 4.5) + 'px; top: ' + (y - 4.5) + 'px; width: 9px; height: 9px; box-sizing: border-box; border-radius: 999px; background: ' + c + '; border: 1.5px solid #15221d; pointer-events: none' + pwHide;
+    const pw = { i: pi, vb: (30 + zp.f0 * 286).toFixed(2) + ' 0 ' + (286 / zp.z).toFixed(2) + ' 156', ticks: ZT(zp, 1440, [360, 180, 120, 60, 30, 15], ZHM, 30, 286, 318), imin: Math.ceil(zp.f0 * 96 - 1e-6), imax: Math.floor(zp.f1 * 96 + 1e-6),
+      stamp: '24/09 ' + pad2(Math.floor(pmin / 60)) + ':' + pad2(pmin % 60),
+      pv: kw(PY[0][pi]), grid: kw(PY[1][pi]), bat: kw(PY[2][pi], true), load: kw(PY[3][pi]),
+      lineStyle: 'position: absolute; left: ' + pwX + 'px; top: 10px; height: 140px; border-left: 1px dashed #6b7a73; pointer-events: none' + pwHide,
+      gripStyle: 'position: absolute; left: ' + (pwX - 6) + 'px; top: 144px; width: 12px; height: 12px; box-sizing: border-box; border-radius: 999px; background: #1c2b25; border: 2px solid #6b7a73; pointer-events: none' + pwHide,
+      dot0: pwDot(PY[0][pi], '#f7963a'), dot1: pwDot(PY[1][pi], '#6fa8e8'), dot2: pwDot(PY[2][pi], '#34c26f'), dot3: pwDot(PY[3][pi], '#9fada6'),
+      scrub: (e) => this.setState({ pi: Math.max(0, Math.min(PX.length - 1, Math.round(Number(e.target.value)))) }) };
+    pw.aria = pw.stamp + ', PV ' + pw.pv + ', lưới ' + pw.grid + ', S16 Pre ' + pw.bat + ', tải ' + pw.load;
+    const ylDef = { day: 4, month: 23, year: 8 };
+    const ylKey = 'yl_' + key;
+    const yi = Math.min(n - 1, s[ylKey] != null ? s[ylKey] : ylDef[key]);
+    const kwh = (v) => (v >= 100 ? Math.round(v).toLocaleString('de-DE') : v.toFixed(1).replace('.', ',')) + ' kWh';
+    const ylStamp = key === 'day' ? '24/09 ' + pad2(yi * 2) + ':00 – ' + pad2(yi * 2 + 2) + ':00' : key === 'month' ? pad2(yi + 1) + '/09' : 'Tháng ' + pad2(yi + 1);
+    const yHide = (yi < ys0 || yi >= ys0 + ycnt) ? '; display: none' : '';
+    const yl = { i: Math.max(0, Math.min(ycnt - 1, yi - ys0)), max: ycnt - 1, stamp: ylStamp,
+      self: kwh(d.pvSelf[yi]), chg: kwh(d.pvChg[yi]), exp: kwh(d.pvExp[yi]), eff: (eff[yi]).toFixed(2).replace('.', ',') + ' kW',
+      lineStyle: 'position: absolute; top: 0; height: 150px; border-left: 1px dashed #6b7a73; pointer-events: none; left: ' + ((yi - ys0 + 0.5) / ycnt * 100).toFixed(2) + '%' + yHide,
+      scrub: (e) => this.setState({ [ylKey]: Math.max(0, Math.min(n - 1, ys0 + Math.round(Number(e.target.value)))) }) };
+    yl.aria = yl.stamp + ', PV tiêu thụ ' + yl.self + ', sạc pin ' + yl.chg + ', lên lưới ' + yl.exp;
+    const BX = [30.0, 32.7, 35.3, 38.0, 40.7, 43.3, 46.0, 48.7, 51.3, 54.0, 56.7, 59.3, 62.0, 64.7, 67.3, 70.0, 72.7, 75.3, 78.0, 80.7, 83.3, 86.0, 88.7, 91.3, 94.0, 96.7, 99.3, 102.0, 104.7, 107.3, 110.0, 112.7, 115.3, 118.0, 120.7, 123.3, 126.0, 128.7, 131.3, 133.3];
+    const BA = [-11.7, -11.7, -11.7, -11.7, -11.7, -11.7, -11.7, -11.7, -11.7, -11.7, -11.7, -11.7, -11.7, -11.7, -11.7, -11.7, -11.7, -11.7, -11.7, -11.7, -11.7, -11.8, -12.1, -13.0, -17.9, -21.0, -26.3, -31.1, -30.5, -22.1, -8.6, 5.0, 14.9, 20.4, 21.7, 19.9, 17.5, 17.3, 20.2, 21.5];
+    const BS = [99, 98, 98, 97, 96, 95, 94, 93, 92, 91, 90, 89, 88, 87, 86, 85, 84, 84, 83, 82, 81, 80, 79, 78, 76, 75, 73, 71, 68, 66, 65, 65, 66, 67, 69, 70, 72, 73, 75, 76];
+    const BSY = [10.8, 12.1, 13.4, 14.8, 16.1, 17.4, 18.7, 20.0, 21.3, 22.6, 23.9, 25.3, 26.6, 27.9, 29.2, 30.5, 31.8, 33.1, 34.4, 35.8, 37.1, 38.4, 39.7, 41.1, 42.9, 45.0, 47.7, 50.9, 54.4, 57.3, 59.0, 59.2, 58.1, 56.1, 53.8, 51.4, 49.4, 47.4, 45.3, 43.6];
+    const BCY = [100.5, 100.5, 100.5, 100.5, 100.5, 100.5, 100.5, 100.5, 100.5, 100.5, 100.5, 100.5, 100.5, 100.5, 100.5, 100.5, 100.5, 100.5, 100.5, 100.5, 100.5, 100.6, 101.1, 102.8, 111.4, 116.7, 126.1, 134.5, 133.4, 118.7, 95.0, 71.3, 53.9, 44.3, 42.1, 45.2, 49.4, 49.7, 44.7, 42.4];
+    const bi = (this.state && this.state.bi != null) ? this.state.bi : BX.length - 1;
+    const pad = (n) => (n < 10 ? '0' : '') + n;
+    const bmin = bi === BX.length - 1 ? 9 * 60 + 41 : bi * 15;
+    const zb = ZM('bat', { x0: 30, r: 32, focus: (BX[bi] - 30) / 256, winLabel: (z) => (24 / z) + ' giờ' });
+    const bx = 30 + (BX[bi] - 30 - zb.f0 * 256) * zb.z;
+    const bHide = (bx < 29 || bx > 287) ? '; display: none' : '';
+    const dot = (y, c) => 'position: absolute; left: ' + (bx - 4.5) + 'px; top: ' + (y - 4.5) + 'px; width: 9px; height: 9px; box-sizing: border-box; border-radius: 999px; background: ' + c + '; border: 1.5px solid #15221d; pointer-events: none' + bHide;
+    const bat = { vb: (30 + zb.f0 * 256).toFixed(2) + ' 0 ' + (256 / zb.z).toFixed(2) + ' 156', ticks: ZT(zb, 1440, [360, 180, 120, 60, 30, 15], ZHM, 30, 256, 318), imin: Math.ceil(zb.f0 * 96 - 1e-6), imax: Math.floor(zb.f1 * 96 + 1e-6),
+      i: bi, max: BX.length - 1,
+      time: pad(Math.floor(bmin / 60)) + ':' + pad(bmin % 60),
+      amp: (BA[bi] > 0 ? '+' : BA[bi] < 0 ? '−' : '') + Math.abs(BA[bi]).toFixed(1).replace('.', ',') + ' A',
+      soc: BS[bi] + ' %',
+      lineStyle: 'position: absolute; left: ' + bx + 'px; top: 10px; height: 140px; border-left: 1px dashed #6b7a73; pointer-events: none' + bHide,
+      gripStyle: 'position: absolute; left: ' + (bx - 6) + 'px; top: 144px; width: 12px; height: 12px; box-sizing: border-box; border-radius: 999px; background: #1c2b25; border: 2px solid #6b7a73; pointer-events: none' + bHide,
+      socDot: dot(BSY[bi], '#34c26f'), ampDot: dot(BCY[bi], '#34c26f'),
+      scrub: (e) => this.setState({ bi: Math.max(0, Math.min(BX.length - 1, Math.round(Number(e.target.value)))) })
+    };
+    bat.aria = bat.time + ', dòng BMS ' + bat.amp + ', SOC ' + bat.soc;
+    return { bat, pw, yl, zp, zb, zy, yTop: fmt(max), yMid: fmt(max / 2), eTop: fmt(effMax), eMid: fmt(effMax / 2), effPath, effTop, d, bars, tabs, unit, top: (max / 1.1).toFixed(key === 'year' ? 0 : 1).replace('.', ',') };
+  }
+}
+</script>
+</body>
+</html>

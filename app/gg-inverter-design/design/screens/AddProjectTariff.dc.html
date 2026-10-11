@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Thêm dự án mới</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&amp;display=swap">
+<style>
+html,body{scrollbar-width:none}html::-webkit-scrollbar,body::-webkit-scrollbar,*::-webkit-scrollbar{display:none;width:0;height:0}
+body{margin:0;font-family:Montserrat,system-ui,-apple-system,"Segoe UI",sans-serif;background:#f5f7f3;color:#13201b}
+a{color:#0f7a3a}a:hover{color:#0b6630}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:none;box-shadow:0 0 0 2px #ffffff,0 0 0 4px #0f7a3a}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; position: relative; display: flex; flex-direction: column; background: #f5f7f3; color: #13201b; font-family: Montserrat, system-ui, sans-serif; overflow: hidden">
+<header style="height: 64px; flex-shrink: 0; display: flex; align-items: center; gap: 4px; padding: 0 8px 0 4px"><a href="AddProjectInfo.dc.html" aria-label="Quay lại" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 999px; color: #13201b; text-decoration: none"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M19 12H5M11 6l-6 6 6 6"></path></svg></a><h1 style="margin: 0; flex-grow: 1; font-size: 22px; line-height: 28px; font-weight: 600">Thêm dự án mới</h1></header>
+<main style="flex-grow: 1; display: flex; flex-direction: column; gap: 16px; padding: 8px 20px 24px; overflow: hidden; gap: 14px">
+<div style="display: flex; align-items: center; gap: 8px"><div style="flex: 1 1 0; display: flex; flex-direction: column; gap: 6px"><span style="height: 4px; border-radius: 999px; background: #0f7a3a"></span><span style="font-size: 11px; line-height: 14px; font-weight: 600; color: #56625c">1. Thiết bị</span></div><div style="flex: 1 1 0; display: flex; flex-direction: column; gap: 6px"><span style="height: 4px; border-radius: 999px; background: #0f7a3a"></span><span style="font-size: 11px; line-height: 14px; font-weight: 600; color: #56625c">2. Thông tin dự án</span></div><div style="flex: 1 1 0; display: flex; flex-direction: column; gap: 6px"><span style="height: 4px; border-radius: 999px; background: #0f7a3a"></span><span style="font-size: 11px; line-height: 14px; font-weight: 600; color: #56625c">3. Giá điện</span></div></div>
+
+
+<div style="display: flex; flex-direction: column; gap: 14px">
+<p style="margin: 0; font-size: 14px; line-height: 22px; color: #56625c">Giá điện dùng để tính <strong style="color: #13201b">Tiền điện tiết kiệm</strong>. Có thể bỏ qua và cài sau.</p>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; line-height: 16px; font-weight: 600">Giá mua điện</span><div role="group" aria-label="Giá mua điện" style="display: flex; gap: 4px; padding: 4px; border-radius: 12px; background: #eaeee8"><sc-for list="{{tariffs}}" as="o" hint-placeholder-count="3"><button type="button" aria-pressed="{{o.pressed}}" onClick="{{o.pick}}" style="{{o.style}}">{{o.label}}</button></sc-for></div></div>
+<sc-if value="{{isTier}}" hint-placeholder-val="{{true}}"><section style="background: #f9faf7; border-radius: 16px; box-shadow: 0 1px 2px rgba(19,32,27,0.06), 0 2px 8px rgba(19,32,27,0.05); padding: 8px 16px"><div style="font-size: 13px; line-height: 20px; font-weight: 600; padding: 6px 0">Bậc thang EVN sinh hoạt</div><div style="min-height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0"><span style="font-size: 13px; line-height: 18px; color: #56625c">Bậc 1 (0–50 kWh)</span><span style="font-size: 14px; line-height: 20px; font-weight: 600; font-variant-numeric: tabular-nums; text-align: right">[GIÁ] đ/kWh</span></div><div style="min-height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0"><span style="font-size: 13px; line-height: 18px; color: #56625c">Bậc 2 (51–100 kWh)</span><span style="font-size: 14px; line-height: 20px; font-weight: 600; font-variant-numeric: tabular-nums; text-align: right">[GIÁ] đ/kWh</span></div><div style="min-height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0"><span style="font-size: 13px; line-height: 18px; color: #56625c">…</span><span style="font-size: 14px; line-height: 20px; font-weight: 600; font-variant-numeric: tabular-nums; text-align: right">6 bậc</span></div></section></sc-if>
+<sc-if value="{{isFixed}}" hint-placeholder-val="{{false}}"><div style="display: flex; flex-direction: column; gap: 6px"><label for="ap-fixed" style="font-size: 13px; line-height: 16px; font-weight: 600">Giá cố định (đ/kWh)</label><input id="ap-fixed" type="text" value="2.500" inputmode="numeric" style="height: 48px; box-sizing: border-box; width: 100%; padding: 0 14px; border: 1px solid #7f8b85; border-radius: 10px; background: #ffffff; font-family: inherit; font-size: 14px; color: #13201b"></div></sc-if>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="ap-sell" style="font-size: 13px; line-height: 16px; font-weight: 600">Giá bán lên lưới (đ/kWh)</label><input id="ap-sell" type="text" value="0" inputmode="numeric" style="height: 48px; box-sizing: border-box; width: 100%; padding: 0 14px; border: 1px solid #7f8b85; border-radius: 10px; background: #ffffff; font-family: inherit; font-size: 14px; color: #13201b"><span style="font-size: 12px; line-height: 16px; color: #56625c">Mặc định 0 vì hệ dân dụng hiện chưa bán điện</span></div>
+<div style="display: flex; gap: 10px; padding-top: 4px"><a href="Main.dc.html" style="height: 52px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid #7f8b85; border-radius: 10px; background: #ffffff; color: #13201b; font-family: inherit; font-size: 15px; font-weight: 600; text-decoration: none; cursor: pointer; flex: 1 1 0">Bỏ qua</a><a href="Main.dc.html" style="height: 52px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; border-radius: 10px; background: #0f7a3a; color: #ffffff; font-family: inherit; font-size: 15px; font-weight: 600; text-decoration: none; cursor: pointer; flex: 2 1 0">Tạo dự án</a></div>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview": {"width": 390, "height": 844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const seg = (cur, key, list, fs) => list.map(([id, label]) => { const on = id === cur;
+      return { label, pressed: on ? 'true' : 'false', pick: () => this.setState({ [key]: id }),
+        style: 'flex: 1 1 0; min-width: 0; height: 36px; padding: 0 4px; border: none; border-radius: 10px; font-family: inherit; font-size: ' + (fs || 13) + 'px; font-weight: 600; white-space: nowrap; cursor: pointer; ' + (on ? 'background: #ffffff; color: #13201b; box-shadow: 0 1px 2px rgba(19,32,27,0.06), 0 2px 8px rgba(19,32,27,0.05)' : 'background: transparent; color: #56625c') }; });
+    const s = this.state || {};
+    const step = s.step || 1;
+    const bar = (i) => 'height: 4px; border-radius: 999px; background: ' + (i <= step ? '#0f7a3a' : '#d9dfd8');
+    const st1 = bar(1);
+    const st2 = bar(2);
+    const st3 = bar(3);
+    const checked = s.checked == null ? true : s.checked;
+    return { st1, st2, st3, s1: step === 1, s2: step === 2, s3: step === 3, checked,
+      check: () => this.setState({ checked: true }),
+      nextStyle: 'flex: 1 1 0; height: 52px; border: none; border-radius: 10px; font-family: inherit; font-size: 15px; font-weight: 600; ' + (checked ? 'background: #0f7a3a; color: #ffffff; cursor: pointer' : 'background: #d9dfd8; color: #56625c; cursor: not-allowed'),
+      go1: () => this.setState({ step: 1 }), go2: () => { if (checked) this.setState({ step: 2 }); }, go3: () => this.setState({ step: 3 }),
+      kinds: seg(s.kind || 'home', 'kind', [['home', 'Nhà ở'], ['factory', 'Nhà xưởng']]),
+      tariffs: seg(s.tariff || 'tier', 'tariff', [['tier', 'Bậc thang EVN'], ['fixed', 'Giá cố định']]),
+      isTier: (s.tariff || 'tier') === 'tier', isFixed: s.tariff === 'fixed' };
+  }
+}
+
+</script>
+</body>
+</html>

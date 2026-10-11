@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Thêm dự án mới</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&amp;display=swap">
+<style>
+html,body{scrollbar-width:none}html::-webkit-scrollbar,body::-webkit-scrollbar,*::-webkit-scrollbar{display:none;width:0;height:0}
+body{margin:0;font-family:Montserrat,system-ui,-apple-system,"Segoe UI",sans-serif;background:#f5f7f3;color:#13201b}
+a{color:#0f7a3a}a:hover{color:#0b6630}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:none;box-shadow:0 0 0 2px #ffffff,0 0 0 4px #0f7a3a}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; position: relative; display: flex; flex-direction: column; background: #f5f7f3; color: #13201b; font-family: Montserrat, system-ui, sans-serif; overflow: hidden">
+<header style="height: 64px; flex-shrink: 0; display: flex; align-items: center; gap: 4px; padding: 0 8px 0 4px"><a href="Projects.dc.html" aria-label="Quay lại" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 999px; color: #13201b; text-decoration: none"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M19 12H5M11 6l-6 6 6 6"></path></svg></a><h1 style="margin: 0; flex-grow: 1; font-size: 22px; line-height: 28px; font-weight: 600">Thêm dự án mới</h1></header>
+<main style="flex-grow: 1; display: flex; flex-direction: column; gap: 16px; padding: 8px 20px 24px; overflow: hidden">
+<div style="display: flex; align-items: center; gap: 8px"><div style="flex: 1 1 0; display: flex; flex-direction: column; gap: 6px"><span style="height: 4px; border-radius: 999px; background: #0f7a3a"></span><span style="font-size: 11px; line-height: 14px; font-weight: 600; color: #56625c">1. Thiết bị</span></div><div style="flex: 1 1 0; display: flex; flex-direction: column; gap: 6px"><span style="height: 4px; border-radius: 999px; background: #d9dfd8"></span><span style="font-size: 11px; line-height: 14px; font-weight: 600; color: #56625c">2. Thông tin dự án</span></div><div style="flex: 1 1 0; display: flex; flex-direction: column; gap: 6px"><span style="height: 4px; border-radius: 999px; background: #d9dfd8"></span><span style="font-size: 11px; line-height: 14px; font-weight: 600; color: #56625c">3. Giá điện</span></div></div>
+<div style="display: flex; flex-direction: column; gap: 14px">
+<p style="margin: 0; font-size: 14px; line-height: 22px; color: #56625c">Định danh inverter của hệ thống bằng mã QR hoặc số serial.</p>
+<a href="QRScan.dc.html" style="height: 52px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; border-radius: 10px; background: #0f7a3a; color: #ffffff; font-family: inherit; font-size: 15px; font-weight: 600; text-decoration: none; cursor: pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><rect x="3.5" y="3.5" width="6" height="6" rx="1"></rect><rect x="14.5" y="3.5" width="6" height="6" rx="1"></rect><rect x="3.5" y="14.5" width="6" height="6" rx="1"></rect><path d="M14.5 14.5h2v2M20.5 14.5v6h-6M17.5 18.5v2"></path></svg>Quét mã QR</a>
+<div style="display: flex; align-items: center; gap: 12px; color: #56625c; font-size: 12px; font-weight: 500"><span style="flex-grow: 1; height: 1px; background: #d9dfd8"></span>hoặc nhập tay<span style="flex-grow: 1; height: 1px; background: #d9dfd8"></span></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="ap-sn" style="font-size: 13px; line-height: 16px; font-weight: 600">Số serial</label><div style="display: flex; gap: 8px"><input id="ap-sn" type="text" value="{{serial}}" onChange="{{setSerial}}" autocapitalize="characters" spellcheck="false" aria-invalid="{{invalid}}" style="{{snStyle}}"><button type="button" onClick="{{check}}" style="height: 48px; flex-shrink: 0; padding: 0 16px; border: 1px solid #0f7a3a; border-radius: 10px; background: #ffffff; color: #0f7a3a; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer">Kiểm tra</button></div><sc-if value="{{noErr}}" hint-placeholder-val="{{true}}"><span style="font-size: 12px; line-height: 16px; color: #56625c">Serial in trên tem cạnh phải inverter</span></sc-if><sc-if value="{{hasErr}}" hint-placeholder-val="{{false}}"><span role="alert" style="font-size: 12px; line-height: 16px; font-weight: 500; color: #b3261e">{{errText}}</span></sc-if><sc-if value="{{owned}}" hint-placeholder-val="{{false}}"><a href="Support.dc.html" style="min-height: 48px; display: flex; align-items: center; align-self: flex-start; font-size: 13px; line-height: 20px; font-weight: 600; color: #0f7a3a; text-decoration: underline">Liên hệ hỗ trợ</a></sc-if></div>
+<sc-if value="{{checked}}" hint-placeholder-val="{{true}}"><section style="background: #f9faf7; border-radius: 16px; box-shadow: 0 1px 2px rgba(19,32,27,0.06), 0 2px 8px rgba(19,32,27,0.05); padding: 14px 16px; display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 8px"><span style="font-size: 15px; line-height: 22px; font-weight: 600">GG SmartBox Hybrid 5 kW</span><span style="display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 6px; background: #e3f3e8; color: #0f7a3a; font-size: 12px; line-height: 16px; font-weight: 600; white-space: nowrap; flex-shrink: 0"><span style="width: 6px; height: 6px; border-radius: 999px; background: #0f7a3a"></span>Hợp lệ</span></div>
+<div style="min-height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0"><span style="font-size: 13px; line-height: 18px; color: #56625c">Model</span><span style="font-size: 14px; line-height: 20px; font-weight: 600; font-variant-numeric: tabular-nums; text-align: right">HYB5K</span></div><div style="min-height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0"><span style="font-size: 13px; line-height: 18px; color: #56625c">Công suất định mức</span><span style="font-size: 14px; line-height: 20px; font-weight: 600; font-variant-numeric: tabular-nums; text-align: right">5 kW</span></div><div style="min-height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0"><span style="font-size: 13px; line-height: 18px; color: #56625c">Ngày xuất xưởng</span><span style="font-size: 14px; line-height: 20px; font-weight: 600; font-variant-numeric: tabular-nums; text-align: right">12/08/2026</span></div>
+</section></sc-if>
+<div style="display: flex; gap: 10px; padding-top: 4px"><a href="AddProjectInfo.dc.html" style="{{nextStyle}}">Tiếp tục</a></div>
+</div>
+
+
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview": {"width": 390, "height": 844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const seg = (cur, key, list, fs) => list.map(([id, label]) => { const on = id === cur;
+      return { label, pressed: on ? 'true' : 'false', pick: () => this.setState({ [key]: id }),
+        style: 'flex: 1 1 0; min-width: 0; height: 36px; padding: 0 4px; border: none; border-radius: 10px; font-family: inherit; font-size: ' + (fs || 13) + 'px; font-weight: 600; white-space: nowrap; cursor: pointer; ' + (on ? 'background: #ffffff; color: #13201b; box-shadow: 0 1px 2px rgba(19,32,27,0.06), 0 2px 8px rgba(19,32,27,0.05)' : 'background: transparent; color: #56625c') }; });
+    const s = this.state || {};
+    const step = s.step || 1;
+    const bar = (i) => 'height: 4px; border-radius: 999px; background: ' + (i <= step ? '#0f7a3a' : '#d9dfd8');
+    const st1 = bar(1);
+    const st2 = bar(2);
+    const st3 = bar(3);
+    const SAMPLE = 'SN2609A00137', OWNED = 'SN2609A00999';
+    const serial = s.serial == null ? SAMPLE : s.serial;
+    const checked = s.checked == null ? true : s.checked;
+    const err = s.err || '';
+    const errText = err === 'empty' ? 'Vui lòng nhập số serial.' : err === 'notfound' ? 'Không tìm thấy thiết bị có số serial này. Kiểm tra lại tem trên inverter.' : err === 'owned' ? 'Thiết bị đang thuộc một tài khoản khác.' : '';
+    return { st1, st2, st3, s1: step === 1, s2: step === 2, s3: step === 3, checked,
+      serial, errText, hasErr: !!err, noErr: !err, owned: err === 'owned', invalid: err ? 'true' : 'false',
+      snStyle: 'height: 48px; box-sizing: border-box; width: 100%; padding: 0 14px; border-radius: 10px; background: #ffffff; font-family: inherit; font-size: 14px; color: #13201b; font-family: ui-monospace, Menlo, Consolas, monospace; flex-grow: 1; min-width: 0; border: 1px solid ' + (err ? '#b3261e' : '#7f8b85'),
+      setSerial: (e) => this.setState({ serial: (e.target.value || '').toUpperCase(), checked: false, err: '' }),
+      check: () => { const v = serial.trim().toUpperCase();
+        if (!v) this.setState({ checked: false, err: 'empty' });
+        else if (v === SAMPLE) this.setState({ checked: true, err: '' });
+        else if (v === OWNED) this.setState({ checked: false, err: 'owned' });
+        else this.setState({ checked: false, err: 'notfound' }); },
+      nextStyle: 'flex: 1 1 0; height: 52px; display: flex; align-items: center; justify-content: center; border: none; border-radius: 10px; font-family: inherit; font-size: 15px; font-weight: 600; text-decoration: none; ' + (checked ? 'background: #0f7a3a; color: #ffffff; cursor: pointer' : 'background: #d9dfd8; color: #56625c; cursor: not-allowed; pointer-events: none'),
+      go1: () => this.setState({ step: 1 }), go2: () => { if (checked) this.setState({ step: 2 }); }, go3: () => this.setState({ step: 3 }),
+      kinds: seg(s.kind || 'home', 'kind', [['home', 'Nhà ở'], ['factory', 'Nhà xưởng']]),
+      tariffs: seg(s.tariff || 'tier', 'tariff', [['tier', 'Bậc thang EVN'], ['fixed', 'Giá cố định']]),
+      isTier: (s.tariff || 'tier') === 'tier', isFixed: s.tariff === 'fixed' };
+  }
+}
+
+</script>
+</body>
+</html>

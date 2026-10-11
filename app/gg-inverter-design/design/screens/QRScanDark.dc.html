@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="vi" style="color-scheme: dark">
+<head>
+<meta charset="utf-8">
+<title>Quét mã QR</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&amp;display=swap">
+<style>
+html,body{scrollbar-width:none}html::-webkit-scrollbar,body::-webkit-scrollbar,*::-webkit-scrollbar{display:none;width:0;height:0}
+body{margin:0;font-family:Montserrat,system-ui,-apple-system,"Segoe UI",sans-serif;background:#0c1612;color:#eef3ef}
+a{color:#34c26f}a:hover{color:#5bd68c}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:none;box-shadow:0 0 0 2px #0c1612,0 0 0 4px #34c26f}
+@keyframes ggspin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; position: relative; display: flex; flex-direction: column; background: #0e1512; color: #eef3ef; font-family: Montserrat, system-ui, sans-serif; overflow: hidden">
+<header style="height: 64px; flex-shrink: 0; display: flex; align-items: center; gap: 4px; padding: 0 8px 0 4px; color: #ffffff"><a href="AddProjectDark.dc.html" aria-label="Đóng" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 999px; color: #ffffff; text-decoration: none"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M6 6l12 12M18 6L6 18"></path></svg></a><h1 style="margin: 0; flex-grow: 1; font-size: 22px; line-height: 28px; font-weight: 600; color: #ffffff">Quét mã QR</h1></header>
+<main style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; gap: 24px; padding: 40px 20px 24px; color: #ffffff">
+<p style="margin: 0; font-size: 15px; line-height: 22px; text-align: center; color: #26352f">Đưa mã QR trên tem thiết bị vào khung</p>
+<button type="button" onClick="{{scan}}" aria-label="Mô phỏng quét mã" style="position: relative; width: 260px; height: 260px; border: none; border-radius: 20px; background: rgba(255,255,255,0.06); cursor: pointer; padding: 0">
+<span style="position: absolute; top: 0; left: 0; border-width: 4px 0 0 4px; border-top-left-radius: 20px; width: 36px; height: 36px; border-color: #0c1612; border-style: solid"></span><span style="position: absolute; top: 0; right: 0; border-width: 4px 4px 0 0; border-top-right-radius: 20px; width: 36px; height: 36px; border-color: #0c1612; border-style: solid"></span><span style="position: absolute; bottom: 0; left: 0; border-width: 0 0 4px 4px; border-bottom-left-radius: 20px; width: 36px; height: 36px; border-color: #0c1612; border-style: solid"></span><span style="position: absolute; bottom: 0; right: 0; border-width: 0 4px 4px 0; border-bottom-right-radius: 20px; width: 36px; height: 36px; border-color: #0c1612; border-style: solid"></span>
+<span style="position: absolute; left: 24px; right: 24px; top: 128px; height: 2px; background: #149c4a; box-shadow: 0 0 12px #34c26f"></span>
+<span style="position: absolute; left: 0; right: 0; bottom: 16px; font-size: 12px; color: #4f5c57; font-family: Montserrat, sans-serif">Chạm để mô phỏng quét</span>
+</button>
+<sc-if value="{{invalid}}" hint-placeholder-val="{{false}}"><span style="padding: 6px 12px; border-radius: 999px; background: #c62828; color: #ffffff; font-size: 13px; font-weight: 600">Mã không hợp lệ</span></sc-if>
+<div style="flex-grow: 1"></div>
+<div style="align-self: stretch; display: flex; align-items: center; justify-content: space-between">
+<button type="button" role="switch" aria-checked="{{torch.checked}}" aria-label="{{torch.label}}" onClick="{{torch.flip}}" style="{{torch.style}}"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M13 2.5L5 13.5h6l-1 8 8-11h-6z"></path></svg></button>
+<a href="AddProjectDark.dc.html" style="height: 48px; display: flex; align-items: center; gap: 8px; padding: 0 18px; border-radius: 999px; background: #1c2b25; color: #eef3ef; font-size: 14px; font-weight: 600; text-decoration: none"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><rect x="2.5" y="6" width="19" height="12" rx="2"></rect><path d="M6 10h.01M9.5 10h.01M13 10h.01M16.5 10h.01M7 14h10"></path></svg>Nhập số serial bằng tay</a>
+</div>
+</main>
+<sc-if value="{{scanned}}" hint-placeholder-val="{{false}}"><div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 20px 20px 28px; border-radius: 24px 24px 0 0; background: #1c2b25; color: #eef3ef; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 -8px 24px rgba(0,0,0,0.3)">
+<span style="align-self: center; width: 40px; height: 4px; border-radius: 999px; background: #26352f"></span>
+<div style="display: flex; align-items: center; gap: 12px"><span style="width: 44px; height: 44px; border-radius: 12px; background: #12301f; color: #34c26f; display: flex; align-items: center; justify-content: center"><sc-if value="{{found}}" hint-placeholder-val="{{true}}"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></sc-if><sc-if value="{{checking}}" hint-placeholder-val="{{false}}"><span aria-hidden="true" style="width: 16px; height: 16px; border-radius: 999px; border: 2px solid #1f4a30; border-top-color: #34c26f; border-right-color: #34c26f; animation: ggspin 800ms linear infinite"></span></sc-if></span><span style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column"><span style="font-size: 16px; line-height: 22px; font-weight: 600">{{sheetTitle}}</span><span style="font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; line-height: 16px; color: #9fada6">HYB5K · SN2609A00137</span></span><sc-if value="{{found}}" hint-placeholder-val="{{true}}"><span style="display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 6px; background: #12301f; color: #34c26f; font-size: 12px; line-height: 16px; font-weight: 600; white-space: nowrap; flex-shrink: 0"><span style="width: 6px; height: 6px; border-radius: 999px; background: #178a47"></span>Mã hợp lệ</span></sc-if></div>
+<sc-if value="{{found}}" hint-placeholder-val="{{true}}"><a href="AddProjectDark.dc.html" style="height: 52px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; border-radius: 10px; background: #178a47; color: #ffffff; font-family: inherit; font-size: 15px; font-weight: 600; text-decoration: none; cursor: pointer">Dùng thiết bị này</a></sc-if><sc-if value="{{checking}}" hint-placeholder-val="{{false}}"><button type="button" aria-disabled="true" style="height: 52px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border: none; border-radius: 10px; background: #3a4743; color: #ffffff; font-family: inherit; font-size: 15px; font-weight: 600; cursor: not-allowed">Dùng thiết bị này</button></sc-if>
+<button type="button" onClick="{{rescan}}" style="height: 44px; border: none; background: transparent; color: #34c26f; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer">Quét lại</button>
+</div></sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview": {"width": 390, "height": 844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.state || {};
+    const sheet = s.sheet || null;
+    const on = !!s.torch;
+    return {
+      scanned: !!sheet, found: sheet === 'found', checking: sheet === 'checking', invalid: false,
+      sheetTitle: sheet === 'checking' ? 'Đang kiểm tra thiết bị…' : 'GG SmartBox Hybrid 5 kW',
+      scan: () => {
+        if (sheet) return;
+        this.setState({ sheet: 'checking' });
+        clearTimeout(this._t); this._t = setTimeout(() => this.setState({ sheet: 'found' }), 900);
+      },
+      rescan: () => { clearTimeout(this._t); this.setState({ sheet: null }); },
+      torch: {
+        checked: on ? 'true' : 'false', label: on ? 'Tắt đèn pin' : 'Bật đèn pin',
+        flip: () => this.setState({ torch: !on }),
+        style: 'width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border: none; border-radius: 999px; cursor: pointer; ' + (on ? 'background: #1c2b25; color: #eef3ef' : 'background: rgba(255,255,255,0.14); color: #ffffff')
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Chi tiết chiến lược</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&amp;display=swap">
+<style>
+html,body{scrollbar-width:none}html::-webkit-scrollbar,body::-webkit-scrollbar,*::-webkit-scrollbar{display:none;width:0;height:0}
+body{margin:0;font-family:Montserrat,system-ui,-apple-system,"Segoe UI",sans-serif;background:#f5f7f3;color:#13201b}
+a{color:#0f7a3a}a:hover{color:#0b6630}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:none;box-shadow:0 0 0 2px #ffffff,0 0 0 4px #0f7a3a}
+@keyframes ggspin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<div style="width: 390px; height: 920px; box-sizing: border-box; position: relative; display: flex; flex-direction: column; background: #f5f7f3; color: #13201b; font-family: Montserrat, system-ui, sans-serif; overflow: hidden">
+<header style="height: 64px; flex-shrink: 0; display: flex; align-items: center; gap: 4px; padding: 0 8px 0 4px"><sc-if value="{{nav.clean}}" hint-placeholder-val="{{true}}"><a href="TouSchedule.dc.html" aria-label="Quay lại danh sách chiến lược" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 999px; color: #13201b; text-decoration: none; flex-shrink: 0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M19 12H5M11 6l-6 6 6 6"></path></svg></a></sc-if><sc-if value="{{nav.dirty}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{nav.back}}" aria-label="Quay lại danh sách chiến lược" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 999px; color: #13201b; text-decoration: none; flex-shrink: 0; border: none; background: transparent; padding: 0; cursor: pointer"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M19 12H5M11 6l-6 6 6 6"></path></svg></button></sc-if><h1 style="margin: 0; flex-grow: 1; min-width: 0; font-size: 22px; line-height: 28px; font-weight: 600">{{title}}</h1><sc-if value="{{rn.canOpen}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{rn.open}}" aria-label="Đổi tên chiến lược" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 999px; color: #13201b; text-decoration: none; flex-shrink: 0; border: none; background: transparent; padding: 0; cursor: pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M4 20h4L18.5 9.5a2.12 2.12 0 0 0-3-3L5 17v3z"></path><path d="M13.5 8.5l2 2"></path></svg></button></sc-if></header>
+<main style="flex-grow: 1; display: grid; grid-template-columns: minmax(0, 1fr); grid-auto-rows: max-content; align-content: start; gap: 12px; padding: 0 20px 24px; overflow: hidden">
+
+
+<p style="margin: 0; font-size: 13px; line-height: 20px; color: #56625c"><span style="{{cur.badge}}">{{cur.letter}}</span> Khung sạc và xả của chiến lược này. Ngoài các khung đã đặt, hệ thống chạy như Tự tiêu thụ tối đa.</p>
+<div style="display: flex; flex-direction: column; gap: 6px"><div style="position: relative; height: 28px; border-radius: 8px; background: #eaeee8; overflow: hidden"><sc-for list="{{segs}}" as="g" hint-placeholder-count="3"><span style="{{g.style}}"></span></sc-for></div><div style="display: flex; justify-content: space-between; font-size: 11px; line-height: 14px; color: #56625c; font-variant-numeric: tabular-nums"><span>00</span><span>06</span><span>12</span><span>18</span><span>24</span></div><div style="display: flex; gap: 16px; font-size: 12px; line-height: 16px; color: #56625c"><span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #149c4a"></span>Sạc</span><span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #e0700f"></span>Xả</span><span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #eaeee8; border: 1px solid #d9dfd8"></span>Tự động</span></div></div>
+<section style="background: #f9faf7; border-radius: 16px; box-shadow: 0 1px 2px rgba(19,32,27,0.06), 0 2px 8px rgba(19,32,27,0.05); padding: 8px 16px 12px; display: flex; flex-direction: column; gap: 8px">
+
+<sc-for list="{{rows}}" as="w" hint-placeholder-count="4"><button type="button" onClick="{{w.open}}" aria-disabled="{{w.dis}}" aria-label="{{w.aria}}" style="{{w.style}}"><span style="{{w.bar}}"></span><span style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px; line-height: 20px; font-weight: 600">{{w.name}} · <span style="font-variant-numeric: tabular-nums">{{w.time}}</span></span><span style="font-size: 12px; line-height: 16px; color: #56625c">{{w.meta}}</span></span><span style="color: #7f8b85; display: flex"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M9 6l6 6-6 6"></path></svg></span></button></sc-for><sc-if value="{{noRows}}" hint-placeholder-val="{{false}}"><p style="margin: 0; padding: 12px 0 4px; font-size: 13px; line-height: 20px; color: #56625c">Chưa có khung sạc hoặc xả nào. Hệ thống chạy như Tự tiêu thụ tối đa cả ngày.</p></sc-if>
+<div style="display: flex; flex-direction: column; gap: 6px; padding-top: 6px"><span style="font-size: 13px; line-height: 18px; font-weight: 600; padding-top: 8px">Áp dụng các ngày</span><div style="display: flex; gap: 4px"><button type="button" aria-pressed="{{days.d0.pressed}}" onClick="{{days.d0.flip}}" style="{{days.d0.style}}">T2</button><button type="button" aria-pressed="{{days.d1.pressed}}" onClick="{{days.d1.flip}}" style="{{days.d1.style}}">T3</button><button type="button" aria-pressed="{{days.d2.pressed}}" onClick="{{days.d2.flip}}" style="{{days.d2.style}}">T4</button><button type="button" aria-pressed="{{days.d3.pressed}}" onClick="{{days.d3.flip}}" style="{{days.d3.style}}">T5</button><button type="button" aria-pressed="{{days.d4.pressed}}" onClick="{{days.d4.flip}}" style="{{days.d4.style}}">T6</button><button type="button" aria-pressed="{{days.d5.pressed}}" onClick="{{days.d5.flip}}" style="{{days.d5.style}}">T7</button><button type="button" aria-pressed="{{days.d6.pressed}}" onClick="{{days.d6.flip}}" style="{{days.d6.style}}">CN</button></div><sc-if value="{{dayNote.show}}" hint-placeholder-val="{{false}}"><span style="font-size: 12px; line-height: 18px; color: #56625c">{{dayNote.text}}</span></sc-if><sc-if value="{{sum.warn}}" hint-placeholder-val="{{false}}"><p style="margin: 0; font-size: 12px; line-height: 18px; font-weight: 600; color: #b3261e">Chưa chọn ngày nào nên lịch sẽ không chạy. Hãy chọn ít nhất một ngày.</p></sc-if></div>
+</section>
+<button type="button" onClick="{{add}}" style="{{addStyle}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M12 5v14M5 12h14"></path></svg>Thêm khung sạc hoặc xả</button>
+<ul style="margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; font-size: 12px; line-height: 18px; color: #56625c">
+<li>Tối đa 3 khung sạc và 3 khung xả; các khung không được chồng lấn.</li>
+<li>Chạm vào một khung để sửa giờ, SOC dừng, công suất và nguồn sạc.</li>
+
+</ul>
+<sc-if value="{{cur.canDelete}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{cur.remove}}" style="height: 48px; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; border-radius: 10px; background: transparent; color: #b3261e; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"></path></svg>Xoá chiến lược này</button></sc-if>
+
+</main>
+<sc-if value="{{bar.show}}" hint-placeholder-val="{{true}}"><div style="flex-shrink: 0; height: 80px; box-sizing: border-box; background: #ffffff; padding: 0 20px; display: flex; align-items: center; gap: 12px"><div style="flex-grow: 1; min-width: 0"><sc-if value="{{bar.writing}}" hint-placeholder-val="{{false}}"><span role="status" style="display: flex; align-items: center; gap: 8px; font-size: 13px; line-height: 20px; color: #56625c"><span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 999px; border: 2px solid #56625c; border-right-color: transparent; flex-shrink: 0; animation: ggspin 0.8s linear infinite"></span>Đang ghi…</span></sc-if><sc-if value="{{bar.unsaved}}" hint-placeholder-val="{{false}}"><span style="font-size: 13px; line-height: 20px; color: #56625c">Có thay đổi chưa lưu</span></sc-if></div><button type="button" onClick="{{bar.save}}" aria-disabled="{{bar.disabled}}" style="{{bar.style}}"><sc-if value="{{bar.writing}}" hint-placeholder-val="{{false}}"><span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 999px; border: 2px solid #ffffff; border-right-color: transparent; flex-shrink: 0; animation: ggspin 0.8s linear infinite"></span></sc-if><sc-if value="{{bar.label}}" hint-placeholder-val="{{true}}">Lưu thay đổi</sc-if></button></div></sc-if>
+<sc-if value="{{sh.open}}" hint-placeholder-val="{{false}}"><div style="position: absolute; inset: 0; background: rgba(14,21,18,0.5); display: flex; flex-direction: column; justify-content: flex-end"><div role="dialog" aria-modal="true" aria-labelledby="sh-t" style="background: #ffffff; border-radius: 24px 24px 0 0; padding: 12px 20px 24px; display: flex; flex-direction: column; gap: 14px">
+<span style="align-self: center; width: 40px; height: 4px; border-radius: 999px; background: #d9dfd8"></span>
+<div style="display: flex; align-items: center; gap: 10px"><span style="width: 4px; height: 22px; border-radius: 999px; background: {{sh.color}}"></span><h2 id="sh-t" style="margin: 0; flex-grow: 1; font-size: 18px; line-height: 26px; font-weight: 700">{{sh.title}}</h2></div>
+<sc-if value="{{sh.isAdd}}" hint-placeholder-val="{{true}}"><div role="group" aria-label="Loại khung" style="display: flex; gap: 4px; padding: 4px; border-radius: 12px; background: #eaeee8"><sc-for list="{{sh.kinds}}" as="o" hint-placeholder-count="2"><button type="button" aria-pressed="{{o.pressed}}" onClick="{{o.pick}}" style="{{o.style}}">{{o.label}}</button></sc-for></div></sc-if>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px"><div style="display: flex; flex-direction: column; gap: 6px"><label for="sh-a" style="font-size: 12px; line-height: 16px; font-weight: 600">Giờ bắt đầu</label><input id="sh-a" type="text" inputmode="numeric" value="{{sh.d.start}}" onChange="{{sh.set.start}}" style="height: 44px; box-sizing: border-box; width: 100%; padding: 0 12px; border-radius: 10px; background: #ffffff; font-family: inherit; font-size: 14px; color: #13201b; font-variant-numeric: tabular-nums; border: 1px solid #7f8b85"></div><div style="display: flex; flex-direction: column; gap: 6px"><label for="sh-b" style="font-size: 12px; line-height: 16px; font-weight: 600">Giờ kết thúc</label><input id="sh-b" type="text" inputmode="numeric" value="{{sh.d.end}}" onChange="{{sh.set.end}}" style="height: 44px; box-sizing: border-box; width: 100%; padding: 0 12px; border-radius: 10px; background: #ffffff; font-family: inherit; font-size: 14px; color: #13201b; font-variant-numeric: tabular-nums; border: 1px solid #7f8b85"></div><div style="display: flex; flex-direction: column; gap: 6px"><label for="sh-c" style="font-size: 12px; line-height: 16px; font-weight: 600">SOC dừng (%)</label><input id="sh-c" type="text" inputmode="numeric" value="{{sh.d.soc}}" onChange="{{sh.set.soc}}" style="height: 44px; box-sizing: border-box; width: 100%; padding: 0 12px; border-radius: 10px; background: #ffffff; font-family: inherit; font-size: 14px; color: #13201b; font-variant-numeric: tabular-nums; border: 1px solid #7f8b85"></div><div style="display: flex; flex-direction: column; gap: 6px"><label for="sh-d" style="font-size: 12px; line-height: 16px; font-weight: 600">Công suất tối đa (W)</label><input id="sh-d" type="text" inputmode="numeric" value="{{sh.d.pw}}" onChange="{{sh.set.pw}}" style="height: 44px; box-sizing: border-box; width: 100%; padding: 0 12px; border-radius: 10px; background: #ffffff; font-family: inherit; font-size: 14px; color: #13201b; font-variant-numeric: tabular-nums; border: 1px solid #7f8b85"></div></div>
+<sc-if value="{{sh.isChg}}" hint-placeholder-val="{{true}}"><span style="font-size: 12px; line-height: 16px; color: #56625c">Nguồn sạc: lưới điện</span></sc-if>
+<sc-if value="{{sh.hasErr}}" hint-placeholder-val="{{false}}"><p role="alert" style="margin: 0; display: flex; gap: 8px; padding: 10px 12px; border-radius: 10px; background: #fdecea; color: #b3261e; font-size: 13px; line-height: 18px; font-weight: 500"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16h.01"></path></svg>{{sh.err}}</p></sc-if>
+<div style="display: flex; gap: 10px"><button type="button" onClick="{{sh.close}}" style="flex: 1 1 0; height: 48px; border: 1px solid #7f8b85; border-radius: 10px; background: #ffffff; color: #13201b; font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer">Huỷ</button><button type="button" onClick="{{sh.save}}" aria-disabled="{{sh.hasErr}}" style="{{sh.saveStyle}}">Lưu</button></div>
+<sc-if value="{{sh.isEdit}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{sh.del}}" style="height: 44px; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; border-radius: 10px; background: transparent; color: #b3261e; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"></path></svg>Xoá khung này</button></sc-if>
+</div></div></sc-if>
+<sc-if value="{{rn.isOpen}}" hint-placeholder-val="{{false}}"><div style="position: absolute; inset: 0; z-index: 15; background: rgba(14,21,18,0.5); display: flex; flex-direction: column; justify-content: flex-end"><div role="dialog" aria-modal="true" aria-labelledby="rn-t" style="background: #ffffff; border-radius: 24px 24px 0 0; padding: 12px 20px 24px; display: flex; flex-direction: column; gap: 14px"><span style="align-self: center; width: 40px; height: 4px; border-radius: 999px; background: #d9dfd8"></span><h2 id="rn-t" style="margin: 0; font-size: 18px; line-height: 26px; font-weight: 700">Đổi tên chiến lược</h2><div style="display: flex; flex-direction: column; gap: 6px"><label for="rn-in" style="font-size: 12px; line-height: 16px; font-weight: 600">Tên chiến lược</label><input id="rn-in" type="text" maxlength="40" value="{{rn.text}}" onInput="{{rn.set}}" onChange="{{rn.set}}" style="{{rn.inputStyle}}"><span style="font-size: 12px; line-height: 16px; color: #56625c; text-align: right; font-variant-numeric: tabular-nums">{{rn.counter}}</span></div><sc-if value="{{rn.hasErr}}" hint-placeholder-val="{{false}}"><p role="alert" style="margin: 0; display: flex; gap: 8px; padding: 10px 12px; border-radius: 10px; background: #fdecea; color: #b3261e; font-size: 13px; line-height: 18px; font-weight: 500"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16h.01"></path></svg>Tên chiến lược không được để trống.</p></sc-if><div style="display: flex; gap: 10px"><button type="button" onClick="{{rn.close}}" style="flex: 1 1 0; height: 48px; border: 1px solid #7f8b85; border-radius: 10px; background: #ffffff; color: #13201b; font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer">Huỷ</button><button type="button" onClick="{{rn.save}}" aria-disabled="{{rn.hasErr}}" style="{{rn.saveStyle}}">Lưu</button></div></div></div></sc-if>
+<sc-if value="{{cf.open}}" hint-placeholder-val="{{false}}"><div style="position: absolute; inset: 0; z-index: 20; background: rgba(14,21,18,0.5); display: flex; align-items: center; justify-content: center; padding: 0 24px"><div role="dialog" aria-modal="true" aria-labelledby="cf-t" style="width: 100%; box-sizing: border-box; background: #ffffff; border-radius: 16px; box-shadow: 0 12px 32px rgba(19,32,27,0.18); padding: 20px; display: flex; flex-direction: column; gap: 16px"><h2 id="cf-t" style="margin: 0; font-size: 13px; line-height: 16px; font-weight: 600; color: #13201b">Xác nhận thay đổi</h2><div style="max-height: 360px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px"><sc-for list="{{cf.lines}}" as="l" hint-placeholder-count="3"><div style="display: flex; flex-direction: column; gap: 2px"><sc-if value="{{l.hasLabel}}" hint-placeholder-val="{{true}}"><span style="font-size: 13px; line-height: 20px; color: #56625c">{{l.label}}</span></sc-if><span style="font-size: 15px; line-height: 24px; font-weight: 600; color: #13201b">{{l.value}}</span></div></sc-for></div><div style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 12px; line-height: 16px; font-weight: 500; color: #56625c">Thay đổi được gửi tới hệ thống và chỉ áp dụng sau khi thiết bị xác nhận.</span><sc-if value="{{cf.notTou}}" hint-placeholder-val="{{true}}"><span style="font-size: 12px; line-height: 16px; font-weight: 500; color: #2f6fb3">Chế độ hiện tại không phải Theo khung giờ. Lịch được lưu và sẽ chạy khi bạn chọn chế độ này.</span></sc-if></div><div style="display: flex; gap: 12px"><button type="button" onClick="{{cf.cancel}}" style="flex: 1 1 0; height: 48px; border: 1px solid #7f8b85; border-radius: 10px; background: #ffffff; color: #13201b; font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer">Huỷ</button><button type="button" onClick="{{cf.ok}}" style="flex: 1 1 0; height: 48px; border: none; border-radius: 10px; background: #0f7a3a; color: #ffffff; font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer">Xác nhận</button></div></div></div></sc-if>
+<sc-if value="{{dc.open}}" hint-placeholder-val="{{false}}"><div style="position: absolute; inset: 0; z-index: 20; background: rgba(14,21,18,0.5); display: flex; align-items: center; justify-content: center; padding: 0 24px"><div role="dialog" aria-modal="true" aria-labelledby="dc-t" style="width: 100%; box-sizing: border-box; background: #ffffff; border-radius: 16px; box-shadow: 0 12px 32px rgba(19,32,27,0.18); padding: 20px; display: flex; flex-direction: column; gap: 16px"><h2 id="dc-t" style="margin: 0; font-size: 13px; line-height: 16px; font-weight: 600; color: #13201b">Bỏ thay đổi?</h2><p style="margin: 0; font-size: 15px; line-height: 24px; color: #13201b">Các thay đổi chưa lưu sẽ mất.</p><div style="display: flex; gap: 12px; align-items: center"><button type="button" onClick="{{dc.stay}}" style="flex: 1 1 0; height: 48px; border: 1px solid #7f8b85; border-radius: 10px; background: #ffffff; color: #13201b; font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer">Ở lại</button><a href="TouSchedule.dc.html" style="flex: 1 1 0; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 10px; color: #b3261e; text-decoration: none; font-size: 14px; line-height: 20px; font-weight: 600">Bỏ thay đổi</a></div></div></div></sc-if>
+<sc-if value="{{snack.show}}" hint-placeholder-val="{{false}}"><div role="status" style="{{snack.style}}">{{snack.text}}</div></sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"strategy": {"editor": "enum", "options": ["A", "B", "C"], "default": "A", "section": "Chiến lược hiển thị (A Ngày thường · B Cuối tuần · C mới tạo từ Thêm chiến lược)"}, "mode": {"editor": "enum", "options": ["Tự tiêu thụ tối đa", "Theo khung giờ (TOU)"], "default": "Tự tiêu thụ tối đa", "section": "Chế độ vận hành hiện tại"}, "$preview": {"width": 390, "height": 920}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.state || {};
+    const SC = ['#0f7a3a', '#2f6fb3', '#8a4fbf', '#b36b00'];
+    const LET = ['A', 'B', 'C', 'D'];
+    const MAX = 3; // ADR-002 mục 1: 3 sạc + 3 xả
+    const sl = (start, end, soc, pw) => ({ start, end, soc, pw });
+    const DEFS = [
+      { id: 'a', name: 'Ngày thường', days: [true, true, true, true, true, false, false],
+        chg: [sl('22:00', '06:00', '90', '3.000'), sl('13:00', '16:00', '100', '3.000')],
+        dis: [sl('09:00', '12:00', '50', '4.000'), sl('18:00', '21:00', '20', '5.000')] },
+      { id: 'b', name: 'Cuối tuần', days: [false, false, false, false, false, true, true],
+        chg: [sl('00:00', '06:00', '90', '3.000'), sl('14:00', '16:00', '100', '3.000')],
+        dis: [sl('10:00', '12:00', '60', '4.000'), sl('18:00', '23:00', '20', '5.000')] }];
+    const clone = (x) => JSON.parse(JSON.stringify(x));
+    const propPick = { A: 'a', B: 'b', C: 'c' }[this.props.strategy] || 'a';
+    const saved = s.saved || DEFS;
+    // "Thêm chiến lược" (ADR-002 mục 9): chiến lược trống chỉ có trong bản nháp
+    const initDraft = () => { const d = clone(DEFS); if (propPick === 'c') d.push({ id: 'c', name: 'Chiến lược C', days: [false, false, false, false, false, false, false], chg: [], dis: [] }); return d; };
+    const draft = s.draft || initDraft();
+    const curId = s.cur || propPick;
+    const ci = Math.max(0, draft.findIndex((x) => x.id === curId));
+    const curS = draft[ci];
+    const isTou = this.props.mode === 'Theo khung giờ (TOU)';
+    const writing = !!s.writing;
+    const live = !writing;
+    const setDraft = (d, extra) => this.setState(Object.assign({ draft: d }, extra || {}));
+    const updCur = (patch) => setDraft(draft.map((x, i) => i === ci ? Object.assign({}, x, patch) : x));
+
+    const DN = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+    const daysTxt = (d) => { const on = d.map((v, i) => v ? i : -1).filter((i) => i >= 0); return on.length === 7 ? 'Hằng ngày' : on.map((i) => DN[i]).join(', '); };
+    const owner = (k) => draft.findIndex((x) => x.days[k]);
+    const dayOn = curS.days;
+    const days = {};
+    dayOn.forEach((v, k) => { days['d' + k] = { pressed: v ? 'true' : 'false',
+      flip: () => { if (!live) return; setDraft(draft.map((x, i) => { const n = x.days.slice(); if (i === ci) n[k] = !v; else if (!v) n[k] = false; return Object.assign({}, x, { days: n }); })); },
+      style: 'flex: 1 1 0; height: 32px; box-sizing: border-box; border-radius: 8px; font-family: inherit; font-size: 12px; font-weight: 600; cursor: ' + (live ? 'pointer' : 'not-allowed') + '; ' + (v ? 'border: 1px solid #0f7a3a; background: #0f7a3a; color: #ffffff' : 'border: 1px solid #e3e8e1; background: #eef1ec; color: ' + (k === 6 ? '#c62828' : '#9aa59f') + '; opacity: 0.6; font-weight: 500') }; });
+    const others = {};
+    dayOn.forEach((v, k) => { const o = owner(k); if (!v && o >= 0 && o !== ci) (others[o] = others[o] || []).push(DN[k]); });
+    const noteParts = Object.keys(others).map((o) => others[o].join(', ') + ' đang thuộc "' + draft[o].name + '"');
+    const dayNote = { show: noteParts.length > 0, text: noteParts.join('; ') + '. Chọn các ngày này sẽ chuyển chúng sang chiến lược đang sửa.' };
+    const missingDays = !dayOn.some((v) => v);
+
+    const KN = { chg: 'Sạc', dis: 'Xả' };
+    const COL = (k) => k === 'chg' ? '#149c4a' : '#e0700f';
+    const mins = (t) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+    const hhmm = (m) => { m = ((m % 1440) + 1440) % 1440; return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); };
+    const ranges = (a, b) => a < b ? [[a, b]] : [[a, 1440], [0, b]];
+    const hits = (a1, b1, a2, b2) => ranges(a1, b1).some(([a, b]) => ranges(a2, b2).some(([c, e]) => c < b && a < e));
+    const all = (st, skip) => ['chg', 'dis'].reduce((acc, k) => acc.concat(st[k].map((v, i) => ({ k, i, v }))), []).filter((x) => !skip || x.k !== skip.k || x.i !== skip.i);
+    const F = { chg: { start: '10:00', end: '14:00', soc: '80', pw: '3.000', dur: 240 }, dis: { start: '06:00', end: '08:00', soc: '40', pw: '4.000', dur: 120 } };
+    // ADR-002 mục 6: giờ mặc định, nếu trùng thì lấy khoảng trống đầu tiên từ 00:00
+    const suggest = (kind) => { const f = F[kind]; const ex = all(curS);
+      const free = (a, b) => !ex.some((x) => hits(a, b % 1440, mins(x.v.start), mins(x.v.end)));
+      const base = { soc: f.soc, pw: f.pw };
+      if (free(mins(f.start), mins(f.end))) return Object.assign(base, { start: f.start, end: f.end });
+      const cands = [0].concat(ex.map((x) => mins(x.v.end)));
+      for (const dur of [f.dur, 60]) for (const c of cands) if (free(c, c + dur)) return Object.assign(base, { start: hhmm(c), end: hhmm(c + dur) });
+      return Object.assign(base, { start: f.start, end: f.end }); };
+
+    const sh = s.sheet;
+    const editing = sh && sh.mode === 'edit' ? sh : null;
+    const segs = [];
+    all(curS).forEach((x) => ranges(mins(x.v.start), mins(x.v.end)).forEach(([a, b]) => segs.push({ style: 'position: absolute; top: 0; bottom: 0; left: ' + (a / 14.4).toFixed(3) + '%; width: ' + ((b - a) / 14.4).toFixed(3) + '%; background: ' + COL(x.k) + (editing && (editing.k !== x.k || editing.i !== x.i) ? '; opacity: 0.35' : '') })));
+    const meta = (k, v) => 'SOC dừng ' + v.soc + ' % · tối đa ' + v.pw + ' W' + (k === 'chg' ? ' · nguồn: lưới' : '');
+    const rowList = all(curS);
+    const rows = rowList.map((x, n) => ({ name: KN[x.k] + ' ' + (x.i + 1), time: x.v.start + ' – ' + x.v.end, meta: meta(x.k, x.v), aria: 'Sửa khung ' + KN[x.k] + ' ' + (x.i + 1), dis: live ? 'false' : 'true',
+      open: () => { if (live) this.setState({ sheet: { mode: 'edit', k: x.k, i: x.i, d: Object.assign({}, x.v) } }); },
+      bar: 'width: 4px; align-self: stretch; border-radius: 999px; background: ' + COL(x.k),
+      style: 'width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 0; border: none; background: transparent; color: #13201b; font-family: inherit; text-align: left; cursor: ' + (live ? 'pointer' : 'default') }));
+    const add = () => { if (!live) return; const kind = curS.chg.length < MAX || curS.dis.length >= MAX ? 'chg' : 'dis';
+      this.setState({ sheet: { mode: 'add', kind, d: suggest(kind) } }); };
+    const addStyle = 'height: 48px; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px dashed ' + (live ? '#0f7a3a' : '#56625c') + '; border-radius: 12px; background: #ffffff; color: ' + (live ? '#0f7a3a' : '#56625c') + '; font-family: inherit; font-size: 14px; font-weight: 600; cursor: ' + (live ? 'pointer' : 'not-allowed');
+
+    let shv = { open: false, d: { start: '', end: '', soc: '', pw: '' }, set: {}, kinds: [], title: '', color: '', isAdd: false, isEdit: false, isChg: false, hasErr: false, err: '', saveStyle: '' };
+    if (sh) {
+      const kind = sh.mode === 'edit' ? sh.k : sh.kind;
+      const d = sh.d;
+      const set = {};
+      ['start', 'end', 'soc', 'pw'].forEach((f) => { set[f] = (e) => this.setState({ sheet: Object.assign({}, sh, { d: Object.assign({}, d, { [f]: e.target.value }) }) }); });
+      const TM = /^([01]\d|2[0-3]):[0-5]\d$/;
+      const pwN = Number(String(d.pw).replace(/\./g, ''));
+      let err = '';
+      if (sh.mode === 'add' && curS[kind].length >= MAX) err = 'Đã đủ ' + MAX + ' khung ' + (kind === 'chg' ? 'sạc' : 'xả') + '. Hãy sửa hoặc xoá một khung có sẵn.';
+      else if (!TM.test(d.start) || !TM.test(d.end)) err = 'Giờ phải có dạng hh:mm, ví dụ 01:30.';
+      else if (d.start === d.end) err = 'Giờ kết thúc phải khác giờ bắt đầu.';
+      else if (!/^\d{1,3}$/.test(d.soc) || Number(d.soc) > 100) err = 'SOC dừng phải trong khoảng 0–100 %.';
+      else if (!/^[\d.]+$/.test(d.pw) || isNaN(pwN) || pwN > 12000) err = 'Công suất tối đa phải trong khoảng 0–12.000 W.';
+      else {
+        const hit = all(curS, editing).find((x) => hits(mins(d.start), mins(d.end), mins(x.v.start), mins(x.v.end)));
+        if (hit) err = 'Trùng với ' + KN[hit.k] + ' ' + (hit.i + 1) + ' (' + hit.v.start + ' – ' + hit.v.end + '). Các khung không được chồng lấn.';
+      }
+      const fmt = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+      const val = { start: d.start, end: d.end, soc: String(Number(d.soc)), pw: fmt(pwN) };
+      shv = { open: true, d, set,
+        title: sh.mode === 'edit' ? 'Sửa khung ' + KN[kind] + ' ' + (sh.i + 1) : 'Thêm khung giờ', color: COL(kind),
+        isAdd: sh.mode === 'add', isEdit: sh.mode === 'edit', isChg: kind === 'chg', hasErr: !!err, err,
+        kinds: [['chg', 'Khung sạc'], ['dis', 'Khung xả']].map(([id, label]) => { const on = id === kind;
+          return { label, pressed: on ? 'true' : 'false', pick: () => this.setState({ sheet: { mode: 'add', kind: id, d: suggest(id) } }),
+            style: 'flex: 1 1 0; height: 36px; border: none; border-radius: 10px; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; ' + (on ? 'background: #ffffff; color: #13201b; box-shadow: 0 1px 2px rgba(19,32,27,0.06), 0 2px 8px rgba(19,32,27,0.05)' : 'background: transparent; color: #56625c') }; }),
+        saveStyle: 'flex: 2 1 0; height: 48px; border: none; border-radius: 10px; font-family: inherit; font-size: 15px; font-weight: 600; ' + (err ? 'background: #c9d1cb; color: #ffffff; cursor: not-allowed' : 'background: #0f7a3a; color: #ffffff; cursor: pointer'),
+        close: () => this.setState({ sheet: null }),
+        // "Lưu" trong sheet chỉ cập nhật bản nháp (ADR-002 mục 2)
+        save: () => { if (err) return; const arr = curS[kind].slice(); if (sh.mode === 'edit') arr[sh.i] = val; else arr.push(val); updCur({ [kind]: arr }); this.setState({ sheet: null }); },
+        del: () => { const arr = curS[sh.k].filter((v, i) => i !== sh.i); updCur({ [sh.k]: arr }); this.setState({ sheet: null }); } };
+    }
+
+    // ---- So sánh bản nháp ↔ đã lưu (BO_SUNG §1) ----
+    const slotTxt = (v) => v.start + ' – ' + v.end + ' · ' + v.soc + ' % · ' + v.pw + ' W';
+    const diff = (sv, dr, curName) => { const out = [];
+      const line = (sname, label, value) => out.push({ label: sname === curName ? label : sname + ' · ' + label, value, hasLabel: true });
+      dr.forEach((d) => { const o = sv.find((x) => x.id === d.id);
+        if (!o) out.push({ label: '', value: 'Thêm chiến lược "' + d.name + '"', hasLabel: false });
+        const base = o || { name: d.name, days: [false, false, false, false, false, false, false], chg: [], dis: [] };
+        if (base.name !== d.name) line(d.name, 'Tên', base.name + ' → ' + d.name);
+        if (base.days.join() !== d.days.join()) line(d.name, 'Ngày áp dụng', (daysTxt(base.days) || 'chưa có') + ' → ' + (daysTxt(d.days) || 'chưa có'));
+        ['chg', 'dis'].forEach((k) => { for (let i = 0; i < Math.max(base[k].length, d[k].length); i++) { const a = base[k][i], b = d[k][i];
+          const nm = KN[k] + ' ' + (i + 1);
+          if (!a) line(d.name, nm, 'chưa có → ' + slotTxt(b));
+          else if (!b) line(d.name, nm, a.start + ' – ' + a.end + ' → đã xoá');
+          else if (slotTxt(a) !== slotTxt(b)) line(d.name, nm, slotTxt(a) + ' → ' + slotTxt(b)); } }); });
+      sv.forEach((o) => { if (!dr.find((x) => x.id === o.id)) { const cur = draft.find((x) => x.id === o.id) || o; const dt = daysTxt(cur.days);
+        out.push({ label: '', value: dt ? 'Xoá chiến lược "' + o.name + '". ' + dt + ' sẽ chạy như Tự tiêu thụ tối đa.' : 'Xoá chiến lược "' + o.name + '".', hasLabel: false }); } });
+      return out; };
+    const changes = diff(saved, draft, curS.name);
+    const hasChanges = changes.length > 0;
+    const saveEnabled = hasChanges && !missingDays && live;
+
+    const toast = (text, bg, ms) => { this.setState({ snack: { text, bg } }); setTimeout(() => this.setState({ snack: null }), ms); };
+    const runWrite = (after) => { this.setState({ confirm: null, writing: true }); setTimeout(after, 1500); };
+    const cfDraft = s.confirm && s.confirm.deleting ? draft.filter((x, i) => i !== ci) : draft;
+    const cf = s.confirm ? { open: true, lines: diff(saved, cfDraft, curS.name), notTou: !isTou,
+        cancel: () => this.setState({ confirm: null }),
+        ok: () => { const del = s.confirm.deleting;
+          runWrite(() => { if (del) { try { window.location.href = 'TouSchedule.dc.html'; } catch (e) {} this.setState({ writing: false }); return; }
+            this.setState({ writing: false, saved: clone(draft) });
+            if (isTou) toast('Đã áp dụng.', '#e3f3e8', 3000); else toast('Đã lưu lịch. Lịch sẽ chạy khi bạn chọn chế độ Theo khung giờ.', '#e7f0fa', 4000); }); } }
+      : { open: false, lines: [], notTou: false, cancel: () => {}, ok: () => {} };
+
+    const bar = { show: true, writing, unsaved: !writing && hasChanges, label: !writing, disabled: saveEnabled ? 'false' : 'true',
+      save: () => { if (saveEnabled) this.setState({ confirm: { deleting: false } }); },
+      style: 'height: 48px; flex-shrink: 0; min-width: 136px; padding: 0 16px; border: none; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-family: inherit; font-size: 15px; line-height: 20px; font-weight: 600; color: #ffffff; ' + (saveEnabled || writing ? 'background: #0f7a3a; cursor: ' + (writing ? 'default' : 'pointer') : 'background: #c9d1cb; cursor: not-allowed') };
+    const nav = { clean: !hasChanges && !writing, dirty: hasChanges || writing, back: () => { if (!writing) this.setState({ discard: true }); } };
+    const dc = { open: !!s.discard, stay: () => this.setState({ discard: false }) };
+
+    const rnText = s.rename ? s.rename.text : '';
+    const rnErr = !!s.rename && rnText.trim() === '';
+    const rn = { canOpen: live, isOpen: !!s.rename, text: rnText, counter: rnText.length + '/40', hasErr: rnErr,
+      open: () => this.setState({ rename: { text: curS.name } }),
+      set: (e) => this.setState({ rename: { text: String(e.target.value).slice(0, 40) } }),
+      close: () => this.setState({ rename: null }),
+      save: () => { if (rnErr) return; updCur({ name: rnText.trim() }); this.setState({ rename: null }); },
+      inputStyle: 'height: 44px; box-sizing: border-box; width: 100%; padding: 0 12px; border-radius: 10px; background: #ffffff; font-family: inherit; font-size: 14px; color: #13201b; border: 1px solid ' + (rnErr ? '#b3261e' : '#7f8b85'),
+      saveStyle: 'flex: 2 1 0; height: 48px; border: none; border-radius: 10px; font-family: inherit; font-size: 15px; font-weight: 600; ' + (rnErr ? 'background: #c9d1cb; color: #ffffff; cursor: not-allowed' : 'background: #0f7a3a; color: #ffffff; cursor: pointer') };
+
+    const badge = (i, size) => 'width: ' + size + 'px; height: ' + size + 'px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; background: ' + SC[i % 4] + '; color: #ffffff; font-size: ' + (size > 24 ? 14 : 11) + 'px; font-weight: 700; vertical-align: middle';
+    const inSaved = !!saved.find((x) => x.id === curS.id);
+    const cur = { letter: LET[ci], badge: badge(ci, 22), canDelete: draft.length > 1 && live,
+      // chiến lược chưa lưu: bỏ khỏi nháp và về 16a; đã lưu: xác nhận + một lệnh tou_schedule (ADR-002 mục 8)
+      remove: () => { if (!inSaved) { try { window.location.href = 'TouSchedule.dc.html'; } catch (e) {} return; } this.setState({ confirm: { deleting: true } }); } };
+    const snack = s.snack ? { show: true, text: s.snack.text, style: 'position: absolute; left: 20px; right: 20px; bottom: 96px; z-index: 9; min-height: 48px; box-sizing: border-box; display: flex; align-items: center; padding: 12px 16px; border-radius: 10px; box-shadow: 0 6px 16px rgba(19,32,27,0.16); font-size: 13px; line-height: 20px; color: #13201b; background: ' + s.snack.bg }
+      : { show: false, text: '', style: '' };
+    return { rows, noRows: rows.length === 0, days, segs, add, addStyle, sh: shv, sum: { warn: missingDays }, dayNote, cur, bar, cf, nav, dc, rn, snack, title: curS.name };
+  }
+}
+</script>
+</body>
+</html>

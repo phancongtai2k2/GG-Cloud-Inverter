@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Đăng ký</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&amp;display=swap">
+<style>
+html,body{scrollbar-width:none}html::-webkit-scrollbar,body::-webkit-scrollbar,*::-webkit-scrollbar{display:none;width:0;height:0}
+body{margin:0;font-family:Montserrat,system-ui,-apple-system,"Segoe UI",sans-serif;background:#f5f7f3;color:#13201b}
+a{color:#0f7a3a}a:hover{color:#0b6630}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:none;box-shadow:0 0 0 2px #ffffff,0 0 0 4px #0f7a3a}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; position: relative; display: flex; flex-direction: column; background: #f5f7f3; color: #13201b; font-family: Montserrat, system-ui, sans-serif; overflow: hidden">
+<header style="height: 64px; flex-shrink: 0; display: flex; align-items: center; gap: 4px; padding: 0 8px 0 4px"><a href="Login.dc.html" aria-label="Quay lại" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 999px; color: #13201b; text-decoration: none"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M19 12H5M11 6l-6 6 6 6"></path></svg></a><h1 style="margin: 0; flex-grow: 1; font-size: 22px; line-height: 28px; font-weight: 600">Đăng ký</h1></header>
+<main style="flex-grow: 1; display: flex; flex-direction: column; gap: 16px; padding: 8px 20px 24px; overflow: hidden">
+<div style="display: flex; flex-direction: column; gap: 14px">
+<p style="margin: 0; font-size: 14px; line-height: 22px; color: #56625c">Tạo tài khoản chủ hộ để theo dõi hệ thống điện mặt trời của bạn.</p>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="rg-name" style="font-size: 13px; line-height: 16px; font-weight: 600">Họ và tên</label><input id="rg-name" type="text" value="Nguyễn Văn An" style="height: 48px; box-sizing: border-box; width: 100%; padding: 0 14px; border: 1px solid #7f8b85; border-radius: 10px; background: #ffffff; font-family: inherit; font-size: 14px; color: #13201b"></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="rg-mail" style="font-size: 13px; line-height: 16px; font-weight: 600">Email</label><input id="rg-mail" type="email" value="an.nguyen@gmail.com" style="height: 48px; box-sizing: border-box; width: 100%; padding: 0 14px; border: 1px solid #7f8b85; border-radius: 10px; background: #ffffff; font-family: inherit; font-size: 14px; color: #13201b"></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="rg-phone" style="font-size: 13px; line-height: 16px; font-weight: 600">Số điện thoại</label><input id="rg-phone" type="tel" value="0912 345 678" style="height: 48px; box-sizing: border-box; width: 100%; padding: 0 14px; border: 1px solid #7f8b85; border-radius: 10px; background: #ffffff; font-family: inherit; font-size: 14px; color: #13201b"></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="rg-pw" style="font-size: 13px; line-height: 16px; font-weight: 600">Mật khẩu</label><div style="position: relative; display: flex"><input id="rg-pw" type="password" value="GGpower2026" style="height: 48px; box-sizing: border-box; width: 100%; padding: 0 14px; border: 1px solid #7f8b85; border-radius: 10px; background: #ffffff; font-family: inherit; font-size: 14px; color: #13201b; padding-right: 52px"><button type="button" aria-label="Hiện mật khẩu" style="position: absolute; right: 2px; top: 0; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; color: #56625c; cursor: pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"></path><circle cx="12" cy="12" r="3"></circle></svg></button></div><span style="font-size: 12px; line-height: 16px; color: #56625c">Tối thiểu 8 ký tự, có cả chữ và số</span></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="rg-re" style="font-size: 13px; line-height: 16px; font-weight: 600">Nhập lại mật khẩu</label><div style="position: relative; display: flex"><input id="rg-re" type="password" value="GGpower2026" style="height: 48px; box-sizing: border-box; width: 100%; padding: 0 14px; border: 1px solid #7f8b85; border-radius: 10px; background: #ffffff; font-family: inherit; font-size: 14px; color: #13201b; padding-right: 52px"><button type="button" aria-label="Hiện mật khẩu" style="position: absolute; right: 2px; top: 0; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; color: #56625c; cursor: pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"></path><circle cx="12" cy="12" r="3"></circle></svg></button></div></div>
+<button type="button" role="checkbox" aria-checked="{{agreeAria}}" onClick="{{toggleAgree}}" style="display: flex; align-items: flex-start; gap: 10px; padding: 4px 0; border: none; background: transparent; font-family: inherit; text-align: left; cursor: pointer; color: #13201b"><span style="{{boxStyle}}"><sc-if value="{{agree}}" hint-placeholder-val="{{true}}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></sc-if></span><span style="font-size: 13px; line-height: 20px">Tôi đồng ý với <span style="font-weight: 600; color: #0f7a3a; text-decoration: underline">Điều khoản sử dụng</span> và <span style="font-weight: 600; color: #0f7a3a; text-decoration: underline">Chính sách bảo mật</span></span></button>
+<a href="RegisterOtp.dc.html" aria-disabled="{{disabledAria}}" style="{{submitStyle}}">Tạo tài khoản</a>
+<p style="margin: 0; text-align: center; font-size: 13px; line-height: 20px; color: #56625c">Đã có tài khoản? <a href="Login.dc.html" style="font-weight: 600">Đăng nhập</a></p>
+</div>
+
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview": {"width": 390, "height": 844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.state || {};
+    const agree = s.agree == null ? true : s.agree;
+    return { agree, agreeAria: agree ? 'true' : 'false', disabledAria: agree ? 'false' : 'true',
+      toggleAgree: () => this.setState({ agree: !agree }),
+      boxStyle: 'width: 22px; height: 22px; flex-shrink: 0; box-sizing: border-box; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #ffffff; ' + (agree ? 'background: #0f7a3a; border: 2px solid #0f7a3a' : 'background: #ffffff; border: 2px solid #7f8b85'),
+      submitStyle: 'height: 52px; display: flex; align-items: center; justify-content: center; border: none; border-radius: 10px; font-family: inherit; font-size: 15px; font-weight: 600; text-decoration: none; ' + (agree ? 'background: #0f7a3a; color: #ffffff; cursor: pointer' : 'background: #d9dfd8; color: #56625c; cursor: not-allowed; pointer-events: none') };
+  }
+}
+</script>
+</body>
+</html>
