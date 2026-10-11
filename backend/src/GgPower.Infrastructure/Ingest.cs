@@ -610,24 +610,36 @@ public sealed class BatchWriter(Db db, IngestPipeline pipeline, LiveStateCache l
 
     private async Task FlushDevicesAsync(CancellationToken ct)
     {
-        var dirty = new List<object>();
+        var serials = new List<string>();
+        var online = new List<bool>();
+        var seen = new List<DateTimeOffset>();
+        var cap = new List<double?>();
+        var pv = new List<double>();
+        var grid = new List<double>();
         foreach (var d in live.All)
         {
             lock (d.Gate)
             {
                 if (!d.Dirty) continue;
                 d.Dirty = false;
-                dirty.Add(new { serial = d.Serial, online = d.Online, seen = d.LastSeen, cap = d.BatteryCapacityKwh, pv = d.BattFromPvKwh, grid = d.BattFromGridKwh });
+                serials.Add(d.Serial); online.Add(d.Online); seen.Add(d.LastSeen.ToUniversalTime());
+                cap.Add(d.BatteryCapacityKwh); pv.Add(d.BattFromPvKwh); grid.Add(d.BattFromGridKwh);
             }
         }
-        if (dirty.Count == 0) return;
+        if (serials.Count == 0) return;
         await using var c = await db.OpenAsync(ct);
-        await c.ExecuteAsync(
+        // One statement for all devices: a list parameter would run the UPDATE once per device, and at 10.000 devices
+        // that held this writer up for ~11 s of every 15 s, so raw samples were dropped (docs/LOADTEST.md, A7).
+        await c.ExecuteAsync(new CommandDefinition(
             """
-            UPDATE devices SET online = @online, last_seen = GREATEST(last_seen, @seen),
-                   battery_capacity_kwh = COALESCE(@cap, battery_capacity_kwh), batt_from_pv_kwh = @pv, batt_from_grid_kwh = @grid
-            WHERE serial = @serial
-            """, dirty);
+            UPDATE devices d SET online = u.online, last_seen = GREATEST(d.last_seen, u.seen),
+                   battery_capacity_kwh = COALESCE(u.cap, d.battery_capacity_kwh), batt_from_pv_kwh = u.pv, batt_from_grid_kwh = u.grid
+            FROM unnest(@serials::text[], @online::boolean[], @seen::timestamptz[], @cap::double precision[], @pv::double precision[], @grid::double precision[])
+                 AS u(serial, online, seen, cap, pv, grid)
+            WHERE d.serial = u.serial
+            """,
+            new { serials = serials.ToArray(), online = online.ToArray(), seen = seen.ToArray(), cap = cap.ToArray(), pv = pv.ToArray(), grid = grid.ToArray() },
+            cancellationToken: ct));
     }
 }
 

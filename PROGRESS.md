@@ -22,6 +22,7 @@ Cập nhật: 11/10/2026 · Nhánh: `feature/contract-and-theme` (16 commit trê
 | 11/10 | Main: nền trời dark `auto` = giờ máy 6h–18h là ngày; tuỳ chỉnh màn chính lưu **chung mọi dự án** (DataStore); làm Main trong 3 commit: sơ đồ nhà → nền trời → bottom sheet + tab kỳ + thu phóng |
 | 11/10 | Datalogger: API trả rssi / ip / firmware ngay; serial đọc `logger_sn`, kiểu kết nối đọc `conn_type` khi firmware gửi (chưa có: serial null, kết nối "wifi"). Vạch giới hạn SOC: xả = `battery_reserve_soc` (SOC dự phòng), sạc đọc `charge_stop_soc` khi firmware gửi (chưa có: null) |
 | 11/10 | Nâng cấp 4.4: metrics dùng OpenTelemetry + Prometheus (D1); broker giữ bản tin cho backend ≈ 10 phút ở 5.000 thiết bị, `max_queued_messages` ≈ 800.000 (D2) |
+| 12/10 | Nâng cấp 4.4 giai đoạn B: Redis = container `redis:7` trong compose (D3); file đính kèm lên MinIO tự host, giữ lưu ổ đĩa cho dev (D4) |
 
 ## 3. Đã xong
 
@@ -67,8 +68,8 @@ Còn lại nhỏ: màn Dữ liệu inverter/pin vẫn truyền chuỗi `reg_*` v
 | A3 | Metrics OpenTelemetry → `/metrics` (D1) | **Xong**: meter `GgPower` (ingest, ghi lô, tổng hợp, lệnh, kết nối, thiết bị) + HTTP; `docs/METRICS.md` | 21aba2b |
 | A4 | Tổng hợp tăng dần (chỉ thiết bị / ngày có dữ liệu mới) | **Xong**: 5.000 tb 11,6 s → 2,4 s mỗi lần, PG 49 % → 27 % (`RollupTracker`, nhìn lùi 1 phút, ngày theo hiệu số, fillfactor 70; quét đầy đủ khi khởi động + mỗi 6 h) | 08b2a46 |
 | A5 | MQTT persistent session, hàng đợi broker (D2) | **Xong**: tắt 61 s ở 1.000 tb → đủ mẫu; ghi nốt hàng đợi khi dừng; bỏ qua mẫu cũ / lặp khi giao lại | 10ca20b |
-| A6 | Ghi status / cảnh báo / config-state qua hàng đợi | **Xong**: `DeviceEventQueue` (một luồng ghi, giữ thứ tự, thử lại, ghi nốt khi dừng); status / firmware có thể bỏ khi đầy, cảnh báo không | (commit kế tiếp ghi) |
-| A7 | Đo lại, chốt giai đoạn A | Chưa làm | |
+| A6 | Ghi status / cảnh báo / config-state qua hàng đợi | **Xong**: `DeviceEventQueue` (một luồng ghi, giữ thứ tự, thử lại, ghi nốt khi dừng); status / firmware có thể bỏ khi đầy, cảnh báo không | 9d6e504 |
+| A7 | Đo lại, chốt giai đoạn A | **Xong**: 10.000 tb không mất dữ liệu (sửa ghi trạng thái thiết bị một câu lệnh), tổng hợp 7 s / 30 s; trần ước ~20.000 tb | (commit kế tiếp ghi) |
 | B0–B7 | Leader cho job, upsert cảnh báo, interface + Redis, realtime / ack qua pub/sub, object storage, 2 instance (D3, D4) | Chưa làm | |
 | C1–C6 | Tách vai trò, live state lên Redis, EMQX + nhiều worker, TimescaleDB, xác thực MQTT, vận hành (D5–D8) | Chưa làm | |
 

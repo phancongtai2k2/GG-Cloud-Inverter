@@ -93,3 +93,29 @@ Broker: persistent session của backend, `max_queued_messages 800000`, `queue_q
 Dừng **bình thường** (SIGTERM, `docker stop`) không mất mẫu nào: `BatchWriter` ghi nốt hàng đợi khi dừng (test
 `ShutdownWritesQueuedSamples`); `docker-compose.yml` cho API `stop_grace_period: 30s`. Sự cố đột ngột vẫn có thể mất
 tối đa khoảng 1 s dữ liệu đang chờ ghi — chấp nhận được; muốn bằng 0 phải báo nhận sau khi ghi DB, làm chậm cả luồng QoS 1.
+
+## A7 — chốt giai đoạn A (12/10/2026)
+
+Bản có A1–A6 và sửa lỗi ghi trạng thái thiết bị (dưới), cùng máy, mỗi mức 6 phút.
+
+| Thiết bị | nhận/s (kỳ vọng) | bỏ | ghi lô | tổng hợp TB / max | CPU API | CPU PG TB / max | RAM API |
+|---:|---:|---:|---:|---:|---:|---:|---:|
+| 1.000 | 253 (250) | 0 | 106 ms | 0,7 s / 0,8 s | 4 % | 6 % / 47 % | 171 MB |
+| 2.000 | 506 (500) | 0 | 117 ms | 0,7 s / 1,0 s | 7 % | 3 % / 7 % | 183 MB |
+| 5.000 | 1.264 (1.250) | 0 | 156 ms | 3,5 s / 4,1 s | 16 % | 18 % / 107 % | 195 MB |
+| **10.000** | 2.528 (2.500) | **0** | 265 ms | 7,0 s / 11,8 s | 25 % | 47 % / 127 % | 204 MB |
+
+So với nền: 5.000 thiết bị tổng hợp 11,6 s → 3,5 s, CPU Postgres 49 % → 18 %.
+
+**Lỗi tìm thấy khi chạy 10.000 thiết bị** (trước khi sửa: bỏ 366.612 dòng dữ liệu thô trong 6 phút): `BatchWriter`
+ghi trạng thái thiết bị (online, last_seen, năng lượng trong pin) mỗi 15 s bằng Dapper với danh sách tham số — chạy
+**một UPDATE cho mỗi thiết bị**, 11.000 lượt mỗi 15 s, giữ luồng ghi dữ liệu thô ~11 s → hàng đợi 20.000 dòng tràn.
+Đã có từ trước nâng cấp (ở 5.000 thiết bị mất ~5 s / 15 s, hàng đợi còn đỡ được). Sửa: một câu `UPDATE … FROM unnest(…)`.
+
+### Năng lực một máy sau giai đoạn A (đo, máy dev 12 luồng)
+
+- **10.000 thiết bị** chạy ổn: không mất dữ liệu, job tổng hợp dùng ~¼ chu kỳ, Postgres ~½ lõi trung bình.
+- Trần kế tiếp ước ~20.000 thiết bị: job tổng hợp (tăng tuyến tính, ~0,7 ms/thiết bị/lần) chạm 15 s, luồng ghi dữ liệu
+  thô ~5.000 dòng/s. Muốn hơn nữa: giai đoạn C (nhiều worker, TimescaleDB).
+- Dung lượng không đổi: ≈ 3,2 MB dữ liệu thô / thiết bị / ngày → 10.000 thiết bị giữ 90 ngày ≈ 2,8 TB — cần C4
+  (nén) hoặc giảm thời gian giữ trước khi tới quy mô đó.
