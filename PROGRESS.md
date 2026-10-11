@@ -1,6 +1,6 @@
 # Tiến độ — làm lại giao diện app & nâng cấp backend
 
-Cập nhật: 11/10/2026 · Nhánh: `feature/contract-and-theme` (9 commit trên `main`, chưa push, chưa tạo PR)
+Cập nhật: 11/10/2026 · Nhánh: `feature/contract-and-theme` (16 commit trên `main`, chưa push, chưa tạo PR)
 
 ## 1. Mục tiêu
 
@@ -34,9 +34,10 @@ Cập nhật: 11/10/2026 · Nhánh: `feature/contract-and-theme` (9 commit trên
 | 6f1c410 | Thiết bị: thẻ Datalogger Wi-Fi (`DataloggerSummary`, `SignalLevel.fromRssi`) |
 | c0490b4 | Dữ liệu inverter/pin: nhóm xếp dọc (`DataSection`), bỏ tab + biểu đồ lịch sử; `LiveController` bỏ khái niệm nhóm |
 | 389b72f | Năng lượng pin: khối 3D một màu theo SOC, sóng sánh 2,6 s, vạch giới hạn sạc/xả, dung lượng khả dụng = SOC × định mức |
-| (commit này) | Config: hộp xác nhận có ô "Cách hoạt động của …" / "Sau khi thay đổi", thẻ chế độ bỏ viền, thanh SOC khoá màu `sliderDisabled` + mờ khi chưa có BMS, bỏ hẳn mã thanh ghi (xoá 22 chuỗi `reg_*`). TOU 16a/16b: đối chiếu xong, các mục mới đã có từ BO_SUNG_v3 |
+| 73dd9d7 | Config: hộp xác nhận có ô "Cách hoạt động của …" / "Sau khi thay đổi", thẻ chế độ bỏ viền, thanh SOC khoá màu `sliderDisabled` + mờ khi chưa có BMS, bỏ hẳn mã thanh ghi (xoá 22 chuỗi `reg_*`). TOU 16a/16b: đối chiếu xong, các mục mới đã có từ BO_SUNG_v3 |
+| 3a83f91 · 3e24033 · 703ad15 · 5487056 | Main: sơ đồ ngôi nhà (hình sinh từ SVG), nền trời dark, tuỳ chỉnh màn hình chính + sơ đồ khối mới + thẻ Chế độ & pin, thu phóng biểu đồ (chi tiết mục 4.2) |
 
-Trạng thái kiểm tra cuối: `./gradlew assembleDebug testMockDebugUnitTest testLiveDebugUnitTest :chart:testDebugUnitTest lint` **xanh**; backend `dotnet test` **93/93**.
+Trạng thái kiểm tra cuối (sau Main 3b): `./gradlew assembleDebug testMockDebugUnitTest testLiveDebugUnitTest :chart:testDebugUnitTest lint` **xanh**; backend `dotnet test` **93/93** (chưa chạy lại — backend chưa đổi). **Phần app của kế hoạch đã xong; việc tiếp theo là 4.3 Backend.**
 
 ## 4. Việc tiếp theo (theo thứ tự)
 
