@@ -43,21 +43,17 @@ class LiveControllerTest {
             HistorySeries(range, now, emptyMap())
     }
 
-    @Test fun `co so lieu, doi nhom`() = runTest {
-        val c = LiveController({ Repo().inverter("p1") }, InverterGroup.Overview, clock, backgroundScope)
+    @Test fun `co so lieu kem dong ho`() = runTest {
+        val c = LiveController({ Repo().inverter("p1") }, clock, backgroundScope)
         backgroundScope.launch { c.state.collect {} }
         runCurrent()
         val s = c.state.value as LiveUiState.Content
-        assertEquals(InverterGroup.Overview, s.group)
         assertEquals(clock.instant(), s.now)
-        c.onGroupChange(InverterGroup.Pv)
-        runCurrent()
-        assertEquals(InverterGroup.Pv, (c.state.value as LiveUiState.Content<*, *>).group)
     }
 
     @Test fun `loi khi chua co so lieu thi bao loi, lam moi thi mo lai luong`() = runTest {
         val repo = Repo().apply { fail = TelemetryLoadException.Kind.NoConnection }
-        val c = LiveController({ repo.inverter("p1") }, InverterGroup.Overview, clock, backgroundScope)
+        val c = LiveController({ repo.inverter("p1") }, clock, backgroundScope)
         backgroundScope.launch { c.state.collect {} }
         runCurrent()
         assertEquals(LiveUiState.Error(noConnection = true), c.state.value)
@@ -70,7 +66,7 @@ class LiveControllerTest {
 
     @Test fun `loi khi da co so lieu thi giu so lieu cu`() = runTest {
         val repo = Repo()
-        val c = LiveController({ repo.inverter("p1") }, InverterGroup.Overview, clock, backgroundScope)
+        val c = LiveController({ repo.inverter("p1") }, clock, backgroundScope)
         backgroundScope.launch { c.state.collect {} }
         runCurrent()
         repo.fail = TelemetryLoadException.Kind.Server

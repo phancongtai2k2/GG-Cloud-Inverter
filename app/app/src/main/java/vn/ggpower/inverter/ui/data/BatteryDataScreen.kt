@@ -1,6 +1,5 @@
 package vn.ggpower.inverter.ui.data
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,96 +16,62 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.rememberTextMeasurer
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import vn.ggpower.inverter.R
-import vn.ggpower.inverter.data.telemetry.FakeHistory
 import vn.ggpower.inverter.data.telemetry.FakeTelemetryRepository
 import vn.ggpower.inverter.domain.format.GgFormat
 import vn.ggpower.inverter.domain.settings.TemperatureUnit
 import vn.ggpower.inverter.domain.telemetry.BatteryTelemetry
 import vn.ggpower.inverter.domain.telemetry.BmsFlag
 import vn.ggpower.inverter.domain.telemetry.BmsFlagKind
-import vn.ggpower.inverter.domain.telemetry.CurrentLimitState
-import vn.ggpower.inverter.domain.telemetry.DeviceKind
-import vn.ggpower.inverter.domain.telemetry.HistoryField
-import vn.ggpower.inverter.domain.telemetry.HistoryFields
-import vn.ggpower.inverter.domain.telemetry.HistoryRange
-import vn.ggpower.inverter.domain.telemetry.currentLimitState
 import vn.ggpower.inverter.ui.components.GgCard
 import vn.ggpower.inverter.ui.components.ScreenHeader
-import vn.ggpower.inverter.ui.components.SegmentedControl
-import vn.ggpower.inverter.ui.components.SegmentedSize
 import vn.ggpower.inverter.ui.components.StatusChip
 import vn.ggpower.inverter.ui.components.StatusTone
 import vn.ggpower.inverter.ui.theme.GgPowerTheme
 import vn.ggpower.inverter.ui.theme.GgSpacing
 import vn.ggpower.inverter.ui.theme.GgTheme
-import java.time.LocalDateTime
-import kotlin.math.abs
 
 @Composable
 fun BatteryDataRoute(onBack: () -> Unit, viewModel: BatteryDataViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val history by viewModel.historyState.collectAsStateWithLifecycle()
     val showAllFlags by viewModel.showAllFlags.collectAsStateWithLifecycle()
     val temperatureUnit by viewModel.temperatureUnit.collectAsStateWithLifecycle()
     BatteryDataScreen(
-        state, onBack, viewModel::onRefresh, viewModel::onGroupChange,
+        state, onBack, viewModel::onRefresh,
         temperatureUnit = temperatureUnit,
         showAllFlags = showAllFlags,
         onToggleAllFlags = viewModel::onToggleAllFlags,
-        history = history,
-        historyActions = HistoryActions(viewModel::onRangeChange, viewModel::onToggleField, viewModel::onSelectIndex, viewModel::onHistoryRetry),
     )
 }
 
 /**
- * Màn 17 · Theo dõi dữ liệu – Pin S16 Pre (DataBattery.png, đặc tả §17.3–17.5). Số liệu gộp của cả dàn pin, đọc qua
- * inverter (quyết 02/10/2026). Năm nhóm; Tổng quan có dòng lệch điện áp, Giới hạn có đồng hồ hai cung, Cell có ghi chú
- * pha 2, Bảo vệ có danh sách cờ; cuối màn là biểu đồ lịch sử dùng chung.
+ * Màn 17 · Theo dõi dữ liệu – Pin S16 Pre (gg-inverter-design DataBattery.dc.html, đặc tả §17.3–17.5). Số liệu gộp của cả
+ * dàn pin, đọc qua inverter (quyết 02/10/2026). Năm nhóm xếp dọc, mỗi nhóm một thẻ; nhóm Bảo vệ có thêm thẻ cờ BMS.
+ * Thiết kế mới bỏ hộp lệch điện áp, đồng hồ giới hạn dòng, ghi chú biểu đồ cell và biểu đồ lịch sử.
  */
 @Composable
 fun BatteryDataScreen(
     state: BatteryDataUiState,
     onBack: () -> Unit,
     onRefresh: () -> Unit,
-    onGroupChange: (BatteryGroup) -> Unit,
     modifier: Modifier = Modifier,
     temperatureUnit: TemperatureUnit = TemperatureUnit.Celsius,
     showAllFlags: Boolean = false,
     onToggleAllFlags: () -> Unit = {},
-    history: HistoryUiState? = null,
-    historyActions: HistoryActions = HistoryActions(),
 ) {
     Column(modifier.fillMaxSize().background(GgTheme.colors.surface).statusBarsPadding()) {
         ScreenHeader(title = stringResource(R.string.data_title), onBack = onBack) { RefreshButton(onRefresh) }
@@ -124,172 +89,26 @@ fun BatteryDataScreen(
                         .padding(start = GgSpacing.space5, end = GgSpacing.space5, bottom = GgSpacing.space6),
                     verticalArrangement = Arrangement.spacedBy(GgSpacing.space3),
                 ) {
-                    SegmentedControl(
-                        options = listOf(
-                            stringResource(R.string.bat_group_overview),
-                            stringResource(R.string.bat_group_limits),
-                            stringResource(R.string.bat_group_cells),
-                            stringResource(R.string.bat_group_protection),
-                            stringResource(R.string.bat_group_versions),
-                        ),
-                        selectedIndex = state.group.ordinal,
-                        onSelect = { onGroupChange(BatteryGroup.entries[it]) },
-                        size = SegmentedSize.GroupsDense,
-                        groupLabel = stringResource(R.string.data_groups),
-                    )
-                    when (state.group) {
-                        BatteryGroup.Overview -> DeviationBox(t)
-                        BatteryGroup.Limits -> CurrentGauge(t)
-                        else -> Unit
+                    BatteryGroup.entries.forEach { group ->
+                        DataSection(stringResource(group.title), first = group.ordinal == 0) {
+                            DataRowsCard(batteryRows(group, t, temperatureUnit))
+                        }
+                        if (group == BatteryGroup.Protection) FlagsCard(t.flags.orEmpty(), showAllFlags, onToggleAllFlags)
                     }
-                    DataRowsCard(batteryRows(state.group, t, temperatureUnit))
-                    when (state.group) {
-                        BatteryGroup.Cells -> CellChartNote()
-                        BatteryGroup.Protection -> FlagsCard(t.flags.orEmpty(), showAllFlags, onToggleAllFlags)
-                        else -> Unit
-                    }
-                    if (history != null) HistoryCard(history, HistoryFields.of(DeviceKind.Battery), batteryFieldStyle(), historyActions, temperatureUnit)
                 }
             }
         }
     }
 }
 
-// ---------- Nhóm A — dòng lệch điện áp ----------
-
-/**
- * "Lệch điện áp inverter đo / BMS báo: 0,2 V" + chip (§17.3 nhóm A). Bình thường: nền `primarySoft`, chip xanh;
- * lệch quá 1 V: nền `warningSoft`, chip vàng "Cần kiểm tra" (BO_SUNG_v3.md §14). Đệm 10 14, bo 14, chữ 13/18.
- */
-@Composable
-private fun DeviationBox(t: BatteryTelemetry) {
-    val colors = GgTheme.colors
-    val high = t.voltageDeviationHigh
-    val value = valueOrDash(t.voltageDeviationV, 1, stringResource(R.string.unit_volt))
-    val text = stringResource(R.string.bat_deviation, value)
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
-            .background(if (high) colors.warningSoft else colors.primarySoft)
-            .padding(horizontal = 14.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        val bold = text.lastIndexOf(value)
-        Text(
-            buildAnnotatedString {
-                append(text.substring(0, bold))
-                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append(value) }
-                append(text.substring(bold + value.length))
-            },
-            style = GgTheme.typography.bodySm.copy(lineHeight = 18.sp),
-            color = colors.ink,
-            modifier = Modifier.weight(1f),
-        )
-        StatusChip(
-            stringResource(if (high) R.string.bat_deviation_high else R.string.bat_deviation_ok),
-            if (high) StatusTone.Warning else StatusTone.Success,
-        )
+private val BatteryGroup.title: Int
+    get() = when (this) {
+        BatteryGroup.Overview -> R.string.bat_group_overview
+        BatteryGroup.Limits -> R.string.bat_group_limits
+        BatteryGroup.Cells -> R.string.bat_group_cells
+        BatteryGroup.Protection -> R.string.bat_group_protection
+        BatteryGroup.Versions -> R.string.bat_group_versions
     }
-}
-
-// ---------- Nhóm B — đồng hồ hai cung ----------
-
-/**
- * Đồng hồ hai cung (DataBattery.dc.html, khung 280 × 160): nửa vòng tròn tâm (140, 140) bán kính 110, nét 16;
- * nửa trái 0 → giới hạn xả, nửa phải 0 → giới hạn sạc; cung giá trị từ đỉnh tới dòng hiện tại, xanh khi trong giới
- * hạn, cam khi chạm giới hạn (§17.3 nhóm B). Vạch 0 ở đỉnh; nhãn ±giới hạn ở hai đầu; giá trị 30/700 và trạng thái 12.
- */
-@Composable
-private fun CurrentGauge(t: BatteryTelemetry) {
-    val colors = GgTheme.colors
-    val measurer = rememberTextMeasurer()
-    val current = t.packCurrentA
-    val limitState = current?.let { currentLimitState(it, t.chargeLimitCurrentA, t.dischargeLimitCurrentA) }
-    val limited = limitState == CurrentLimitState.LimitedCharge || limitState == CurrentLimitState.LimitedDischarge
-    val amp = stringResource(R.string.unit_ampere)
-    val valueText = current?.let { GgFormat.signedWithUnit(it, 1, amp) } ?: stringResource(R.string.value_missing)
-    val stateText = when (limitState) {
-        CurrentLimitState.Charging -> stringResource(R.string.bat_gauge_charging)
-        CurrentLimitState.Discharging -> stringResource(R.string.bat_gauge_discharging)
-        CurrentLimitState.Idle -> stringResource(R.string.bat_gauge_idle)
-        CurrentLimitState.LimitedCharge, CurrentLimitState.LimitedDischarge -> stringResource(R.string.bat_gauge_limited)
-        null -> ""
-    }
-    val leftLabel = t.dischargeLimitCurrentA?.let { GgFormat.signedWithUnit(-it, 0, amp) } ?: ""
-    val rightLabel = t.chargeLimitCurrentA?.let { GgFormat.signedWithUnit(it, 0, amp) } ?: ""
-    val track = colors.surfaceSunken
-    val arc = if (limited) colors.energyPv else colors.energyBattery
-    val tick = colors.inkMuted
-    val small = TextStyle(fontFamily = GgTheme.typography.caption.fontFamily, fontSize = 11.sp, color = colors.inkMuted)
-    val big = GgTheme.typography.body.copy(fontSize = 30.sp, lineHeight = 36.sp, fontWeight = FontWeight.Bold, color = colors.ink, fontFeatureSettings = "tnum")
-    val sub = GgTheme.typography.caption.copy(fontWeight = FontWeight.Normal, color = colors.inkMuted)
-    val cd = "$valueText. $stateText"
-    GgCard(verticalSpacing = GgSpacing.space2) {
-        Canvas(
-            Modifier
-                .size(280.dp, 160.dp)
-                .align(Alignment.CenterHorizontally)
-                .semantics { contentDescription = cd },
-        ) {
-            val d = density
-            val topLeft = Offset(30 * d, 30 * d)
-            val arcSize = Size(220 * d, 220 * d)
-            val stroke = Stroke(width = 16 * d, cap = StrokeCap.Round)
-            drawArc(track, 180f, 180f, false, topLeft, arcSize, style = stroke)
-            if (current != null && limitState != CurrentLimitState.Idle) {
-                val limit = if (current > 0) t.chargeLimitCurrentA else t.dischargeLimitCurrentA
-                val fraction = limit?.let { (abs(current) / it).coerceIn(0.0, 1.0) } ?: 0.0
-                val sweep = (90 * fraction).toFloat() * if (current > 0) 1 else -1
-                drawArc(arc, 270f, sweep, false, topLeft, arcSize, style = stroke)
-            }
-            drawLine(tick, Offset(140 * d, 22 * d), Offset(140 * d, 40 * d), strokeWidth = 2 * d)
-            fun centered(text: String, style: TextStyle, cx: Float, baseline: Float) {
-                if (text.isEmpty()) return
-                val layout = measurer.measure(text, style)
-                drawText(layout, topLeft = Offset(cx * d - layout.size.width / 2f, baseline * d - layout.firstBaseline))
-            }
-            centered(leftLabel, small, 30f, 158f)
-            centered(rightLabel, small, 250f, 158f)
-            centered(valueText, big, 140f, 112f)
-            centered(stateText, sub, 140f, 134f)
-        }
-        Row(Modifier.fillMaxWidth()) {
-            val label = GgTheme.typography.caption.copy(fontWeight = FontWeight.Normal)
-            Text(stringResource(R.string.bat_gauge_discharge_limit), style = label, color = colors.inkMuted, modifier = Modifier.weight(1f))
-            Text(stringResource(R.string.bat_gauge_charge_limit), style = label, color = colors.inkMuted)
-        }
-        Text(stringResource(R.string.bat_gauge_note), style = GgTheme.typography.caption.copy(fontWeight = FontWeight.Normal), color = colors.inkMuted)
-    }
-}
-
-// ---------- Nhóm C — ghi chú pha 2 ----------
-
-/** Khung nét đứt `sliderTick`, bo 16, đệm 20 16: biểu đồ từng cell để pha 2 (§17.3 nhóm C). */
-@Composable
-private fun CellChartNote() {
-    val colors = GgTheme.colors
-    val border = colors.sliderTick
-    Column(
-        Modifier
-            .fillMaxWidth()
-            .drawBehind {
-                val s = 1.dp.toPx()
-                drawRoundRect(
-                    border, topLeft = Offset(s / 2, s / 2), size = Size(size.width - s, size.height - s),
-                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(16.dp.toPx()),
-                    style = Stroke(width = s, pathEffect = PathEffect.dashPathEffect(floatArrayOf(4.dp.toPx(), 3.dp.toPx()))),
-                )
-            }
-            .padding(horizontal = 16.dp, vertical = 20.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        Text(stringResource(R.string.bat_cell_chart_title), style = GgTheme.typography.bodySm.copy(fontWeight = FontWeight.SemiBold), color = colors.ink, textAlign = TextAlign.Center)
-        Text(stringResource(R.string.bat_cell_chart_body), style = GgTheme.typography.caption.copy(fontWeight = FontWeight.Normal), color = colors.inkMuted, textAlign = TextAlign.Center)
-    }
-}
 
 // ---------- Nhóm D — cờ BMS ----------
 
@@ -442,37 +261,19 @@ private fun batteryRows(group: BatteryGroup, t: BatteryTelemetry, temperatureUni
     }
 }
 
-/** Chữ và màu các trường của biểu đồ pin (BO_SUNG_v3.md §12). */
-@Composable
-private fun batteryFieldStyle(): (HistoryField) -> FieldStyle {
-    val c = GgTheme.colors
-    val styles = mapOf(
-        HistoryFields.Soc to FieldStyle(stringResource(R.string.field_soc), stringResource(R.string.field_soc), c.energyBattery),
-        HistoryFields.PackCurrent to FieldStyle(stringResource(R.string.field_pack_current), stringResource(R.string.field_pack_current_legend), c.energyGrid),
-        HistoryFields.BatteryTemp to FieldStyle(stringResource(R.string.field_battery_temp), stringResource(R.string.field_battery_temp), c.danger),
-        HistoryFields.CellDelta to FieldStyle(stringResource(R.string.field_cell_delta), stringResource(R.string.field_cell_delta), c.strategy[3]),
-    )
-    return { styles.getValue(it) }
-}
-
 // ---------- Preview ----------
 
-fun previewBatteryDataState(group: BatteryGroup = BatteryGroup.Overview, data: BatteryTelemetry = FakeTelemetryRepository.BATTERY): LiveUiState.Content<BatteryTelemetry, BatteryGroup> =
-    LiveUiState.Content(data, data.updatedAt.plusSeconds(3), group)
+fun previewBatteryDataState(data: BatteryTelemetry = FakeTelemetryRepository.BATTERY): LiveUiState.Content<BatteryTelemetry> =
+    LiveUiState.Content(data, data.updatedAt.plusSeconds(3))
 
-fun previewBatteryHistory(): HistoryUiState {
-    val series = FakeHistory.series(HistoryRange.Day, HistoryFields.of(DeviceKind.Battery), LocalDateTime.of(2026, 9, 24, 23, 45))
-    return HistoryUiState(DeviceKind.Battery, series = series, index = series.lastIndex(), loading = false)
-}
-
-@Preview(widthDp = 390, heightDp = 1200, showBackground = true)
+@Preview(widthDp = 390, heightDp = 2000, showBackground = true)
 @Composable
 private fun BatteryDataPreview() {
-    GgPowerTheme(darkTheme = false) { BatteryDataScreen(previewBatteryDataState(), {}, {}, {}, history = previewBatteryHistory()) }
+    GgPowerTheme(darkTheme = false) { BatteryDataScreen(previewBatteryDataState(), {}, {}) }
 }
 
-@Preview(widthDp = 390, heightDp = 900, showBackground = true)
+@Preview(widthDp = 390, heightDp = 2000, showBackground = true, backgroundColor = 0xFF0C1612)
 @Composable
-private fun BatteryLimitsPreview() {
-    GgPowerTheme(darkTheme = false) { BatteryDataScreen(previewBatteryDataState(BatteryGroup.Limits), {}, {}, {}) }
+private fun BatteryDataDarkPreview() {
+    GgPowerTheme(darkTheme = true) { BatteryDataScreen(previewBatteryDataState(), {}, {}, showAllFlags = true) }
 }
