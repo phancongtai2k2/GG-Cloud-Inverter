@@ -1,4 +1,8 @@
 using System.Net;
+using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Dapper;
 using GgPower.Infrastructure;
 using Xunit;
@@ -65,6 +69,68 @@ public class ScaleTests(AppFixture app)
         Assert.Equal(full.Chg, incremental.Chg, 9);
         Assert.Equal(full.PvChg, incremental.PvChg, 9);
         Assert.Equal(full.Soc, incremental.Soc, 3);
+    }
+
+    // A5: with a persistent session the broker may deliver a message again (QoS 1) or late, after newer ones.
+    [Fact]
+    public async Task RedeliveredOrLateMessagesChangeNothing()
+    {
+        var owner = await app.NewUser();
+        var serial = await app.NewDevice();
+        var project = await app.NewProject(owner, serial);
+        var live = app.Service<LiveStateCache>().Get(serial)!;
+        var ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 2;
+        await app.Feed(serial, "telemetry", AppFixture.Telemetry(serial, pv: 3000, battFlow: -1500, ts: ts));
+        var origin = (live.BattFromPvKwh, live.BattFromGridKwh);
+
+        // The same sample again: one row, nothing integrated twice.
+        await app.Feed(serial, "telemetry", AppFixture.Telemetry(serial, pv: 3000, battFlow: -1500, ts: ts));
+        Assert.Equal(origin, (live.BattFromPvKwh, live.BattFromGridKwh));
+        await using var c = await app.Service<Db>().OpenAsync();
+        for (var k = 0; k < 30 && await c.ExecuteScalarAsync<int>("SELECT count(*) FROM telemetry_raw WHERE serial = @serial AND ts = to_timestamp(@ts)", new { serial, ts }) == 0; k++)
+            await Task.Delay(100);
+        await Task.Delay(1500);
+        Assert.Equal(1, await c.ExecuteScalarAsync<int>("SELECT count(*) FROM telemetry_raw WHERE serial = @serial AND ts = to_timestamp(@ts)", new { serial, ts }));
+
+        // An older sample arriving after a newer one is stored but does not take the live values back.
+        await app.Feed(serial, "telemetry", AppFixture.Telemetry(serial, pv: 111, battFlow: -1500, ts: ts - 20));
+        var t = (await app.Get($"/api/v1/projects/{project}/telemetry", owner.Access)).Body!["telemetry"]!;
+        Assert.Equal(3000, (double)t["pv_w"]!);
+        Assert.Equal(origin, (live.BattFromPvKwh, live.BattFromGridKwh));
+    }
+
+    // A5: the broker has its acknowledgement as soon as a sample is queued, so on a normal stop the writer must not drop
+    // what is still in the queue.
+    [Fact]
+    public async Task ShutdownWritesQueuedSamples()
+    {
+        var sp = app.Services;
+        var serial = await app.NewDevice();
+        // A pipeline and writer of their own, so the running ones do not take these samples.
+        var pipeline = new IngestPipeline(sp.GetRequiredService<Db>(), sp.GetRequiredService<LiveStateCache>(), sp.GetRequiredService<RealtimeHub>(),
+            sp.GetRequiredService<IOptions<IngestOptions>>(), [], sp.GetRequiredService<BackfillTracker>(), sp.GetRequiredService<TimeProvider>(),
+            NullLogger<IngestPipeline>.Instance);
+        var writer = new BatchWriter(sp.GetRequiredService<Db>(), pipeline, sp.GetRequiredService<LiveStateCache>(), sp.GetRequiredService<BackfillTracker>(),
+            new RollupTracker(), NullLogger<BatchWriter>.Instance);
+        var from = DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 100;
+        for (var i = 0; i < 20; i++)
+            await pipeline.HandleAsync($"solar/ggp/inverter/{serial}/up/telemetry",
+                JsonSerializer.SerializeToUtf8Bytes(AppFixture.Telemetry(serial, ts: from + i * 5)), CancellationToken.None);
+
+        await writer.StartAsync(CancellationToken.None);
+        await writer.StopAsync(CancellationToken.None);
+
+        await using var c = await sp.GetRequiredService<Db>().OpenAsync();
+        Assert.Equal(20, await c.ExecuteScalarAsync<int>("SELECT count(*) FROM telemetry_raw WHERE serial = @serial AND ts >= to_timestamp(@from)", new { serial, from }));
+    }
+
+    [Fact]
+    public void PersistentSessionKeepsAStableClientId()
+    {
+        Assert.Equal(MqttLink.ClientIdFor(new MqttOptions()), MqttLink.ClientIdFor(new MqttOptions()));
+        Assert.Equal("ggpower-backend-1", MqttLink.ClientIdFor(new MqttOptions { ClientId = "ggpower-backend-1" }));
+        var throwAway = new MqttOptions { PersistentSession = false };
+        Assert.NotEqual(MqttLink.ClientIdFor(throwAway), MqttLink.ClientIdFor(throwAway));
     }
 
     // A2: liveness never depends on anything else; readiness checks the database, MQTT (when ingesting) and the queue.

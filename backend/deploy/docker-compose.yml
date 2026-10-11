@@ -33,6 +33,8 @@ services:
     networks: [internal]
 
   api:
+    # Long enough for the backend to write its queued samples on stop (docker default: 10 s, then SIGKILL).
+    stop_grace_period: 30s
     build: ./backend
     restart: unless-stopped
     depends_on:

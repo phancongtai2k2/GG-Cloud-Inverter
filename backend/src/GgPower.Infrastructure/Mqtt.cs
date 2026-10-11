@@ -16,7 +16,18 @@ public sealed class MqttOptions
     public bool UseTls { get; set; } = true;
     public string Username { get; set; } = "";
     public string Password { get; set; } = "";
+    /// <summary>
+    /// Fixed client id. Needed for a persistent session on brokers that do not use the user name as client id
+    /// (production Mosquitto does: <c>use_username_as_clientid</c>). Empty: <c>ggpower-backend-&lt;machine&gt;</c>.
+    /// </summary>
     public string ClientId { get; set; } = "";
+
+    /// <summary>
+    /// Keep the session on the broker (clean session off): while the backend is down — a deploy, a crash — the broker
+    /// queues the device messages and delivers them on reconnect, so no data is lost (plan A5). The broker's
+    /// <c>max_queued_messages</c> bounds how long that can last.
+    /// </summary>
+    public bool PersistentSession { get; set; } = true;
 }
 
 public interface IMqttPublisher
@@ -37,6 +48,15 @@ public sealed class MqttLink(IOptions<MqttOptions> options, IOptions<IngestOptio
 
     public bool IsConnected => _client?.IsConnected == true;
     public DateTimeOffset? ConnectedSince { get; private set; }
+
+    /// <summary>
+    /// A persistent session is found again only under the same client id, so it must not change between runs;
+    /// a throw-away session gets a unique one.
+    /// </summary>
+    public static string ClientIdFor(MqttOptions o) =>
+        !string.IsNullOrEmpty(o.ClientId) ? o.ClientId
+        : o.PersistentSession ? $"ggpower-backend-{Environment.MachineName}"
+        : $"ggpower-backend-{Environment.MachineName}-{Guid.NewGuid():N}"[..40];
 
     /// <summary>This instance is meant to receive device data (MQTT enabled and a broker configured).</summary>
     public bool Required => _o.Enabled && !string.IsNullOrWhiteSpace(_o.Host);
@@ -60,8 +80,8 @@ public sealed class MqttLink(IOptions<MqttOptions> options, IOptions<IngestOptio
 
         var builder = new MqttClientOptionsBuilder()
             .WithTcpServer(_o.Host, _o.Port)
-            .WithClientId(string.IsNullOrEmpty(_o.ClientId) ? $"ggpower-backend-{Environment.MachineName}-{Guid.NewGuid():N}"[..40] : _o.ClientId)
-            .WithCleanSession()
+            .WithClientId(ClientIdFor(_o))
+            .WithCleanSession(!_o.PersistentSession)
             .WithKeepAlivePeriod(TimeSpan.FromSeconds(30))
             .WithTimeout(TimeSpan.FromSeconds(15));
         if (!string.IsNullOrEmpty(_o.Username)) builder = builder.WithCredentials(_o.Username, _o.Password);

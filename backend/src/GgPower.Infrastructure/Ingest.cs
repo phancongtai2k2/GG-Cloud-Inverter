@@ -216,12 +216,17 @@ public sealed class IngestPipeline(
                 case "telemetry" when Payloads.Telemetry(j, t.Serial, now) is { } s:
                     lock (d.Gate)
                     {
-                        var dt = d.Telemetry is { } prev ? Math.Clamp((s.Ts - prev.Ts).TotalSeconds, 0, 30) : 0;
-                        d.Telemetry = s;
-                        // Nothing is stored in a battery the inverter reports as absent.
-                        if (d.BatteryPresent != false)
-                            (d.BattFromPvKwh, d.BattFromGridKwh) =
-                                BatteryOrigin.Step(d.BattFromPvKwh, d.BattFromGridKwh, s.PvW, s.BattW, s.Soc, d.BatteryCapacityKwh, dt);
+                        // A sample older than the one shown (redelivered by the broker after a reconnect) is stored,
+                        // but does not take the live values back in time.
+                        if (d.Telemetry is not { } prev || s.Ts >= prev.Ts)
+                        {
+                            var dt = d.Telemetry is { } p ? Math.Clamp((s.Ts - p.Ts).TotalSeconds, 0, 30) : 0;
+                            d.Telemetry = s;
+                            // Nothing is stored in a battery the inverter reports as absent.
+                            if (d.BatteryPresent != false)
+                                (d.BattFromPvKwh, d.BattFromGridKwh) =
+                                    BatteryOrigin.Step(d.BattFromPvKwh, d.BattFromGridKwh, s.PvW, s.BattW, s.Soc, d.BatteryCapacityKwh, dt);
+                        }
                         Touch(d, now);
                     }
                     _rows.Writer.TryWrite(s);
@@ -231,7 +236,7 @@ public sealed class IngestPipeline(
                 case "battery" when Payloads.Battery(j, t.Serial, now) is { } b:
                     lock (d.Gate)
                     {
-                        d.Battery = b;
+                        if (d.Battery is not { } pb || b.Ts >= pb.Ts) d.Battery = b;
                         if (b is { CapNominalAh: > 0, Voltage: > 0 } && b.Present != false)
                             d.BatteryCapacityKwh = Math.Round(b.CapNominalAh.Value * b.Voltage.Value / 1000, 1);
                         Touch(d, now);
@@ -501,6 +506,36 @@ public sealed class BatchWriter(Db db, IngestPipeline pipeline, LiveStateCache l
                 await Task.Delay(2000, stop).ContinueWith(_ => { }, CancellationToken.None);
             }
         }
+        await DrainOnShutdownAsync(telemetry, battery);
+    }
+
+    /// <summary>
+    /// Shutdown: hosted services stop in reverse order, so MQTT no longer delivers; write what is still queued instead of
+    /// dropping it (the broker already has its acknowledgement and will not send it again). Bounded to 10 s.
+    /// </summary>
+    private async Task DrainOnShutdownAsync(List<TelemetrySample> telemetry, List<BatterySample> battery)
+    {
+        try
+        {
+            using var budget = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            var drained = 0;
+            while (true)
+            {
+                while (telemetry.Count + battery.Count < 5000 && pipeline.Rows.TryRead(out var row))
+                {
+                    if (row is TelemetrySample t) telemetry.Add(t); else if (row is BatterySample b) battery.Add(b);
+                }
+                if (telemetry.Count + battery.Count == 0) break;
+                await FlushAsync(telemetry, battery, budget.Token);
+                drained += telemetry.Count + battery.Count;
+                Written += telemetry.Count + battery.Count;
+                telemetry.Clear();
+                battery.Clear();
+            }
+            await FlushDevicesAsync(budget.Token);
+            log.LogInformation("shutdown: wrote {Count} queued rows", drained);
+        }
+        catch (Exception ex) { log.LogError(ex, "shutdown: could not write {Count} queued rows", telemetry.Count + battery.Count); }
     }
 
     private async Task FlushAsync(List<TelemetrySample> telemetry, List<BatterySample> battery, CancellationToken ct)

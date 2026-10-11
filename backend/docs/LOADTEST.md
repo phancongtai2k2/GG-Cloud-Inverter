@@ -78,3 +78,18 @@ Từng thay đổi và tác dụng (đo theo thứ tự, mỗi lần một thay 
 
 Trần ước theo job tổng hợp: ~2,4 s mỗi 30 s ở 5.000 thiết bị → còn dư nhiều lần; trần tiếp theo sẽ là tốc độ ghi
 dữ liệu thô và dung lượng (giai đoạn C).
+
+## A5 — tắt backend giữa chừng (11/10/2026)
+
+1.000 thiết bị, 5 phút; phút thứ 1 **giết** tiến trình backend (`Stop-Process -Force`, như sự cố), 61 s sau bật lại.
+Broker: persistent session của backend, `max_queued_messages 800000`, `queue_qos0_messages true`.
+
+| | Kết quả |
+|---|---|
+| Mẫu trong 61 s backend tắt | **12.223** (≈ 12,2 / thiết bị — đủ) — broker giữ và giao lại khi nối lại |
+| Tổng mẫu / kỳ vọng | 59.817 / ~60.000 (99,7 %) |
+| Mất | 164 mẫu, **đúng lúc giết tiến trình**: đã nhận và báo nhận với broker nhưng còn trong hàng đợi ghi (≤ 1 s) |
+
+Dừng **bình thường** (SIGTERM, `docker stop`) không mất mẫu nào: `BatchWriter` ghi nốt hàng đợi khi dừng (test
+`ShutdownWritesQueuedSamples`); `docker-compose.yml` cho API `stop_grace_period: 30s`. Sự cố đột ngột vẫn có thể mất
+tối đa khoảng 1 s dữ liệu đang chờ ghi — chấp nhận được; muốn bằng 0 phải báo nhận sau khi ghi DB, làm chậm cả luồng QoS 1.
