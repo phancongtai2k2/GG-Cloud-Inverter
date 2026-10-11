@@ -45,7 +45,7 @@ Còn lại nhỏ: màn Dữ liệu inverter/pin vẫn truyền chuỗi `reg_*` v
 
 ### 4.2 App — Main (màn 4, khó nhất, khác biệt 2.371 dòng)
 - ~~Sơ đồ ngôi nhà~~ **xong** (commit 1/3): `ui/home/house/` — hình tĩnh SINH bằng `app/tools/svg2kt.mjs` (`node app/tools/svg2kt.mjs <Main.dc.html> <HouseArt.kt>`), vệt sáng 5 lớp theo `<animate>`, nhãn, chip CO₂ trôi. Mock theo số thiết kế (lưới 0,5, pin 1,6); `HomeOverview.co2TodayKg` null ở live. `EnergyFlowDiagram` cũ giữ cho kiểu "Sơ đồ khối" (commit 3).
-- Dark: nền trời ngày (gradient `DarkDaySky` #5E5A45) / đêm (sao, trăng, sao băng); tham số `sky = auto|day|night`.
+- ~~Nền trời dark~~ **xong** (commit 2/3): `SkyBackdrop` + `domain/home/Sky.kt` (6h–18h là ngày, 46 sao sinh như prototype, có test).
 - Bottom sheet "Tuỳ chỉnh màn hình chính": carousel chọn kiểu sơ đồ (Hình nhà / Sơ đồ khối), danh sách widget `sum`, `pw`, `yl`, `bat` kéo-thả + ẩn/hiện, card "Chế độ & pin" cố định vị trí 5; lưu DataStore.
 - Tab Ngày/Tháng/Năm + kỳ trước/sau đặt trên biểu đồ đầu; biểu đồ thu phóng (dùng `chartPinchZoom` + `ZoomResetPill`, maxZoom 8).
 - Icon khối tổng quan cùng màu `primary`; ô "Dung lượng sạc hôm nay" theo quyết định ở mục 2 (mock trước).

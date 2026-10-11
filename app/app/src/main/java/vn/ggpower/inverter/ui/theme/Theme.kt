@@ -19,6 +19,8 @@ import vn.ggpower.inverter.domain.settings.AppLanguage
 /** Bộ màu đang dùng (light hoặc dark), dựng từ [LightGgPalette] / [DarkGgPalette]. Màn hình chỉ đọc màu qua `GgTheme.colors`. */
 @Immutable
 data class GgColorScheme(
+    /** Đang dùng bộ màu tối (nền trời sau sơ đồ ngôi nhà chỉ có ở Dark — MainDark.dc.html). */
+    val isDark: Boolean,
     val ggOrange: Color,
     val ggGreen: Color,
     val surface: Color,
@@ -126,6 +128,7 @@ data class GgColorScheme(
 // Bảng màu thiết kế mới (GgColors.kt). Các ô ngoài bảng màu (vẽ minh hoạ, QR…) giữ giá trị prototype cũ cho tới khi
 // làm lại màn tương ứng.
 private fun schemeOf(p: GgPalette, dark: Boolean) = GgColorScheme(
+    isDark = dark,
     ggOrange = GgOrange, ggGreen = GgGreen,
     surface = p.surface, surfaceRaised = p.raised, surfaceSunken = p.sunken,
     line = p.line, lineStrong = p.lineStrong,

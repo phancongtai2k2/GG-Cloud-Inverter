@@ -1,5 +1,17 @@
 package vn.ggpower.inverter.ui.home
 
+import vn.ggpower.inverter.ui.home.house.SkyHeight
+import vn.ggpower.inverter.ui.home.house.SkyBackdrop
+import vn.ggpower.inverter.domain.home.SkyMode
+import vn.ggpower.inverter.domain.home.isNightSky
+import java.time.LocalTime
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -128,16 +140,7 @@ fun HomeScreen(
                 ) {
                     ProjectLine(overview)
                     InsightBanner(overview)
-                    // Main.dc.html: "Dòng năng lượng" là một mục không có thẻ, sơ đồ ngôi nhà cao 345 dp ngay dưới tiêu đề.
-                    Column(verticalArrangement = Arrangement.spacedBy(GgSpacing.space3)) {
-                        Text(
-                            stringResource(R.string.energy_flow_title),
-                            style = cardTitle(),
-                            color = colors.ink,
-                            modifier = Modifier.semantics { heading() },
-                        )
-                        HouseFlowDiagram(overview.energy, overview.co2TodayKg)
-                    }
+                    EnergyFlowSection(overview)
                     ModeBox(overview.mode, overview.backupSocPercent, onOpenConfig)
                     BatteryBox(overview.energy.batterySocPercent, overview.battery, onOpenBatteryEnergy)
                     if (stats != null) HomeStats(stats, statsActions)
@@ -145,6 +148,45 @@ fun HomeScreen(
             }
         }
         FloatingTabBar(items = tabs, modifier = Modifier.align(Alignment.BottomCenter))
+    }
+}
+
+/**
+ * Mục "Dòng năng lượng" (Main.dc.html): không có thẻ, sơ đồ ngôi nhà cao 345 dp dưới tiêu đề. Ở chế độ tối có thêm
+ * nền trời (MainDark / MainDarkNight): mục lùi xuống 16 dp, dải trời cao [SkyHeight] tràn 20 dp hai bên và bắt đầu
+ * 28 dp trên tiêu đề, vẽ sau nội dung; ngày/đêm theo giờ máy (6h–18h là ngày).
+ */
+@Composable
+private fun EnergyFlowSection(overview: HomeOverview) {
+    val colors = GgTheme.colors
+    var onScreen by remember { mutableStateOf(true) }
+    val night = remember { isNightSky(SkyMode.Auto, LocalTime.now().hour) }
+    Box(
+        Modifier
+            .padding(top = if (colors.isDark) GgSpacing.space4 else 0.dp)
+            .onGloballyPositioned { onScreen = it.boundsInWindow().height > 0f },
+    ) {
+        if (colors.isDark) {
+            SkyBackdrop(
+                night = night,
+                animate = onScreen,
+                modifier = Modifier.layout { measurable, constraints ->
+                    val bleed = 20.dp.roundToPx()
+                    val p = measurable.measure(Constraints.fixed(constraints.maxWidth + 2 * bleed, SkyHeight.roundToPx()))
+                    // Không chiếm chỗ trong bố cục: chỉ vẽ tràn ra ngoài mục.
+                    layout(0, 0) { p.place(-bleed, -28.dp.roundToPx()) }
+                },
+            )
+        }
+        Column(verticalArrangement = Arrangement.spacedBy(GgSpacing.space3)) {
+            Text(
+                stringResource(R.string.energy_flow_title),
+                style = cardTitle(),
+                color = colors.ink,
+                modifier = Modifier.semantics { heading() },
+            )
+            HouseFlowDiagram(overview.energy, overview.co2TodayKg)
+        }
     }
 }
 
