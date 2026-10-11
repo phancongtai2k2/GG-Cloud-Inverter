@@ -19,6 +19,8 @@ data class HomeOverview(
     val mode: OperatingMode,
     val backupSocPercent: Int,
     val battery: BatteryContent,
+    /** CO₂ giảm phát thải hôm nay (chip trên sơ đồ ngôi nhà); null khi backend chưa trả (`/overview` chưa có trường). */
+    val co2TodayKg: Double? = null,
 )
 
 /** Một điểm của biểu đồ Công suất (4.5): phút trong ngày và 4 chuỗi kW (pin dương = sạc, lưới dương = mua). */

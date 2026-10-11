@@ -75,6 +75,13 @@ data class GgColorScheme(
     val sliderDisabled: Color,
     /** Ô mô tả trong hộp xác nhận (Config.dc.html: #f5f7f3 / ConfigDark: #15221d). */
     val dialogInset: Color,
+    /** Sơ đồ ngôi nhà (Main.dc.html): ray đường năng lượng #c9cdd2, tia sáng xanh #2fd27a (chung sáng/tối). */
+    val houseFlowTrack: Color,
+    val houseFlowGreen: Color,
+    /** Chip "Giảm CO₂" trôi trên mái: nền / viền / bóng (sáng: trắng 55 %, #cfe9d8 70 %; tối: #15221d 55 %, #34c26f 35 %). */
+    val co2ChipBg: Color,
+    val co2ChipBorder: Color,
+    val co2ChipShadow: Color,
     /** Toast nổi (gg-inverter-design CLAUDE.md §4): nền rgba(19,32,27,.62) / rgba(238,243,239,.66), chữ trắng / #0c1612. */
     /** Nền công tắc khi tắt (Me.dc.html: #eaeee8 / MeDark: #0e1814). */
     val toggleOffTrack: Color,
@@ -145,6 +152,11 @@ private fun schemeOf(p: GgPalette, dark: Boolean) = GgColorScheme(
     sliderTick = if (dark) p.lineStrong else Color(0xFFB3BDB7),
     sliderDisabled = if (dark) Color(0xFF3A4743) else Color(0xFFB3BDB7),
     dialogInset = if (dark) p.card else p.surface,
+    houseFlowTrack = Color(0xFFC9CDD2),
+    houseFlowGreen = Color(0xFF2FD27A),
+    co2ChipBg = if (dark) Color(0x8C15221D) else Color(0x8CFFFFFF),
+    co2ChipBorder = if (dark) Color(0x5934C26F) else Color(0xB3CFE9D8),
+    co2ChipShadow = if (dark) Color(0x38000000) else Color(0x0F13201B),
     toggleOffTrack = if (dark) Color(0xFF0E1814) else p.sunken,
     zoomPillBorder = if (dark) Color(0xFF1F4A30) else Color(0xFFCFE9D8),
     batteryLiquidFront = if (dark) Color(0xFF2FB466) else Color(0xFF149C4A),

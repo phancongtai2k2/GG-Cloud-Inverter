@@ -19,6 +19,7 @@ Cập nhật: 11/10/2026 · Nhánh: `feature/contract-and-theme` (9 commit trên
 | 11/10 | Trường mới cho thiết kế (Datalogger, giới hạn SOC…): **làm giao diện trước** với dữ liệu mock, bản live hiện "—"; backend làm sau |
 | 11/10 | Thư mục thiết kế `app/gg-inverter-design/` được commit vào repo |
 | 11/10 | Mọi điểm cần người dùng quyết: hỏi bằng hộp chọn (popup) rồi mới làm |
+| 11/10 | Main: nền trời dark `auto` = giờ máy 6h–18h là ngày; tuỳ chỉnh màn chính lưu **chung mọi dự án** (DataStore); làm Main trong 3 commit: sơ đồ nhà → nền trời → bottom sheet + tab kỳ + thu phóng |
 
 ## 3. Đã xong
 
@@ -43,7 +44,7 @@ Trạng thái kiểm tra cuối: `./gradlew assembleDebug testMockDebugUnitTest 
 Còn lại nhỏ: màn Dữ liệu inverter/pin vẫn truyền chuỗi `reg_*` vào `DataRow.register` dù không hiển thị (46 chuỗi) — dọn khi tiện.
 
 ### 4.2 App — Main (màn 4, khó nhất, khác biệt 2.371 dòng)
-- Sơ đồ ngôi nhà vector (SVG 700×690 scale 0,5) → Compose Canvas, giữ animation tia sáng / dòng chạy / chip CO₂ trôi; đường nét đứt nối chỉ số; inverter → tải màu cam.
+- ~~Sơ đồ ngôi nhà~~ **xong** (commit 1/3): `ui/home/house/` — hình tĩnh SINH bằng `app/tools/svg2kt.mjs` (`node app/tools/svg2kt.mjs <Main.dc.html> <HouseArt.kt>`), vệt sáng 5 lớp theo `<animate>`, nhãn, chip CO₂ trôi. Mock theo số thiết kế (lưới 0,5, pin 1,6); `HomeOverview.co2TodayKg` null ở live. `EnergyFlowDiagram` cũ giữ cho kiểu "Sơ đồ khối" (commit 3).
 - Dark: nền trời ngày (gradient `DarkDaySky` #5E5A45) / đêm (sao, trăng, sao băng); tham số `sky = auto|day|night`.
 - Bottom sheet "Tuỳ chỉnh màn hình chính": carousel chọn kiểu sơ đồ (Hình nhà / Sơ đồ khối), danh sách widget `sum`, `pw`, `yl`, `bat` kéo-thả + ẩn/hiện, card "Chế độ & pin" cố định vị trí 5; lưu DataStore.
 - Tab Ngày/Tháng/Năm + kỳ trước/sau đặt trên biểu đồ đầu; biểu đồ thu phóng (dùng `chartPinchZoom` + `ZoomResetPill`, maxZoom 8).

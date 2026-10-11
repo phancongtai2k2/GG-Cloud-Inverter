@@ -268,6 +268,14 @@
     </plurals>
     <string name="home_insight_higher">Hôm nay sản lượng cao hơn %1$s so với hôm qua.</string>
     <string name="energy_flow_title">Dòng năng lượng</string>
+    <string name="house_grid">Lưới</string>
+    <string name="house_battery">Pin</string>
+    <string name="house_load">Tải</string>
+    <string name="house_grid_buy">Mua điện</string>
+    <string name="house_grid_sell">Bán điện</string>
+    <string name="house_battery_state">%1$s · %2$s</string>
+    <string name="house_co2">Giảm CO₂</string>
+    <string name="cd_house_co2">Giảm phát thải CO₂ %1$s</string>
     <string name="energy_pv">PV</string>
     <string name="energy_grid">Lưới điện</string>
     <string name="energy_battery">S16 Pre - %1$s</string>

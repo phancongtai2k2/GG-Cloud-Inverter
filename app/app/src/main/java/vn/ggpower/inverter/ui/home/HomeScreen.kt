@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import vn.ggpower.inverter.R
+import vn.ggpower.inverter.ui.home.house.HouseFlowDiagram
 import vn.ggpower.inverter.data.home.FakeHomeRepository
 import vn.ggpower.inverter.data.home.HomeOverview
 import vn.ggpower.inverter.domain.config.OperatingMode
@@ -127,14 +128,15 @@ fun HomeScreen(
                 ) {
                     ProjectLine(overview)
                     InsightBanner(overview)
-                    GgCard(verticalSpacing = GgSpacing.space3) {
+                    // Main.dc.html: "Dòng năng lượng" là một mục không có thẻ, sơ đồ ngôi nhà cao 345 dp ngay dưới tiêu đề.
+                    Column(verticalArrangement = Arrangement.spacedBy(GgSpacing.space3)) {
                         Text(
                             stringResource(R.string.energy_flow_title),
                             style = cardTitle(),
                             color = colors.ink,
                             modifier = Modifier.semantics { heading() },
                         )
-                        EnergyFlowDiagram(overview.energy)
+                        HouseFlowDiagram(overview.energy, overview.co2TodayKg)
                     }
                     ModeBox(overview.mode, overview.backupSocPercent, onOpenConfig)
                     BatteryBox(overview.energy.batterySocPercent, overview.battery, onOpenBatteryEnergy)

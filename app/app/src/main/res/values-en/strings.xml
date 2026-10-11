@@ -269,6 +269,14 @@
     </plurals>
     <string name="home_insight_higher">Today\'s yield is %1$s higher than yesterday.</string>
     <string name="energy_flow_title">Energy flow</string>
+    <string name="house_grid">Grid</string>
+    <string name="house_battery">Battery</string>
+    <string name="house_load">Load</string>
+    <string name="house_grid_buy">Buying</string>
+    <string name="house_grid_sell">Selling</string>
+    <string name="house_battery_state">%1$s · %2$s</string>
+    <string name="house_co2">CO₂ saved</string>
+    <string name="cd_house_co2">CO₂ emissions avoided %1$s</string>
     <string name="energy_pv">PV</string>
     <string name="energy_grid">Grid</string>
     <string name="energy_battery">S16 Pre - %1$s</string>
