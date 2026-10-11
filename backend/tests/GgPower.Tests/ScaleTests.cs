@@ -1,3 +1,4 @@
+using System.Net;
 using Dapper;
 using GgPower.Infrastructure;
 using Xunit;
@@ -22,5 +23,27 @@ public class ScaleTests(AppFixture app)
         await c.ExecuteAsync("SET LOCAL enable_seqscan = off", transaction: tx);
         var plan = string.Join("\n", await c.QueryAsync<string>("EXPLAIN " + query.Replace("@serial", "'TEST-ABC'"), transaction: tx));
         Assert.Contains(index, plan);
+    }
+
+    // A2: liveness never depends on anything else; readiness checks the database, MQTT (when ingesting) and the queue.
+    [Fact]
+    public async Task HealthEndpointsReportLiveAndReady()
+    {
+        var live = await app.Get("/healthz/live", null);
+        Assert.Equal((HttpStatusCode.OK, "ok"), (live.Status, (string)live.Body!["status"]!));
+        // The test host has MQTT disabled, so only the database and the queue count.
+        var ready = await app.Get("/healthz/ready", null);
+        Assert.Equal((HttpStatusCode.OK, "ready"), (ready.Status, (string)ready.Body!["status"]!));
+    }
+
+    [Theory]
+    [InlineData(false, false, 0, 100, "")]
+    [InlineData(true, true, 80, 100, "")]
+    [InlineData(true, false, 0, 100, "mqtt")]
+    [InlineData(false, false, 81, 100, "ingest_queue")]
+    [InlineData(true, false, 100, 100, "mqtt,ingest_queue")]
+    public void ReadinessProblems(bool mqttRequired, bool mqttConnected, int queue, int capacity, string expected)
+    {
+        Assert.Equal(expected, string.Join(",", GgPower.Api.Endpoints.HealthEndpoints.Problems(mqttRequired, mqttConnected, queue, capacity)));
     }
 }

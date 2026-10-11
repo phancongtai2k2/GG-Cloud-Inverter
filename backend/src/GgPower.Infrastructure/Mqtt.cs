@@ -38,9 +38,12 @@ public sealed class MqttLink(IOptions<MqttOptions> options, IOptions<IngestOptio
     public bool IsConnected => _client?.IsConnected == true;
     public DateTimeOffset? ConnectedSince { get; private set; }
 
+    /// <summary>This instance is meant to receive device data (MQTT enabled and a broker configured).</summary>
+    public bool Required => _o.Enabled && !string.IsNullOrWhiteSpace(_o.Host);
+
     protected override async Task ExecuteAsync(CancellationToken stop)
     {
-        if (!_o.Enabled || string.IsNullOrWhiteSpace(_o.Host))
+        if (!Required)
         {
             log.LogWarning("MQTT is not configured (Mqtt:Host empty): no device data will be received");
             return;

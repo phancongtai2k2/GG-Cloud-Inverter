@@ -207,6 +207,8 @@ app.MapGet("/healthz", (MqttLink mqtt, RealtimeHub hub, BatchWriter writer, Inge
     last_batch_ms = Math.Round(writer.LastBatchMs, 1),
 })).DisableRateLimiting();
 
+HealthEndpoints.Map(app);
+
 var api = app.MapGroup("/api/v1");
 AuthEndpoints.Map(api);
 ProfileEndpoints.Map(api);

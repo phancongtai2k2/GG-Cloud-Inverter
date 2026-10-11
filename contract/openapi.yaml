@@ -44,6 +44,37 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Health" }
+  /healthz/live:
+    get:
+      tags: [ops]
+      summary: Tiến trình còn chạy (liveness) — luôn 200, không kiểm tra gì khác
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { type: object, properties: { status: { type: string, const: ok } } }
+  /healthz/ready:
+    get:
+      tags: [ops]
+      summary: Nhận được traffic (readiness) — DB trả lời ≤ 2 s, MQTT đã nối nếu instance nhận dữ liệu, hàng đợi ghi < 80 %
+      security: []
+      responses:
+        "200":
+          description: Sẵn sàng
+          content:
+            application/json:
+              schema: { type: object, properties: { status: { type: string, const: ready } } }
+        "503":
+          description: Chưa sẵn sàng
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, const: not_ready }
+                  problems: { type: array, items: { type: string, enum: [database, mqtt, ingest_queue] } }
 
   # ---------------------------------------------------------------- auth
   /api/v1/auth/login:

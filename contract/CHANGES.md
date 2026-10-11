@@ -26,6 +26,14 @@
 
 ---
 
+## 2026-10-11 · Health check liveness / readiness
+- Loại: thêm      Phá tương thích: không
+- Phạm vi: GET /healthz/live, GET /healthz/ready (ngoài /api/v1, dành cho load balancer / vận hành)
+- Chi tiết: `live` luôn 200; `ready` 200 khi DB trả lời ≤ 2 s, MQTT đã nối (nếu instance nhận dữ liệu) và hàng đợi ghi
+  < 80 %, ngược lại 503 `{status: not_ready, problems: [database | mqtt | ingest_queue]}`. `/healthz` giữ nguyên.
+- Backend: bước A2 của `backend/docs/KE_HOACH_NANG_CAP_BACKEND.docx`; test `ScaleTests`.
+- App cần làm: không.
+
 ## 2026-10-11 · SOC dự phòng bị chặn khi không có truyền thông BMS
 - Loại: thêm      Phá tương thích: không
 - Phạm vi: GET /devices/{serial}/config (`write_access.blocked_groups[].reason`); POST /devices/{serial}/config-commands

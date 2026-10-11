@@ -148,6 +148,9 @@ public sealed class IngestPipeline(
 
     internal ChannelReader<object> Rows => _rows.Reader;
     public long Dropped => Interlocked.Read(ref _dropped);
+    /// <summary>Rows waiting for the batch writer, and how many fit before the oldest are dropped (readiness, metrics).</summary>
+    public int QueueLength => _rows.Reader.CanCount ? _rows.Reader.Count : 0;
+    public int QueueCapacity => options.Value.QueueCapacity;
     public long Received { get; private set; }
     public long Rejected { get; private set; }
 
