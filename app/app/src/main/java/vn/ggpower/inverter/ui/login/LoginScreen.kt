@@ -207,7 +207,7 @@ fun LoginScreen(
                             }
                         },
                     )
-                    // "Quên mật khẩu?" canh phải, đệm dọc 12 dp → vùng chạm 44 + chữ.
+                    // "Quên mật khẩu?" canh phải, đệm dọc 16 dp như thiết kế mới: cao 52 = vùng chạm 48 + 2 × 2.
                     Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
                         LinkText(stringResource(R.string.login_forgot_password), onForgotPassword, Modifier.padding(vertical = 2.dp))
                     }
