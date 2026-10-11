@@ -312,7 +312,7 @@ private fun SlotsCard(state: TouStrategyUiState.Content, actions: TouStrategyAct
         } else {
             // Như prototype: các dòng là con trực tiếp của thẻ (cách 8 dp), viền trên thuộc dòng sau.
             Column(verticalArrangement = Arrangement.spacedBy(GgSpacing.space2)) {
-                order.forEachIndexed { i, index ->
+                order.forEach { index ->
                     Column {
                         SlotRow(strategy.slots[index], strategy.numberOf(index), enabled = state.interactive) { actions.onOpenSlot(index) }
                     }

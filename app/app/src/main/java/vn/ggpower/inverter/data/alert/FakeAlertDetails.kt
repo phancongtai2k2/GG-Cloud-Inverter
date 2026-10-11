@@ -26,7 +26,7 @@ internal object FakeAlertDetails {
     val ALL: Map<String, AlertDetail> = listOf(
         AlertDetail(
             id = "grid", severity = AlertSeverity.Error, title = "Mất kết nối lưới điện",
-            description = "Inverter chuyển sang cấp điện từ pin S16 Pre cho tải.",
+            description = "Inverter chuyển sang cấp điện từ pin.",
             device = INVERTER, projectName = PROJECT, startedAt = gridAt, endedAt = null, endKind = null, resolved = false,
             code = "0x200 CurrErrReg · bit [MÃ BIT]", codeName = "Mất điện áp lưới AC đầu vào (Grid loss)",
             chart = chart(

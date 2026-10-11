@@ -326,7 +326,7 @@ private fun Legend(shares: EnergyShares?) {
         Triple(colors.surfaceSunken, stringResource(R.string.energy_empty), shares?.let { it.emptyKwh to it.emptyPercent }),
     )
     GgCard(contentPadding = PaddingValues(horizontal = GgSpacing.space4, vertical = GgSpacing.space1)) {
-        rows.forEachIndexed { i, (swatch, name, v) ->
+        rows.forEach { (swatch, name, v) ->
             Row(
                 Modifier.fillMaxWidth().padding(vertical = 10.dp),
                 horizontalArrangement = Arrangement.spacedBy(10.dp),

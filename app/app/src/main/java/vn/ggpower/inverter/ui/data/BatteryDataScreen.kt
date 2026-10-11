@@ -341,7 +341,7 @@ private fun FlagsCard(flags: List<BmsFlag>, showAll: Boolean, onToggle: () -> Un
                     color = colors.ink,
                 )
                 Column {
-                    ofKind.forEachIndexed { i, f ->
+                    ofKind.forEach { f ->
                         Row(Modifier.fillMaxWidth().height(36.dp), verticalAlignment = Alignment.CenterVertically) {
                             Text(flagName(f), style = GgTheme.typography.bodySm, color = colors.ink, modifier = Modifier.weight(1f))
                             if (f.active) {

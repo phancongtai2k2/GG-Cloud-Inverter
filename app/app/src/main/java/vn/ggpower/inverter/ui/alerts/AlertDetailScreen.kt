@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -26,8 +27,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,6 +39,9 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -52,7 +58,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import java.time.LocalDateTime
+import kotlin.math.ceil
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.roundToLong
 import kotlinx.coroutines.delay
+import vn.ggpower.chart.chartPinchZoom
+import vn.ggpower.chart.rememberChartZoomState
+import vn.ggpower.chart.windowLength
 import vn.ggpower.inverter.R
 import vn.ggpower.inverter.data.alert.FakeAlertRepository
 import vn.ggpower.inverter.domain.alert.AlertChart
@@ -69,15 +83,12 @@ import vn.ggpower.inverter.ui.components.ScreenHeader
 import vn.ggpower.inverter.ui.components.SecondaryButton
 import vn.ggpower.inverter.ui.components.SectionHeader
 import vn.ggpower.inverter.ui.components.StatusTone
+import vn.ggpower.inverter.ui.components.ZoomResetPill
 import vn.ggpower.inverter.ui.format.fieldUnitLabel
 import vn.ggpower.inverter.ui.theme.GgPowerTheme
 import vn.ggpower.inverter.ui.theme.GgRadius
 import vn.ggpower.inverter.ui.theme.GgSpacing
 import vn.ggpower.inverter.ui.theme.GgTheme
-import java.time.LocalDateTime
-import kotlin.math.ceil
-import kotlin.math.max
-import kotlin.math.min
 
 @Composable
 fun AlertDetailRoute(onBack: () -> Unit, onCreateSupport: () -> Unit, viewModel: AlertDetailViewModel = hiltViewModel()) {
@@ -287,32 +298,66 @@ private fun ChartCard(source: AlertChart, temperatureUnit: TemperatureUnit) {
     val lo = min(chart.values.min(), 0.0)
     val small = TextStyle(fontFamily = GgTheme.typography.caption.fontFamily, fontSize = 10.sp, lineHeight = 14.sp, color = colors.inkMuted, fontFeatureSettings = "tnum")
     val bold = small.copy(color = colors.ink, fontWeight = FontWeight.Bold)
-    val t0 = GgFormat.time(chart.start.toLocalTime())
+    // Chụm hai ngón để phóng trục thời gian 1× / 2× / 4× (gg-inverter-design AlertDetail.dc.html, hàm ZM).
+    val zoom = rememberChartZoomState(maxZoom = 4f)
+    val win = zoom.window
+    val last = chart.values.lastIndex
+    fun timeAt(fraction: Float) = GgFormat.time(chart.start.plusSeconds((fraction * last * chart.stepSeconds).roundToLong()).toLocalTime())
+    val markFraction = chart.markIndex.toFloat() / last
+    val markLocal = win.local(markFraction)
+    val markShown = win.contains(markFraction)
+    // Nhãn mép bị ẩn khi mốc sự cố nằm sát mép (dưới 20 % cửa sổ), như prototype.
+    val t0 = if (markShown && markLocal < 0.2f) "" else timeAt(win.start)
+    val t1 = if (markShown && markLocal > 0.8f) "" else timeAt(win.end)
     val tm = GgFormat.time(chart.timeAt(chart.markIndex).toLocalTime())
-    val t1 = GgFormat.time(chart.timeAt(chart.values.lastIndex).toLocalTime())
+    val totalMinutes = last * chart.stepSeconds / 60.0
+    val windowLabel = "${windowLength(totalMinutes, win.zoom, GgFormat.defaultStyle.decimalSeparator)} ${stringResource(R.string.unit_minute)}"
     val grid = colors.cardBorder
     val base = colors.line
     val ink = colors.ink
     val cd = "$title. ${chart.note}"
+    val density = LocalDensity.current
+    val plotStart = with(density) { 34.dp.toPx() }
+    var widthPx by remember { mutableFloatStateOf(0f) }
     GgCard(contentPadding = PaddingValues(start = 16.dp, top = 14.dp, end = 16.dp, bottom = 12.dp), verticalSpacing = GgSpacing.space2) {
-        Text(title, style = GgTheme.typography.bodySm.copy(lineHeight = 18.sp, fontWeight = FontWeight.SemiBold), color = colors.ink)
-        Canvas(Modifier.fillMaxWidth().height(120.dp).semantics { contentDescription = cd }) {
-            val d = density
+        Row(Modifier.fillMaxWidth().heightIn(min = 26.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                title,
+                style = GgTheme.typography.bodySm.copy(lineHeight = 18.sp, fontWeight = FontWeight.SemiBold),
+                color = colors.ink,
+                modifier = Modifier.weight(1f),
+            )
+            if (win.zoomed) ZoomResetPill(windowLabel, zoom::reset, Modifier.height(26.dp))
+        }
+        Canvas(
+            Modifier
+                .fillMaxWidth()
+                .height(120.dp)
+                .onSizeChanged { widthPx = it.width.toFloat() }
+                .chartPinchZoom(zoom, plotStart) { widthPx }
+                .semantics { contentDescription = cd },
+        ) {
+            val d = density.density
             val left = 34 * d
             val w = size.width - left
             val h = 100 * d
-            fun x(i: Int) = left + w * i / chart.values.lastIndex
+            fun x(i: Int) = left + w * win.local(i.toFloat() / last)
             fun y(v: Double) = (h - (v - lo) / (hi - lo) * h).toFloat()
             drawLine(grid, Offset(left, 0f), Offset(size.width, 0f), strokeWidth = d)
             drawLine(grid, Offset(left, h / 2), Offset(size.width, h / 2), strokeWidth = d)
             drawLine(base, Offset(left, h), Offset(size.width, h), strokeWidth = d)
-            val mx = x(chart.markIndex)
-            drawLine(ink, Offset(mx, 0f), Offset(mx, h), strokeWidth = d, pathEffect = PathEffect.dashPathEffect(floatArrayOf(3 * d, 3 * d)))
-            val path = Path().apply {
-                chart.values.forEachIndexed { i, v -> if (i == 0) moveTo(x(i), y(v)) else lineTo(x(i), y(v)) }
+            clipRect(left = left, top = 0f, right = size.width, bottom = h + d) {
+                if (markShown) {
+                    val mx = left + w * markLocal
+                    drawLine(ink, Offset(mx, 0f), Offset(mx, h), strokeWidth = d, pathEffect = PathEffect.dashPathEffect(floatArrayOf(3 * d, 3 * d)))
+                }
+                val path = Path().apply {
+                    chart.values.forEachIndexed { i, v -> if (i == 0) moveTo(x(i), y(v)) else lineTo(x(i), y(v)) }
+                }
+                drawPath(path, color, style = Stroke(width = 2 * d, join = StrokeJoin.Round))
             }
-            drawPath(path, color, style = Stroke(width = 2 * d, join = StrokeJoin.Round))
             fun label(text: String, style: TextStyle, xPos: Float, top: Float, align: Int) {
+                if (text.isEmpty()) return
                 val l = measurer.measure(text, style)
                 val lx = when (align) { -1 -> xPos; 1 -> xPos - l.size.width; else -> xPos - l.size.width / 2f }
                 drawText(l, topLeft = Offset(max(0f, min(lx, size.width - l.size.width)), top))
@@ -320,7 +365,7 @@ private fun ChartCard(source: AlertChart, temperatureUnit: TemperatureUnit) {
             label(GgFormat.trimmed(hi, 0), small, left - 6 * d, -7 * d, 1)
             label(GgFormat.trimmed(lo, 0), small, left - 6 * d, 93 * d, 1)
             label(t0, small, left, 104 * d, -1)
-            label(tm, bold, mx, 104 * d, 0)
+            if (markShown) label(tm, bold, left + w * markLocal, 104 * d, 0)
             label(t1, small, size.width, 104 * d, 1)
         }
         Text(chart.note, style = GgTheme.typography.caption.copy(fontWeight = FontWeight.Normal), color = colors.inkMuted)

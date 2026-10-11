@@ -673,7 +673,7 @@ private fun DeviceSection(s: DeviceSettings) {
 private fun HistoryCard(history: List<ConfigChange>) {
     val colors = GgTheme.colors
     GgCard(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)) {
-        history.forEachIndexed { i, entry ->
+        history.forEach { entry ->
             Row(Modifier.fillMaxWidth().padding(vertical = GgSpacing.space3), horizontalArrangement = Arrangement.spacedBy(GgSpacing.space3)) {
                 Icon(
                     painterResource(R.drawable.ic_history), contentDescription = null, tint = colors.inkMuted,

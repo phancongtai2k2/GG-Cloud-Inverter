@@ -393,7 +393,7 @@ private fun ResultSheet(
                 contentAlignment = Alignment.Center,
             ) {
                 when {
-                    sheet is ScanSheet.Checking -> CircularProgressIndicator(Modifier.size(20.dp), color = colors.primary, strokeWidth = 2.dp)
+                    sheet is ScanSheet.Checking -> CircularProgressIndicator(Modifier.size(16.dp), color = colors.primary, strokeWidth = 2.dp, trackColor = colors.primarySoft)
                     problem != null -> Icon(painterResource(R.drawable.ic_error), contentDescription = null, tint = colors.dangerText, modifier = Modifier.size(24.dp))
                     else -> Icon(painterResource(R.drawable.ic_check), contentDescription = null, tint = colors.primary, modifier = Modifier.size(24.dp))
                 }

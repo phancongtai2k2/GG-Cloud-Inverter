@@ -459,7 +459,7 @@ private fun SummaryCard(state: StatsUiState) {
             s?.let { GgFormat.mass(it.co2Kg, stringResource(R.string.unit_kg), stringResource(R.string.unit_ton)) } ?: missing),
     )
     GgCard(contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = GgSpacing.space4, vertical = GgSpacing.space1)) {
-        rows.forEachIndexed { k, (icon, label, value) ->
+        rows.forEach { (icon, label, value) ->
             Row(
                 Modifier.fillMaxWidth().padding(vertical = GgSpacing.space3).semantics(mergeDescendants = true) {},
                 verticalAlignment = Alignment.CenterVertically,
