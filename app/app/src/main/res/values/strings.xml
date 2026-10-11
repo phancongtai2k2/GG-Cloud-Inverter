@@ -805,12 +805,14 @@
     <string name="energy_chip_discharging">Đang xả %1$s</string>
     <string name="energy_available">Dung lượng khả dụng</string>
     <string name="energy_from_grid_full">Từ lưới điện</string>
-    <string name="energy_empty">Còn trống</string>
     <string name="energy_params">Thông số pin</string>
     <string name="energy_charge_current">Dòng sạc</string>
     <string name="energy_discharge_current">Dòng xả</string>
     <string name="energy_cycles">Chu kỳ</string>
-    <string name="energy_figure_cd">Pin %1$s dung lượng %2$s, đang chứa %3$s: %4$s từ PV (%5$s) ở lớp trên và %6$s từ lưới (%7$s) ở lớp dưới; %8$s</string>
+    <string name="energy_figure_cd">Pin %1$s dung lượng %2$s, SOC %3$s (%4$s)%5$s; %6$s</string>
+    <string name="energy_figure_cd_limits">; giới hạn sạc %1$s, giới hạn xả %2$s</string>
+    <string name="energy_charge_limit">Giới hạn sạc</string>
+    <string name="energy_discharge_limit">Giới hạn xả</string>
     <string name="energy_figure_cd_unknown">Pin %1$s: chưa có số liệu nguồn năng lượng</string>
     <string name="energy_cd_charging">pin đang sạc</string>
     <string name="energy_cd_discharging">pin đang xả</string>

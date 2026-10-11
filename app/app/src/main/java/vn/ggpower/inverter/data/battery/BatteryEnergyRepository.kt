@@ -46,6 +46,8 @@ class FakeBatteryEnergyRepository @Inject constructor() : BatteryEnergyRepositor
                 sohPercent = b.sohPercent,
                 cycles = b.cycles,
                 cellDeltaMv = if (b.cellMaxMv != null && b.cellMinMv != null) b.cellMaxMv - b.cellMinMv else null,
+                chargeLimitSocPercent = 95,
+                dischargeLimitSocPercent = 10,
             )
         }
     }

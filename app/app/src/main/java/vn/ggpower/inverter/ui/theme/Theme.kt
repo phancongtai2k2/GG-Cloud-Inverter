@@ -76,6 +76,11 @@ data class GgColorScheme(
     val toggleOffTrack: Color,
     /** Viền nút "đặt lại thu phóng" biểu đồ (#cfe9d8 / #1f4a30). */
     val zoomPillBorder: Color,
+    /** Chất lỏng trong khối pin 3D màn 11 (thiết kế mới, một màu theo SOC): mặt trước / bên / trên. Vạch giới hạn: ink 60 % / 75 %. */
+    val batteryLiquidFront: Color,
+    val batteryLiquidSide: Color,
+    val batteryLiquidTop: Color,
+    val batteryLimitLine: Color,
     val toastBg: Color,
     val onToast: Color,
     /** Lớp phủ sau bottom sheet / dialog: rgba(14,21,18,0.5) (TouStrategy.dc.html). */
@@ -88,14 +93,10 @@ data class GgColorScheme(
     /** Chữ nhãn "CẤP B · NHÀ PHÂN PHỐI" (#8a4b00 trên nền accent-soft, Config.dc.html). */
     val badgeDistributorText: Color,
     /** Khối pin 3D màn 11 (BatteryEnergy.dc.html, chưa có token): nền kính #eef3f8, viền #b3c3d3, cạnh #c9d6e3;
-     *  mặt bên / mặt trên lớp PV #b85a0a / #f7a452, lớp lưới #24588f / #6fa8e8 (mặt trước dùng energyPv / energyGrid). */
+     *  chất lỏng: batteryLiquid*. */
     val batteryGlass: Color,
     val batteryOutline: Color,
     val batteryEdge: Color,
-    val batteryPvSide: Color,
-    val batteryPvTop: Color,
-    val batteryGridSide: Color,
-    val batteryGridTop: Color,
     /** Phản sáng của kính (#ffffff, độ mờ theo từng mặt trong prototype). */
     val batteryHighlight: Color,
     /** Màn 18 · Quét QR (QRScan.dc.html, nền tối cả ở light): nền #0e1512, lớp phủ quanh khung (nền 72 %), lòng khung
@@ -140,6 +141,10 @@ private fun schemeOf(p: GgPalette, dark: Boolean) = GgColorScheme(
     sliderTick = if (dark) p.lineStrong else Color(0xFFB3BDB7),
     toggleOffTrack = if (dark) Color(0xFF0E1814) else p.sunken,
     zoomPillBorder = if (dark) Color(0xFF1F4A30) else Color(0xFFCFE9D8),
+    batteryLiquidFront = if (dark) Color(0xFF2FB466) else Color(0xFF149C4A),
+    batteryLiquidSide = if (dark) Color(0xFF1F9A52) else Color(0xFF0F7A3A),
+    batteryLiquidTop = if (dark) Color(0xFF5BD68C) else Color(0xFF4CC47A),
+    batteryLimitLine = p.ink.copy(alpha = if (dark) 0.75f else 0.6f),
     toastBg = if (dark) Color(0xA8EEF3EF) else Color(0x9E13201B),
     onToast = if (dark) p.surface else Color.White,
     scrim = if (dark) Color(0x99000000) else Color(0x800E1512),
@@ -150,10 +155,6 @@ private fun schemeOf(p: GgPalette, dark: Boolean) = GgColorScheme(
     batteryGlass = if (dark) p.card else Color(0xFFEEF3F8),
     batteryOutline = if (dark) p.lineStrong else Color(0xFFB3C3D3),
     batteryEdge = if (dark) p.line else Color(0xFFC9D6E3),
-    batteryPvSide = Color(0xFFB85A0A),
-    batteryPvTop = Color(0xFFF7A452),
-    batteryGridSide = Color(0xFF24588F),
-    batteryGridTop = Color(0xFF6FA8E8),
     batteryHighlight = if (dark) p.ink else Color.White,
     qrBackground = Color(0xFF0E1512),
     qrScrim = Color(0xB80E1512),

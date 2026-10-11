@@ -3,8 +3,6 @@ package vn.ggpower.inverter.domain.battery
 import vn.ggpower.inverter.domain.home.BatteryActivity
 import vn.ggpower.inverter.domain.home.BatteryContent
 import vn.ggpower.inverter.domain.home.FLOW_THRESHOLD_KW
-import java.math.BigDecimal
-import java.math.RoundingMode
 
 /**
  * Dữ liệu màn 11 · Nguồn năng lượng pin (đặc tả §3.11). [content] do cloud/EMS tính (phương pháp tách theo nguồn
@@ -23,6 +21,9 @@ data class BatteryEnergy(
     val sohPercent: Double?,
     val cycles: Int?,
     val cellDeltaMv: Double?,
+    /** Giới hạn SOC sạc / xả theo cấu hình BMS (vạch nét đứt trên khối pin); null khi chưa có (backend chưa trả, contract/CHANGES.md). */
+    val chargeLimitSocPercent: Int? = null,
+    val dischargeLimitSocPercent: Int? = null,
 )
 
 /** Cùng ngưỡng với Màn hình chính: |công suất| < 0,05 kW là không sạc/xả. */
@@ -37,34 +38,12 @@ val BatteryEnergy.activity: BatteryActivity
     }
 
 /**
- * Bảng "Từ PV · Từ lưới điện · Còn trống" và hai lớp của khối pin. Phần trăm tính trên dung lượng định mức, làm tròn
- * 1 chữ số; "Còn trống" là phần còn lại để ba dòng cộng đúng 100 % (prototype: 63,8 + 11,9 + 24,3).
- * Dung lượng khả dụng = Từ PV + Từ lưới (12,1 kWh trên ảnh).
+ * "Dung lượng khả dụng" (gg-inverter-design BatteryEnergy.dc.html: 12,1 kWh = 76 % × 16 kWh): năng lượng đang có trong
+ * pin theo SOC và dung lượng định mức; null khi thiếu một trong hai.
  */
-data class EnergyShares(
-    val pvKwh: Double,
-    val gridKwh: Double,
-    val emptyKwh: Double,
-    val pvPercent: Double,
-    val gridPercent: Double,
-    val emptyPercent: Double,
-) {
-    val availableKwh: Double get() = pvKwh + gridKwh
-}
-
-fun BatteryContent.shares(): EnergyShares {
-    val cap = BigDecimal.valueOf(capacityKwh)
-    val pv = BigDecimal.valueOf(fromPvKwh.coerceIn(0.0, capacityKwh))
-    val grid = BigDecimal.valueOf(fromGridKwh.coerceIn(0.0, capacityKwh)).min(cap - pv)
-    fun pct(v: BigDecimal) = v.multiply(BigDecimal(100)).divide(cap, 1, RoundingMode.HALF_UP)
-    val pvPct = pct(pv)
-    val gridPct = pct(grid)
-    return EnergyShares(
-        pvKwh = pv.toDouble(),
-        gridKwh = grid.toDouble(),
-        emptyKwh = (cap - pv - grid).toDouble(),
-        pvPercent = pvPct.toDouble(),
-        gridPercent = gridPct.toDouble(),
-        emptyPercent = (BigDecimal(100) - pvPct - gridPct).max(BigDecimal.ZERO).toDouble(),
-    )
-}
+val BatteryEnergy.availableKwh: Double?
+    get() {
+        val soc = socPercent ?: return null
+        val cap = content?.capacityKwh ?: return null
+        return cap * soc.coerceIn(0.0, 100.0) / 100
+    }

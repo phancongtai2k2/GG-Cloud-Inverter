@@ -751,12 +751,14 @@
     <string name="energy_chip_discharging">Discharging %1$s</string>
     <string name="energy_available">Available capacity</string>
     <string name="energy_from_grid_full">From grid</string>
-    <string name="energy_empty">Empty</string>
     <string name="energy_params">Battery parameters</string>
     <string name="energy_charge_current">Charge current</string>
     <string name="energy_discharge_current">Discharge current</string>
     <string name="energy_cycles">Cycles</string>
-    <string name="energy_figure_cd">Battery %1$s, capacity %2$s, holding %3$s: %4$s from PV (%5$s) in the upper layer and %6$s from the grid (%7$s) in the lower layer; %8$s</string>
+    <string name="energy_figure_cd">Battery %1$s, capacity %2$s, SOC %3$s (%4$s)%5$s; %6$s</string>
+    <string name="energy_figure_cd_limits">; charge limit %1$s, discharge limit %2$s</string>
+    <string name="energy_charge_limit">Charge limit</string>
+    <string name="energy_discharge_limit">Discharge limit</string>
     <string name="energy_figure_cd_unknown">Battery %1$s: no energy source data yet</string>
     <string name="energy_cd_charging">battery charging</string>
     <string name="energy_cd_discharging">battery discharging</string>
