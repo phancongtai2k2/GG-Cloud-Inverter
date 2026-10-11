@@ -69,8 +69,10 @@ Còn lại nhỏ: màn Dữ liệu inverter/pin vẫn truyền chuỗi `reg_*` v
 | A4 | Tổng hợp tăng dần (chỉ thiết bị / ngày có dữ liệu mới) | **Xong**: 5.000 tb 11,6 s → 2,4 s mỗi lần, PG 49 % → 27 % (`RollupTracker`, nhìn lùi 1 phút, ngày theo hiệu số, fillfactor 70; quét đầy đủ khi khởi động + mỗi 6 h) | 08b2a46 |
 | A5 | MQTT persistent session, hàng đợi broker (D2) | **Xong**: tắt 61 s ở 1.000 tb → đủ mẫu; ghi nốt hàng đợi khi dừng; bỏ qua mẫu cũ / lặp khi giao lại | 10ca20b |
 | A6 | Ghi status / cảnh báo / config-state qua hàng đợi | **Xong**: `DeviceEventQueue` (một luồng ghi, giữ thứ tự, thử lại, ghi nốt khi dừng); status / firmware có thể bỏ khi đầy, cảnh báo không | 9d6e504 |
-| A7 | Đo lại, chốt giai đoạn A | **Xong**: 10.000 tb không mất dữ liệu (sửa ghi trạng thái thiết bị một câu lệnh), tổng hợp 7 s / 30 s; trần ước ~20.000 tb | (commit kế tiếp ghi) |
-| B0–B7 | Leader cho job, upsert cảnh báo, interface + Redis, realtime / ack qua pub/sub, object storage, 2 instance (D3, D4) | Chưa làm | |
+| A7 | Đo lại, chốt giai đoạn A | **Xong**: 10.000 tb không mất dữ liệu (sửa ghi trạng thái thiết bị một câu lệnh), tổng hợp 7 s / 30 s; trần ước ~20.000 tb | 7e8060a |
+| B0 | Chốt Redis, nơi lưu file (D3, D4) | **Xong**: `redis:7` trong compose; MinIO tự host | — |
+| B1 | Leader cho job định kỳ | **Xong**: `JobLeader` (advisory lock trên kết nối riêng): rollup, báo cáo ngày (+ bảng `daily_reports_sent`), cảnh báo offline, lệnh (TOU 00:00, đóng lệnh bỏ dở sau 5 phút thay vì lúc khởi động); metric `ggpower_jobs_leader` | (commit kế tiếp ghi) |
+| B2–B7 | Upsert cảnh báo, interface + Redis, realtime / ack qua pub/sub, object storage, 2 instance | Chưa làm | |
 | C1–C6 | Tách vai trò, live state lên Redis, EMQX + nhiều worker, TimescaleDB, xác thực MQTT, vận hành (D5–D8) | Chưa làm | |
 
 ## 5. Môi trường trên máy này

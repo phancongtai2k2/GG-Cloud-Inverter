@@ -31,7 +31,7 @@ public sealed record SubmitResult(int Status, string? ErrorCode, object? Extra, 
 /// is "applied" only after that read-back; otherwise the previous settings are restored.
 /// </summary>
 public sealed class CommandService(
-    Db db, LiveStateCache live, IServiceProvider services, IOptions<CommandOptions> options, IOptions<IngestOptions> ingest,
+    Db db, LiveStateCache live, IServiceProvider services, JobLeader leader, IOptions<CommandOptions> options, IOptions<IngestOptions> ingest,
     TimeProvider clock, ILogger<CommandService> log) : BackgroundService, IDeviceEventSink
 {
     private readonly CommandOptions _o = options.Value;
@@ -504,29 +504,41 @@ public sealed class CommandService(
         return (rows.Take(limit).Select(r => (JsonObject)ToJson(r)).ToList(), next);
     }
 
-    // ---------- background: expiry and the daily schedule reload ----------
+    // ---------- background: abandoned commands and the daily schedule reload ----------
+
+    /// <summary>Far longer than any command runs (expiry plus restoring), so only commands whose instance stopped are left.</summary>
+    public static readonly TimeSpan AbandonedAfter = TimeSpan.FromMinutes(5);
 
     protected override async Task ExecuteAsync(CancellationToken stop)
     {
-        // Commands left unfinished by a restart can no longer be confirmed.
-        try
-        {
-            await using var c = await db.OpenAsync(stop);
-            await c.ExecuteAsync(
-                """
-                UPDATE config_commands SET status = 'failed', outcome = '{"device_state":"unknown"}', failure = '{"code":"ACK_TIMEOUT"}', updated_at = now()
-                WHERE status NOT IN ('applied', 'reverted', 'failed')
-                """);
-        }
-        catch (Exception ex) { log.LogError(ex, "could not close stale commands"); }
-
         while (!stop.IsCancellationRequested)
         {
-            try { await ReloadSchedulesAsync(stop); }
+            try
+            {
+                if (await leader.TryLeadAsync(JobLeader.Commands, stop))
+                {
+                    await CloseAbandonedAsync(stop);
+                    await ReloadSchedulesAsync(stop);
+                }
+            }
             catch (OperationCanceledException) when (stop.IsCancellationRequested) { break; }
             catch (Exception ex) { log.LogError(ex, "schedule reload failed"); }
             await Task.Delay(TimeSpan.FromSeconds(20), stop).ContinueWith(_ => { }, CancellationToken.None);
         }
+    }
+
+    /// <summary>
+    /// Commands left unfinished by an instance that stopped can no longer be confirmed. Swept by age rather than at
+    /// start-up, which would also close the commands other instances are still running.
+    /// </summary>
+    public async Task<int> CloseAbandonedAsync(CancellationToken ct)
+    {
+        await using var c = await db.OpenAsync(ct);
+        return await c.ExecuteAsync(
+            """
+            UPDATE config_commands SET status = 'failed', outcome = '{"device_state":"unknown"}', failure = '{"code":"ACK_TIMEOUT"}', updated_at = now()
+            WHERE status NOT IN ('applied', 'reverted', 'failed') AND updated_at < @before
+            """, new { before = clock.GetUtcNow() - AbandonedAfter });
     }
 
     /// <summary>

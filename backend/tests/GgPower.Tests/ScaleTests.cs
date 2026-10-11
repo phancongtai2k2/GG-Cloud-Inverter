@@ -169,6 +169,71 @@ public class ScaleTests(AppFixture app)
         Assert.NotEqual(MqttLink.ClientIdFor(throwAway), MqttLink.ClientIdFor(throwAway));
     }
 
+    // B1: one leader per job. Two "instances" compete in the postgres database (advisory locks are per database, so
+    // they do not meet the test host's own leader); the second takes over when the first stops or loses its session.
+    [Fact]
+    public async Task OnlyOneInstanceLeadsAJobAndAnotherTakesOver()
+    {
+        var cs = new Npgsql.NpgsqlConnectionStringBuilder(Environment.GetEnvironmentVariable("GGP_ConnectionStrings__Main")) { Database = "postgres" }.ToString();
+        await using var db = new Db(cs);
+        await using var a = new JobLeader(db, NullLogger<JobLeader>.Instance);
+        await using var b = new JobLeader(db, NullLogger<JobLeader>.Instance);
+
+        Assert.True(await a.TryLeadAsync(JobLeader.Rollup, CancellationToken.None));
+        Assert.False(await b.TryLeadAsync(JobLeader.Rollup, CancellationToken.None));
+        Assert.True(await b.TryLeadAsync(JobLeader.DailyReport, CancellationToken.None));   // each job has its own leader
+        Assert.True(await a.TryLeadAsync(JobLeader.Rollup, CancellationToken.None));         // and keeps it while alive
+
+        // A leader that stops hands over at the follower's next try.
+        await a.ReleaseAsync(JobLeader.Rollup);
+        Assert.True(await b.TryLeadAsync(JobLeader.Rollup, CancellationToken.None));
+        Assert.False(await a.TryLeadAsync(JobLeader.Rollup, CancellationToken.None));
+
+        // A leader whose connection drops (crash, network) loses the job: Postgres frees the lock with the session.
+        await using (var admin = await db.OpenAsync())
+            Assert.True(await admin.ExecuteScalarAsync<bool>(
+                """
+                SELECT pg_terminate_backend(pid) FROM pg_locks
+                WHERE locktype = 'advisory' AND classid = 18247 AND objid = 1 AND database = (SELECT oid FROM pg_database WHERE datname = 'postgres')
+                """));
+        await Task.Delay(200);
+        Assert.True(await a.TryLeadAsync(JobLeader.Rollup, CancellationToken.None));
+        Assert.False(await b.TryLeadAsync(JobLeader.Rollup, CancellationToken.None));
+        Assert.False(b.Holds(JobLeader.Rollup));
+    }
+
+    [Fact]
+    public async Task TheTestHostLeadsItsJobs()
+    {
+        var leader = app.Service<JobLeader>();
+        for (var i = 0; i < 50 && !JobLeader.Jobs.All(leader.Holds); i++) await Task.Delay(100);
+        Assert.All(JobLeader.Jobs, j => Assert.True(leader.Holds(j), j));
+        var metrics = await (await app.Get("/metrics", null)).Raw.Content.ReadAsStringAsync();
+        Assert.Matches("""ggpower_jobs_leader\{[^}]*job="rollup"[^}]*\} 1\b""", metrics);
+    }
+
+    // B1: commands are closed by age, not at start-up, so a starting instance leaves the others' running commands alone.
+    [Fact]
+    public async Task OnlyAbandonedCommandsAreClosed()
+    {
+        var serial = await app.NewDevice();
+        Guid stale = Guid.NewGuid(), running = Guid.NewGuid();
+        await using var c = await app.Service<Db>().OpenAsync();
+        const string Insert =
+            """
+            INSERT INTO config_commands (id, serial, grp, status, request, request_hash, idempotency_key, created_at, updated_at, expires_at)
+            VALUES (@id, @serial, 'operating_mode', 'writing', '{}', '\x00', @id, @at, @at, @at)
+            """;
+        await c.ExecuteAsync(Insert, new { id = stale, serial, at = DateTimeOffset.UtcNow - CommandService.AbandonedAfter - TimeSpan.FromMinutes(1) });
+        await c.ExecuteAsync(Insert, new { id = running, serial, at = DateTimeOffset.UtcNow });
+
+        await app.Service<CommandService>().CloseAbandonedAsync(CancellationToken.None);
+
+        const string Status = "SELECT status || ':' || COALESCE(failure->>'code', '') FROM config_commands WHERE id = @id";
+        Assert.Equal("failed:ACK_TIMEOUT", await c.ExecuteScalarAsync<string>(Status, new { id = stale }));
+        Assert.Equal("writing:", await c.ExecuteScalarAsync<string>(Status, new { id = running }));
+    }
+
     // A2: liveness never depends on anything else; readiness checks the database, MQTT (when ingesting) and the queue.
     [Fact]
     public async Task HealthEndpointsReportLiveAndReady()

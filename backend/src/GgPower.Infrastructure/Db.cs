@@ -9,6 +9,7 @@ namespace GgPower.Infrastructure;
 public sealed class Db : IAsyncDisposable
 {
     private readonly NpgsqlDataSource _source;
+    private readonly Lazy<NpgsqlDataSource> _dedicated;
 
     static Db()
     {
@@ -20,6 +21,14 @@ public sealed class Db : IAsyncDisposable
     {
         var b = new NpgsqlDataSourceBuilder(connectionString);
         _source = b.Build();
+        // Unpooled, so closing a connection really ends its session (and frees the advisory locks it held).
+        _dedicated = new(() =>
+        {
+            var d = new NpgsqlDataSourceBuilder(connectionString);
+            d.ConnectionStringBuilder.Pooling = false;
+            d.ConnectionStringBuilder.KeepAlive = 10;
+            return d.Build();
+        });
     }
 
     public NpgsqlDataSource Source => _source;
@@ -27,7 +36,15 @@ public sealed class Db : IAsyncDisposable
     public async Task<NpgsqlConnection> OpenAsync(CancellationToken ct = default) =>
         await _source.OpenConnectionAsync(ct);
 
-    public ValueTask DisposeAsync() => _source.DisposeAsync();
+    /// <summary>A connection outside the pool, for sessions that hold state such as <see cref="JobLeader"/> locks.</summary>
+    public async Task<NpgsqlConnection> OpenDedicatedAsync(CancellationToken ct = default) =>
+        await _dedicated.Value.OpenConnectionAsync(ct);
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_dedicated.IsValueCreated) await _dedicated.Value.DisposeAsync();
+        await _source.DisposeAsync();
+    }
 
     private sealed class DateOnlyHandler : SqlMapper.TypeHandler<DateOnly>
     {

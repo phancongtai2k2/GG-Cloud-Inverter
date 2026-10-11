@@ -643,8 +643,12 @@ public sealed class BatchWriter(Db db, IngestPipeline pipeline, LiveStateCache l
     }
 }
 
-/// <summary>Aggregates raw samples into 15-minute and daily rows, and maintains partitions.</summary>
-public sealed class RollupService(Db db, PartitionMaintenance partitions, BackfillTracker backfill, RollupTracker rollups, LiveStateCache live, IOptions<IngestOptions> options, TimeProvider clock, ILogger<RollupService> log) : BackgroundService
+/// <summary>
+/// Aggregates raw samples into 15-minute and daily rows, and maintains partitions. With several instances only the
+/// <see cref="JobLeader.Rollup"/> leader runs it; that leader should also ingest, since incremental runs work from the
+/// devices its own batch writer marked.
+/// </summary>
+public sealed class RollupService(Db db, PartitionMaintenance partitions, BackfillTracker backfill, RollupTracker rollups, LiveStateCache live, JobLeader leader, IOptions<IngestOptions> options, TimeProvider clock, ILogger<RollupService> log) : BackgroundService
 {
     // "/*serials*/" becomes a filter when only some devices are recalculated.
     private static string For(string sql, string column, bool filtered) => sql.Replace("/*serials*/", filtered ? $"AND {column} = ANY(@serials)" : "");
@@ -878,11 +882,21 @@ public sealed class RollupService(Db db, PartitionMaintenance partitions, Backfi
     protected override async Task ExecuteAsync(CancellationToken stop)
     {
         var lastMaintenance = DateTimeOffset.MinValue;
+        var leading = false;
         while (!stop.IsCancellationRequested)
         {
             try
             {
                 var now = clock.GetUtcNow();
+                if (!await leader.TryLeadAsync(JobLeader.Rollup, stop))
+                {
+                    leading = false;
+                    await Task.Delay(TimeSpan.FromSeconds(30), stop).ContinueWith(_ => { }, CancellationToken.None);
+                    continue;
+                }
+                // Another instance ran the job until now: its pending devices are unknown here, so start with a full pass.
+                if (!leading) _lastFullPass = DateTimeOffset.MinValue;
+                leading = true;
                 if (now - lastMaintenance > TimeSpan.FromHours(6))
                 {
                     await partitions.RunAsync(options.Value.RawRetentionDays, now, stop);
@@ -891,6 +905,7 @@ public sealed class RollupService(Db db, PartitionMaintenance partitions, Backfi
                     await c.ExecuteAsync("DELETE FROM otp_codes WHERE created_at < now() - interval '2 days'");
                     await c.ExecuteAsync("DELETE FROM sessions WHERE expires_at < now() - interval '7 days'");
                     await c.ExecuteAsync("DELETE FROM reset_tokens WHERE expires_at < now() - interval '1 day'");
+                    await c.ExecuteAsync("DELETE FROM daily_reports_sent WHERE day < current_date - 30");
                     lastMaintenance = now;
                 }
                 var started = System.Diagnostics.Stopwatch.GetTimestamp();

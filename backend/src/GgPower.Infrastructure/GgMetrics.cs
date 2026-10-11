@@ -27,9 +27,11 @@ public static class GgMetrics
     private static int _observed;
 
     /// <summary>Registers the gauges and counters read from live objects. Called once by the host; later calls are ignored.</summary>
-    public static void Observe(IngestPipeline ingest, BatchWriter writer, RealtimeHub hub, LiveStateCache live, DeviceEventQueue events, TimeProvider clock)
+    public static void Observe(IngestPipeline ingest, BatchWriter writer, RealtimeHub hub, LiveStateCache live, DeviceEventQueue events, JobLeader leader, TimeProvider clock)
     {
         if (Interlocked.Exchange(ref _observed, 1) == 1) return;
+        Meter.CreateObservableGauge("ggpower.jobs.leader", () => JobLeader.Jobs.Select(j => new Measurement<int>(leader.Holds(j) ? 1 : 0, new KeyValuePair<string, object?>("job", j))),
+            description: "1 when this instance runs the periodic job, by job");
         Meter.CreateObservableGauge("ggpower.events.queue.length", () => events.Pending, description: "Device events (status, alarms…) waiting for the database");
         Meter.CreateObservableCounter("ggpower.events.dropped", () => events.Dropped, description: "Status / firmware events dropped because the event queue was full");
         Meter.CreateObservableCounter("ggpower.events.failed", () => events.Failed, description: "Device events given up after retries");

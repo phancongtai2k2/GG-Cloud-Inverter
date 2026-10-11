@@ -23,6 +23,7 @@ Bước A3 của `backend/docs/KE_HOACH_NANG_CAP_BACKEND.docx`; code ở `src/Gg
 | `ggpower_realtime_connections` | gauge | Kết nối WebSocket đang mở | — |
 | `ggpower_devices_known` | gauge | Thiết bị trong bộ nhớ | — |
 | `ggpower_devices_reachable` | gauge | Thiết bị có dữ liệu trong 90 s gần nhất | Giảm đột ngột (mất broker / mạng) |
+| `ggpower_jobs_leader{job}` | gauge | 1 khi instance này đang chạy job định kỳ (rollup, daily-report, offline-alerts, commands) | Tổng theo job trên mọi instance khác 1 kéo dài > 1 phút |
 
 ## Của ASP.NET Core
 
