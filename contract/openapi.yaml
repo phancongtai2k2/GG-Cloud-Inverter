@@ -1155,6 +1155,16 @@ components:
           oneOf:
             - { $ref: "#/components/schemas/BatteryChargedToday" }
             - { type: "null" }
+    Datalogger:
+      type: object
+      required: [online, connection]
+      properties:
+        serial: { type: [string, "null"], description: Serial riêng của datalogger (`logger_sn` trong up/status); null khi firmware chưa gửi }
+        online: { type: boolean, description: Datalogger đang liên lạc được (cùng nghĩa với thiết bị reachable) }
+        connection: { type: string, enum: [wifi, ethernet, 4g], description: "`conn_type` trong up/status; chưa gửi thì `wifi`" }
+        rssi_dbm: { type: [integer, "null"], description: Cường độ Wi-Fi (`signal_rssi`), dBm; app quy ra mức }
+        ip: { type: [string, "null"] }
+        firmware: { type: [string, "null"] }
     BatteryChargedToday:
       type: object
       required: [from_pv_kwh, from_grid_kwh]
@@ -1241,6 +1251,11 @@ components:
             logger_firmware: { type: [string, "null"] }
         battery_present: { type: [boolean, "null"] }
         bms_comm: { $ref: "#/components/schemas/BmsComm" }
+        datalogger:
+          description: null khi thiết bị chưa từng kết nối
+          oneOf:
+            - { $ref: "#/components/schemas/Datalogger" }
+            - { type: "null" }
         battery:
           oneOf:
             - type: object
@@ -1289,6 +1304,7 @@ components:
           oneOf:
             - { $ref: "#/components/schemas/BatteryContent" }
             - { type: "null" }
+        datalogger: { $ref: "#/components/schemas/Datalogger" }
         co2_today_kg:
           type: [number, "null"]
           description: CO₂ giảm hôm nay = yield_today_kwh × hệ số `Stats:Co2KgPerKwh` (như /stats summary.co2_kg); null khi không liên lạc được
@@ -1346,6 +1362,8 @@ components:
         capacity_remaining_ah: { type: [number, "null"] }
         capacity_nominal_ah: { type: [number, "null"] }
         est_minutes: { type: [number, "null"] }
+        charge_limit_soc_percent: { type: [integer, "null"], description: SOC dừng sạc (`charge_stop_soc` từ cấu hình); null khi firmware chưa báo }
+        discharge_limit_soc_percent: { type: [integer, "null"], description: SOC dừng xả = SOC dự phòng (`battery_reserve_soc`) }
     History:
       type: object
       required: [range, step_minutes, start, start_utc, values]

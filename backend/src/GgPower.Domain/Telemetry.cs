@@ -29,7 +29,7 @@ public sealed record BatterySample(
 
 public sealed record DeviceStatus(
     string Serial, bool Online, DateTimeOffset Ts, string? Reason, string? Model, string? InverterFw,
-    string? LoggerFw, string? InverterComm, string? Ip, int? Rssi);
+    string? LoggerFw, string? InverterComm, string? Ip, int? Rssi, string? LoggerSn = null, string? ConnType = null);
 
 public sealed record AlarmEvent(
     string Serial, string AlarmId, DateTimeOffset Ts, bool Triggered, string Code, string Severity,
@@ -111,7 +111,9 @@ public static class Payloads
         var state = Str(j, "state");
         if (state is not ("online" or "offline")) return null;
         return new DeviceStatus(topicSerial, state == "online", receivedAt, Str(j, "reason"), Str(j, "model"), Str(j, "fw_ver"),
-            Str(j, "logger_fw"), Str(j, "inverter_comm"), Str(j, "ip_addr"), Int(j, "signal_rssi"));
+            Str(j, "logger_fw"), Str(j, "inverter_comm"), Str(j, "ip_addr"), Int(j, "signal_rssi"),
+            // Not sent by current firmware (requested 11/10/2026): the datalogger's own serial and its link type.
+            Str(j, "logger_sn"), Str(j, "conn_type") is "wifi" or "ethernet" or "4g" ? Str(j, "conn_type") : null);
     }
 
     public static AlarmEvent? Alarm(JsonElement j, string topicSerial, DateTimeOffset receivedAt)

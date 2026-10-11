@@ -16,6 +16,11 @@ public sealed class DeviceLive
     public string? InverterFw { get; set; }
     public string? LoggerFw { get; set; }
     public string? InverterComm { get; set; }
+    /// <summary>Datalogger link as last reported in <c>up/status</c>: IP, Wi-Fi RSSI (dBm), own serial and link type when sent.</summary>
+    public string? LoggerIp { get; set; }
+    public int? LoggerRssi { get; set; }
+    public string? LoggerSn { get; set; }
+    public string? LoggerConn { get; set; }
     public TelemetrySample? Telemetry { get; set; }
     public BatterySample? Battery { get; set; }
     public JsonElement? ConfigState { get; set; }
@@ -175,6 +180,16 @@ public static class LiveJson
         from_pv_kwh = Math.Round(c.FromPvKwh, 2), from_grid_kwh = Math.Round(c.FromGridKwh, 2),
     };
 
+    /// <summary>
+    /// Datalogger card: link as last reported. <c>serial</c> / <c>connection</c> come from <c>logger_sn</c> / <c>conn_type</c>
+    /// once the firmware sends them; until then serial is null and the link is the Wi-Fi the product ships with.
+    /// </summary>
+    public static object Datalogger(DeviceLive d, bool reachable) => new
+    {
+        serial = d.LoggerSn, online = reachable, connection = d.LoggerConn ?? "wifi",
+        rssi_dbm = d.LoggerRssi, ip = d.LoggerIp, firmware = d.LoggerFw,
+    };
+
     public static object Snapshot(DeviceLive d, DateTimeOffset now)
     {
         lock (d.Gate)
@@ -218,7 +233,12 @@ public static class LiveJson
                     voltage_v = b.Voltage, current_a = b.CurrentA, power_w = b.PowerW,
                     temp_cells_c = b.TempCells, temp_bms_c = b.TempBms, cycles = b.Cycles,
                     capacity_remaining_ah = b.CapRemainingAh, capacity_nominal_ah = b.CapNominalAh, est_minutes = b.EstMinutes,
+                    // Limit lines of the battery screen: charging stops at charge_stop_soc (when the firmware reports it),
+                    // discharging stops at the backup SOC.
+                    charge_limit_soc_percent = d.ConfigState is { } cs1 ? Payloads.Int(cs1, "charge_stop_soc") : null,
+                    discharge_limit_soc_percent = ConfigMapping.BackupSoc(d.ConfigState),
                 },
+                datalogger = Datalogger(d, reachable),
                 battery_content = d.BatteryCapacityKwh is > 0 && !none ? new
                 {
                     capacity_kwh = d.BatteryCapacityKwh, from_pv_kwh = Math.Round(d.BattFromPvKwh, 3), from_grid_kwh = Math.Round(d.BattFromGridKwh, 3),

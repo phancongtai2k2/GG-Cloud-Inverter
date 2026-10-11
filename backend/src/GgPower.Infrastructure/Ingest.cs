@@ -288,6 +288,10 @@ public sealed class IngestPipeline(
                 d.InverterFw = st.InverterFw ?? d.InverterFw;
                 d.LoggerFw = st.LoggerFw ?? d.LoggerFw;
                 d.InverterComm = st.InverterComm ?? d.InverterComm;
+                d.LoggerIp = st.Ip ?? d.LoggerIp;
+                d.LoggerRssi = st.Rssi ?? d.LoggerRssi;
+                d.LoggerSn = st.LoggerSn ?? d.LoggerSn;
+                d.LoggerConn = st.ConnType ?? d.LoggerConn;
             }
             else
             {
@@ -365,7 +369,7 @@ public sealed class IngestPipeline(
             """
             SELECT d.serial, d.tenant, d.model, d.inverter_fw, d.logger_fw, d.inverter_comm, d.last_seen, d.online,
                    d.config_state::text AS config_state, d.config_state_at, d.firmware_json::text AS firmware_json,
-                   d.rated_power_kw, d.battery_capacity_kwh, d.batt_from_pv_kwh, d.batt_from_grid_kwh,
+                   d.rated_power_kw, d.battery_capacity_kwh, d.batt_from_pv_kwh, d.batt_from_grid_kwh, d.status_json::text AS status_json,
                    (SELECT count(*) FROM alerts a WHERE a.serial = d.serial AND a.ended_at IS NULL AND a.severity = 'error')::int AS open_errors,
                    (SELECT count(*) FROM alerts a WHERE a.serial = d.serial AND a.ended_at IS NULL AND a.severity = 'warning')::int AS open_warnings,
                    (SELECT count(*) FROM alerts a WHERE a.serial = d.serial AND NOT a.resolved)::int AS unresolved
@@ -373,8 +377,12 @@ public sealed class IngestPipeline(
             """);
         foreach (var r in rows)
         {
+            // The datalogger link (IP, RSSI…) is only kept in the last status message.
+            var st = r.status_json is string sj && JsonDocument.Parse(sj).RootElement is { ValueKind: JsonValueKind.Object } sr
+                ? Payloads.Status(sr.Clone(), (string)r.serial, DateTimeOffset.UnixEpoch) : null;
             live.Load(new DeviceLive
             {
+                LoggerIp = st?.Ip, LoggerRssi = st?.Rssi, LoggerSn = st?.LoggerSn, LoggerConn = st?.ConnType,
                 Serial = r.serial, Tenant = r.tenant, Model = r.model, InverterFw = r.inverter_fw, LoggerFw = r.logger_fw,
                 InverterComm = r.inverter_comm, LastSeen = new DateTimeOffset((DateTime)r.last_seen, TimeSpan.Zero), Online = r.online,
                 ConfigState = r.config_state is string cs ? JsonDocument.Parse(cs).RootElement.Clone() : null,

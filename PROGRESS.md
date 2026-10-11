@@ -20,6 +20,7 @@ Cập nhật: 11/10/2026 · Nhánh: `feature/contract-and-theme` (16 commit trê
 | 11/10 | Thư mục thiết kế `app/gg-inverter-design/` được commit vào repo |
 | 11/10 | Mọi điểm cần người dùng quyết: hỏi bằng hộp chọn (popup) rồi mới làm |
 | 11/10 | Main: nền trời dark `auto` = giờ máy 6h–18h là ngày; tuỳ chỉnh màn chính lưu **chung mọi dự án** (DataStore); làm Main trong 3 commit: sơ đồ nhà → nền trời → bottom sheet + tab kỳ + thu phóng |
+| 11/10 | Datalogger: API trả rssi / ip / firmware ngay; serial đọc `logger_sn`, kiểu kết nối đọc `conn_type` khi firmware gửi (chưa có: serial null, kết nối "wifi"). Vạch giới hạn SOC: xả = `battery_reserve_soc` (SOC dự phòng), sạc đọc `charge_stop_soc` khi firmware gửi (chưa có: null) |
 
 ## 3. Đã xong
 

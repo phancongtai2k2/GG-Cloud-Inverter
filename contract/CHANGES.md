@@ -26,6 +26,21 @@
 
 ---
 
+## 2026-10-11 · Thẻ Datalogger; giới hạn SOC sạc / xả của pin
+- Loại: thêm      Phá tương thích: không
+- Phạm vi: GET /projects/{projectId}/devices (`DeviceEntry.datalogger`); GET /projects/{projectId}/telemetry và frame `device`
+  (`DeviceSnapshot.datalogger`, `BatteryLive.charge_limit_soc_percent`, `BatteryLive.discharge_limit_soc_percent`); MQTT `up/status`
+- Chi tiết:
+  - `Datalogger {serial, online, connection, rssi_dbm, ip, firmware}`: lấy từ `up/status` gần nhất (`signal_rssi`, `ip_addr`,
+    `logger_fw`); giữ qua khởi động lại backend (đọc `devices.status_json`). App quy `rssi_dbm` ra mức tín hiệu.
+  - **Yêu cầu firmware datalogger** (quyết định 11/10/2026): gửi thêm `logger_sn` (serial riêng của datalogger) và `conn_type`
+    (`wifi` | `ethernet` | `4g`) trong `up/status`. Chưa gửi thì `serial = null` (app hiện "—"), `connection = "wifi"`.
+  - `discharge_limit_soc_percent` = SOC dự phòng (`battery_reserve_soc` của `config/state`).
+    `charge_limit_soc_percent` đọc `charge_stop_soc` trong `config/state` — **yêu cầu firmware** gửi trường này; chưa có thì null
+    (app ẩn vạch sạc).
+- Backend: đã làm trên nhánh `feature/contract-and-theme`; test `DataloggerLinkAndBatteryLimitsReachTheDeviceScreens`.
+- App cần làm: thẻ Datalogger (màn Thiết bị) và vạch giới hạn (màn Năng lượng pin) đọc các trường này ở bản live.
+
 ## 2026-10-11 · Màn chính: CO₂ hôm nay, sạc pin hôm nay theo nguồn, model
 - Loại: thêm      Phá tương thích: không
 - Phạm vi: GET /projects/{projectId}/overview; GET /projects/{projectId}/telemetry và frame realtime `device` (`DeviceSnapshot`)
@@ -58,6 +73,4 @@ Các trường dưới đây **chưa có** trong hợp đồng. Khi backend làm
 
 | Màn (thiết kế mới) | Dữ liệu cần | Đề xuất vị trí | Ghi chú |
 |---|---|---|---|
-| Device · thẻ Datalogger Wi-Fi | serial datalogger, online, cường độ tín hiệu (RSSI → mức), kiểu kết nối, firmware | `DeviceEntry.datalogger` và `DeviceSnapshot.datalogger` | Datalogger đã gửi `rssi`, `ip`, `logger_fw` trong `up/status` (backend có `Rssi` ở `Telemetry.cs`) nhưng chưa đưa ra API |
-| BatteryEnergy · vạch giới hạn | giới hạn SOC sạc / xả (%) từ cấu hình BMS | `DeviceSnapshot.battery.charge_limit_soc_percent`, `discharge_limit_soc_percent` | Cần firmware gửi nếu chưa có |
 | Config · thông báo "chưa có truyền thông BMS" | cờ truyền thông BMS | đã có `bms_comm` ở `DeviceEntry` / `DeviceSnapshot` | Có thể không cần trường mới; cân nhắc thêm vào `ConfigSnapshot` cho tiện |

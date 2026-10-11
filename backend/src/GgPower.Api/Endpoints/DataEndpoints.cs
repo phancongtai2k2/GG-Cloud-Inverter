@@ -106,6 +106,7 @@ public static class DataEndpoints
                     },
                     battery_present = present,
                     bms_comm = d?.Battery?.BmsComm,
+                    datalogger = d is null ? null : LiveJson.Datalogger(d, reachable),
                     battery = !hasBattery ? null : new
                     {
                         name = d!.Battery!.Model ?? "Battery",

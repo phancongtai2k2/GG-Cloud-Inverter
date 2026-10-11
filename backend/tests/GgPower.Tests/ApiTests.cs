@@ -498,6 +498,37 @@ public class IngestTests(AppFixture app)
     }
 
     [Fact]
+    public async Task DataloggerLinkAndBatteryLimitsReachTheDeviceScreens()
+    {
+        var owner = await app.NewUser();
+        var serial = await app.NewDevice();
+        var project = await app.NewProject(owner, serial);
+        await app.Feed(serial, "status", new { sn = serial, state = "online", logger_fw = "1.0.17", ip_addr = "192.168.1.23", signal_rssi = -61 });
+
+        // Current firmware: no own serial, no link type → serial unknown, link is the Wi-Fi the product ships with.
+        var logger = (await app.Get($"/api/v1/projects/{project}/devices", owner.Access)).Body!.AsArray()[0]!["datalogger"]!;
+        Assert.Null(logger["serial"]);
+        Assert.Equal("wifi", (string)logger["connection"]!);
+        Assert.Equal(-61, (int)logger["rssi_dbm"]!);
+        Assert.Equal("192.168.1.23", (string)logger["ip"]!);
+        Assert.Equal("1.0.17", (string)logger["firmware"]!);
+        Assert.True((bool)logger["online"]!);
+
+        // Newer firmware sends them; an unknown link type is ignored.
+        await app.Feed(serial, "status", new { sn = serial, state = "online", logger_sn = "GGW-25031501", conn_type = "ethernet" });
+        var frame = (await app.Get($"/api/v1/projects/{project}/telemetry", owner.Access)).Body!;
+        Assert.Equal("GGW-25031501", (string)frame["datalogger"]!["serial"]!);
+        Assert.Equal("ethernet", (string)frame["datalogger"]!["connection"]!);
+        Assert.Equal(-61, (int)frame["datalogger"]!["rssi_dbm"]!);   // kept from the earlier status
+
+        // Battery limits: discharge stops at the backup SOC; the charge limit waits for the firmware.
+        await app.Feed(serial, "battery", new { sn = serial, ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds(), soc = 76, voltage = 52.0, current = 3.0, present = true });
+        var battery = (await app.Get($"/api/v1/projects/{project}/telemetry", owner.Access)).Body!["battery"]!;
+        Assert.Equal(10, (int)battery["discharge_limit_soc_percent"]!);
+        Assert.Null(battery["charge_limit_soc_percent"]);
+    }
+
+    [Fact]
     public async Task ReplayedBrokerMessagesAreNotASignOfLife()
     {
         var owner = await app.NewUser();
