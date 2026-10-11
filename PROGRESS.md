@@ -21,6 +21,7 @@ Cập nhật: 11/10/2026 · Nhánh: `feature/contract-and-theme` (16 commit trê
 | 11/10 | Mọi điểm cần người dùng quyết: hỏi bằng hộp chọn (popup) rồi mới làm |
 | 11/10 | Main: nền trời dark `auto` = giờ máy 6h–18h là ngày; tuỳ chỉnh màn chính lưu **chung mọi dự án** (DataStore); làm Main trong 3 commit: sơ đồ nhà → nền trời → bottom sheet + tab kỳ + thu phóng |
 | 11/10 | Datalogger: API trả rssi / ip / firmware ngay; serial đọc `logger_sn`, kiểu kết nối đọc `conn_type` khi firmware gửi (chưa có: serial null, kết nối "wifi"). Vạch giới hạn SOC: xả = `battery_reserve_soc` (SOC dự phòng), sạc đọc `charge_stop_soc` khi firmware gửi (chưa có: null) |
+| 11/10 | Nâng cấp 4.4: metrics dùng OpenTelemetry + Prometheus (D1); broker giữ bản tin cho backend ≈ 10 phút ở 5.000 thiết bị, `max_queued_messages` ≈ 800.000 (D2) |
 
 ## 3. Đã xong
 
@@ -62,8 +63,8 @@ Còn lại nhỏ: màn Dữ liệu inverter/pin vẫn truyền chuỗi `reg_*` v
 |---|---|---|---|
 | A0 | Bài thử tải `tools/GgPower.LoadGen`, số nền → `docs/LOADTEST.md` | **Xong**: ingest dư (5.000 tb = 13 % một lõi); tổng hợp 2,9 / 5,9 / 11,6 s ở 1k / 2k / 5k tb → trần ~10–12k; ≈ 3,2 MB/tb/ngày | 1f9415c |
 | A1 | Index `upper(serial)` | **Xong**: migration 003, test EXPLAIN | ff4e260 |
-| A2 | `/healthz/live`, `/healthz/ready` | **Xong**: ready kiểm DB ≤ 2 s, MQTT, hàng đợi < 80 %; Caddy dùng ở B7 | (commit kế tiếp ghi) |
-| A3 | Metrics OpenTelemetry → `/metrics` (D1) | Chưa làm | |
+| A2 | `/healthz/live`, `/healthz/ready` | **Xong**: ready kiểm DB ≤ 2 s, MQTT, hàng đợi < 80 %; Caddy dùng ở B7 | d714134 |
+| A3 | Metrics OpenTelemetry → `/metrics` (D1) | **Xong**: meter `GgPower` (ingest, ghi lô, tổng hợp, lệnh, kết nối, thiết bị) + HTTP; `docs/METRICS.md` | (commit kế tiếp ghi) |
 | A4 | Tổng hợp tăng dần (chỉ thiết bị / ngày có dữ liệu mới) | Chưa làm | |
 | A5 | MQTT persistent session, hàng đợi broker (D2) | Chưa làm | |
 | A6 | Ghi status / cảnh báo / config-state qua hàng đợi | Chưa làm | |

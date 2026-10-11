@@ -75,6 +75,16 @@ paths:
                 properties:
                   status: { type: string, const: not_ready }
                   problems: { type: array, items: { type: string, enum: [database, mqtt, ingest_queue] } }
+  /metrics:
+    get:
+      tags: [ops]
+      summary: Metrics dạng Prometheus (nội bộ, Caddy không chuyển ra ngoài) — danh sách ở backend/docs/METRICS.md
+      security: []
+      responses:
+        "200":
+          description: Văn bản định dạng Prometheus exposition
+          content:
+            text/plain: { schema: { type: string } }
 
   # ---------------------------------------------------------------- auth
   /api/v1/auth/login:

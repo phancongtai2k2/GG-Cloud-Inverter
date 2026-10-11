@@ -439,6 +439,7 @@ public sealed class BatchWriter(Db db, IngestPipeline pipeline, LiveStateCache l
                     foreach (var t in telemetry) if (t.SpanS is not null || t.Ts < late) backfill.Request(t.Serial, t.Ts);
                     foreach (var b in battery) if (b.Ts < late) backfill.Request(b.Serial, b.Ts);
                     LastBatchMs = sw.Elapsed.TotalMilliseconds;
+                    GgMetrics.BatchDuration.Record(LastBatchMs);
                     Written += telemetry.Count + battery.Count;
                     telemetry.Clear();
                     battery.Clear();
@@ -699,8 +700,10 @@ public sealed class RollupService(Db db, PartitionMaintenance partitions, Backfi
                 }
                 var started = System.Diagnostics.Stopwatch.GetTimestamp();
                 await RunOnceAsync(now, stop);
+                var took = System.Diagnostics.Stopwatch.GetElapsedTime(started).TotalMilliseconds;
+                GgMetrics.RollupDuration.Record(took);
                 // Load tests turn this on (Logging:LogLevel:GgPower.Infrastructure.RollupService = Debug) to measure the job.
-                log.LogDebug("rollup took {Ms} ms for {Devices} device(s)", System.Diagnostics.Stopwatch.GetElapsedTime(started).TotalMilliseconds, live.All.Count());
+                log.LogDebug("rollup took {Ms} ms for {Devices} device(s)", took, live.All.Count());
             }
             catch (OperationCanceledException) when (stop.IsCancellationRequested) { break; }
             catch (Exception ex) { log.LogError(ex, "rollup failed"); }

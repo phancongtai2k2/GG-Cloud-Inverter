@@ -4,6 +4,7 @@ using System.Threading.RateLimiting;
 using GgPower.Api;
 using GgPower.Api.Endpoints;
 using GgPower.Infrastructure;
+using OpenTelemetry.Metrics;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
@@ -64,6 +65,11 @@ builder.Services.AddSingleton<FileStore>();
 builder.Services.AddSingleton<StatsService>();
 builder.Services.AddSingleton<RealtimeTickets>();
 builder.Services.AddMemoryCache(o => o.SizeLimit = null);
+// Metrics for Prometheus at /metrics (plan A3): application meter + ASP.NET Core HTTP metrics. Not routed by Caddy.
+builder.Services.AddOpenTelemetry().WithMetrics(m => m
+    .AddMeter(GgMetrics.MeterName)
+    .AddAspNetCoreInstrumentation()
+    .AddPrometheusExporter());
 
 builder.Services.ConfigureHttpJsonOptions(o =>
 {
@@ -208,6 +214,9 @@ app.MapGet("/healthz", (MqttLink mqtt, RealtimeHub hub, BatchWriter writer, Inge
 })).DisableRateLimiting();
 
 HealthEndpoints.Map(app);
+GgMetrics.Observe(app.Services.GetRequiredService<IngestPipeline>(), app.Services.GetRequiredService<BatchWriter>(),
+    app.Services.GetRequiredService<RealtimeHub>(), app.Services.GetRequiredService<LiveStateCache>(), app.Services.GetRequiredService<TimeProvider>());
+app.MapPrometheusScrapingEndpoint("/metrics").WithMetadata(new Microsoft.AspNetCore.Routing.HttpMethodMetadata(["GET"])).DisableRateLimiting();
 
 var api = app.MapGroup("/api/v1");
 AuthEndpoints.Map(api);

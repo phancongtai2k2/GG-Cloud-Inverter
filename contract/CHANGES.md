@@ -26,6 +26,13 @@
 
 ---
 
+## 2026-10-11 · Metrics Prometheus
+- Loại: thêm      Phá tương thích: không
+- Phạm vi: GET /metrics (ngoài /api/v1, nội bộ — Caddy không chuyển ra ngoài)
+- Chi tiết: định dạng Prometheus; danh sách và ý nghĩa ở `backend/docs/METRICS.md`.
+- Backend: bước A3 (OpenTelemetry + exporter Prometheus).
+- App cần làm: không.
+
 ## 2026-10-11 · Health check liveness / readiness
 - Loại: thêm      Phá tương thích: không
 - Phạm vi: GET /healthz/live, GET /healthz/ready (ngoài /api/v1, dành cho load balancer / vận hành)

@@ -36,6 +36,18 @@ public class ScaleTests(AppFixture app)
         Assert.Equal((HttpStatusCode.OK, "ready"), (ready.Status, (string)ready.Body!["status"]!));
     }
 
+    // A3: application metrics in Prometheus format, including the ingest counters and the HTTP metrics.
+    [Fact]
+    public async Task MetricsAreExportedForPrometheus()
+    {
+        await app.NewDevice();   // at least one message received and one device known
+        var res = await app.Get("/metrics", null);
+        Assert.Equal(HttpStatusCode.OK, res.Status);
+        var text = await res.Raw.Content.ReadAsStringAsync();
+        foreach (var name in new[] { "ggpower_ingest_received_total", "ggpower_ingest_queue_length", "ggpower_writer_rows_total", "ggpower_devices_known", "http_server_request_duration_seconds" })
+            Assert.Contains(name, text);
+    }
+
     [Theory]
     [InlineData(false, false, 0, 100, "")]
     [InlineData(true, true, 80, 100, "")]

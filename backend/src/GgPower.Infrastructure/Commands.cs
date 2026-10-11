@@ -177,6 +177,7 @@ public sealed class CommandService(
         if (!_running.TryAdd(d.Serial, id))
             return SubmitResult.Fail(409, "COMMAND_IN_PROGRESS", new { command_id = _running.GetValueOrDefault(d.Serial) });
         _lastCommand[d.Serial] = now;
+        GgMetrics.CommandsSubmitted.Add(1, new KeyValuePair<string, object?>("group", group));
 
         try
         {
@@ -450,6 +451,7 @@ public sealed class CommandService(
         await c.ExecuteAsync(
             "UPDATE config_commands SET status = @status, changes = @ch::jsonb, outcome = @o::jsonb, failure = @f::jsonb, updated_at = now() WHERE id = @id",
             new { id, status, ch = JsonSerializer.Serialize(changes, Json), o = JsonSerializer.Serialize(outcome, Json), f = failure is null ? null : JsonSerializer.Serialize(failure, Json) });
+        GgMetrics.CommandsFinished.Add(1, new KeyValuePair<string, object?>("status", status));
     }
 
     // ---------- queries ----------
