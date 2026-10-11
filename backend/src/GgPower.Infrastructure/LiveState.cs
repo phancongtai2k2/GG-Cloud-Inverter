@@ -25,6 +25,8 @@ public sealed class DeviceLive
     public double? RatedPowerKw { get; set; }
     public double BattFromPvKwh { get; set; }
     public double BattFromGridKwh { get; set; }
+    /// <summary>Energy charged into the battery since local midnight, refreshed by the roll-up job; null until it first ran.</summary>
+    public ChargedToday? ChargedToday { get; set; }
     public int OpenErrors { get; set; }
     public int OpenWarnings { get; set; }
     public int Unresolved { get; set; }
@@ -53,6 +55,9 @@ public sealed class DeviceLive
 }
 
 public sealed record ActiveError(string Code, string Title);
+
+/// <summary>kWh charged into the battery today, by source (PV charge and the rest, which came from the grid).</summary>
+public sealed record ChargedToday(double FromPvKwh, double FromGridKwh);
 
 public sealed class LiveStateCache
 {
@@ -157,6 +162,19 @@ public static class LiveJson
         DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.Never,
     };
 
+    /// <summary>
+    /// Grid emission factor for "CO₂ avoided" (kg per kWh of PV yield). Set once at startup from <c>Stats:Co2KgPerKwh</c>
+    /// so the realtime frame and the REST statistics agree.
+    /// </summary>
+    public static double Co2KgPerKwh { get; set; } = 0.6766;
+
+    public static double? Co2Kg(double? yieldKwh) => yieldKwh is { } y ? Math.Round(y * Co2KgPerKwh, 1) : null;
+
+    public static object? Charged(ChargedToday? c) => c is null ? null : new
+    {
+        from_pv_kwh = Math.Round(c.FromPvKwh, 2), from_grid_kwh = Math.Round(c.FromGridKwh, 2),
+    };
+
     public static object Snapshot(DeviceLive d, DateTimeOffset now)
     {
         lock (d.Gate)
@@ -205,6 +223,10 @@ public static class LiveJson
                 {
                     capacity_kwh = d.BatteryCapacityKwh, from_pv_kwh = Math.Round(d.BattFromPvKwh, 3), from_grid_kwh = Math.Round(d.BattFromGridKwh, 3),
                 } : null,
+                // Home screen chip: today's yield × emission factor (null while the yield is not known).
+                co2_today_kg = t is null || !reachable ? null : Co2Kg(t.YieldToday),
+                // Home screen battery card: kWh charged since local midnight (from the roll-up, ~30 s behind).
+                battery_charged_today = none ? null : Charged(d.ChargedToday),
             };
         }
     }

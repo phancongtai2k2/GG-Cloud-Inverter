@@ -26,6 +26,22 @@
 
 ---
 
+## 2026-10-11 · Màn chính: CO₂ hôm nay, sạc pin hôm nay theo nguồn, model
+- Loại: thêm      Phá tương thích: không
+- Phạm vi: GET /projects/{projectId}/overview; GET /projects/{projectId}/telemetry và frame realtime `device` (`DeviceSnapshot`)
+- Chi tiết:
+  - `Overview.model` (string | null): model inverter.
+  - `Overview.co2_today_kg`, `DeviceSnapshot.co2_today_kg` (number | null): `yield_today_kwh × Stats:Co2KgPerKwh`, cùng hệ số với
+    `/stats` `summary.co2_kg`. Overview null khi chưa gắn thiết bị; frame null khi thiết bị không liên lạc được.
+  - `Overview.battery_charged_today`, `DeviceSnapshot.battery_charged_today` (`BatteryChargedToday` | null):
+    `{from_pv_kwh, from_grid_kwh}` = kWh đã sạc vào pin từ 00:00 giờ địa phương của dự án; `from_pv_kwh` = `rollup_1d.pv_charge_kwh`,
+    `from_grid_kwh` = `charge_kwh − pv_charge_kwh` (không âm). Null khi inverter báo không có pin. Frame lấy số từ bộ nhớ, được
+    job tổng hợp làm mới mỗi 30 s (trễ ≈ 30 s so với telemetry).
+- Backend: đã làm trên nhánh `feature/contract-and-theme` (`LiveState.cs`, `Ingest.cs` `RollupService.RefreshChargedTodayAsync`,
+  `DataEndpoints.cs`); test `SamplesAreStoredAndRolledUpIntoStatistics`.
+- App cần làm: đọc `co2_today_kg` → `HomeOverview.co2TodayKg`, `battery_charged_today` → `HomeOverview.chargedToday` ở cả
+  `/overview` và frame `device` (thay "—" ở bản live).
+
 ## 2026-10-11 · Khởi tạo hợp đồng chung
 - Loại: sửa tài liệu      Phá tương thích: không
 - Phạm vi: toàn bộ API v1 (55 thao tác) và kênh realtime
@@ -45,6 +61,3 @@ Các trường dưới đây **chưa có** trong hợp đồng. Khi backend làm
 | Device · thẻ Datalogger Wi-Fi | serial datalogger, online, cường độ tín hiệu (RSSI → mức), kiểu kết nối, firmware | `DeviceEntry.datalogger` và `DeviceSnapshot.datalogger` | Datalogger đã gửi `rssi`, `ip`, `logger_fw` trong `up/status` (backend có `Rssi` ở `Telemetry.cs`) nhưng chưa đưa ra API |
 | BatteryEnergy · vạch giới hạn | giới hạn SOC sạc / xả (%) từ cấu hình BMS | `DeviceSnapshot.battery.charge_limit_soc_percent`, `discharge_limit_soc_percent` | Cần firmware gửi nếu chưa có |
 | Config · thông báo "chưa có truyền thông BMS" | cờ truyền thông BMS | đã có `bms_comm` ở `DeviceEntry` / `DeviceSnapshot` | Có thể không cần trường mới; cân nhắc thêm vào `ConfigSnapshot` cho tiện |
-| Main · chip CO₂ | CO₂ giảm hôm nay (kg) | `Overview.co2_today_kg` | Hiện chỉ có ở `/stats` (summary.co2_kg) |
-| Main · tên thiết bị trên sơ đồ nhà | model inverter | `Overview.model` | Đã có ở `DeviceSnapshot.model` |
-| Main · "Dung lượng sạc hôm nay (Từ PV / Từ lưới)" | kWh **đã sạc vào pin hôm nay**, tách theo nguồn PV / lưới | `Overview.battery_charged_today: {from_pv_kwh, from_grid_kwh}` (và trong frame `device`) | Chủ sản phẩm chốt 11/10/2026. Khác `battery_content` (năng lượng đang trong pin). Tính từ `rollup_15m.pv_charge_kwh` và `charge_kwh − pv_charge_kwh` của ngày địa phương |

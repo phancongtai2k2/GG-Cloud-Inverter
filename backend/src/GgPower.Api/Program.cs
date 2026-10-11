@@ -158,6 +158,8 @@ builder.Services.Configure<ForwardedHeadersOptions>(o =>
 });
 
 var app = builder.Build();
+// The realtime frame computes "CO₂ avoided today" with the same factor as the statistics endpoints.
+LiveJson.Co2KgPerKwh = app.Services.GetRequiredService<Microsoft.Extensions.Options.IOptions<StatsOptions>>().Value.Co2KgPerKwh;
 
 await app.Services.GetRequiredService<Migrator>().MigrateAsync();
 await app.Services.GetRequiredService<PartitionMaintenance>()

@@ -531,7 +531,7 @@ public sealed class BatchWriter(Db db, IngestPipeline pipeline, LiveStateCache l
 }
 
 /// <summary>Aggregates raw samples into 15-minute and daily rows, and maintains partitions.</summary>
-public sealed class RollupService(Db db, PartitionMaintenance partitions, BackfillTracker backfill, IOptions<IngestOptions> options, TimeProvider clock, ILogger<RollupService> log) : BackgroundService
+public sealed class RollupService(Db db, PartitionMaintenance partitions, BackfillTracker backfill, LiveStateCache live, IOptions<IngestOptions> options, TimeProvider clock, ILogger<RollupService> log) : BackgroundService
 {
     // "/*serials*/" becomes a filter when only some devices are recalculated.
     private static string For(string sql, string column, bool filtered) => sql.Replace("/*serials*/", filtered ? $"AND {column} = ANY(@serials)" : "");
@@ -589,6 +589,7 @@ public sealed class RollupService(Db db, PartitionMaintenance partitions, Backfi
         await using var c = await db.OpenAsync(ct);
         // Daily rows are rebuilt from whole local days: start two days back at UTC midnight minus a day of margin.
         await RunAsync(c, from, now, new DateTimeOffset(now.UtcDateTime.Date.AddDays(-3), TimeSpan.Zero), null);
+        await RefreshChargedTodayAsync(c, now);
 
         // Samples that arrived for an older time: compute that time again, for those devices only.
         if (backfill.Take() is not { } req) return;
@@ -636,6 +637,33 @@ public sealed class RollupService(Db db, PartitionMaintenance partitions, Backfi
             charge_kwh = EXCLUDED.charge_kwh, discharge_kwh = EXCLUDED.discharge_kwh,
             pv_self_kwh = EXCLUDED.pv_self_kwh, pv_charge_kwh = EXCLUDED.pv_charge_kwh, pv_export_kwh = EXCLUDED.pv_export_kwh, soc_avg = EXCLUDED.soc_avg
         """;
+
+    // Today's battery charge by source for each device, "today" being the local day of the device's project.
+    private const string ChargedTodaySql =
+        """
+        SELECT s.serial AS Serial, COALESCE(d.pv_charge_kwh, 0) AS Pv, COALESCE(d.charge_kwh, 0) AS Total
+        FROM unnest(@serials::text[]) AS s(serial)
+        LEFT JOIN project_devices pd ON pd.serial = s.serial
+        LEFT JOIN projects p ON p.id = pd.project_id
+        LEFT JOIN rollup_1d d ON d.serial = s.serial AND d.day = (@now AT TIME ZONE COALESCE(p.time_zone, @tz))::date
+        """;
+
+    /// <summary>
+    /// Copies today's charged energy (PV part and the rest, from the grid) into the live state of the devices heard
+    /// from in the last day, so the realtime frame carries it without a database read per message.
+    /// </summary>
+    private async Task RefreshChargedTodayAsync(NpgsqlConnection c, DateTimeOffset now)
+    {
+        var serials = live.All.Where(d => now - d.LastSeen < TimeSpan.FromDays(1)).Select(d => d.Serial).ToArray();
+        if (serials.Length == 0) return;
+        var rows = await c.QueryAsync<(string Serial, double Pv, double Total)>(
+            ChargedTodaySql, new { serials, now, tz = options.Value.DefaultTimeZone });
+        foreach (var r in rows)
+        {
+            if (live.Get(r.Serial) is not { } d) continue;
+            lock (d.Gate) d.ChargedToday = new ChargedToday(r.Pv, Math.Max(r.Total - r.Pv, 0));
+        }
+    }
 
     public static DateTimeOffset Floor15(DateTimeOffset t) =>
         new(t.UtcDateTime.Ticks - t.UtcDateTime.Ticks % TimeSpan.FromMinutes(15).Ticks, TimeSpan.Zero);

@@ -32,14 +32,20 @@ public static class DataEndpoints
                 await using var c = await db.OpenAsync(ct);
                 touActive = await c.ExecuteScalarAsync<bool?>("SELECT tou_active FROM tou_strategies WHERE serial = @s", new { s = d.Serial }) ?? false;
             }
+            var yieldToday = t?.YieldToday ?? (d is null ? 0 : await stats.DayYieldAsync(d.Serial, today, ct));
             return Results.Json(new
             {
                 project_name = a.Project.Name,
                 serial = d?.Serial,
+                model = d?.Model,
                 status = d is null ? "waiting_connection" : d.StatusName(now),
                 updated_at = d?.LastSeen,
                 unresolved_alerts = d?.Unresolved ?? 0,
-                yield_today_kwh = t?.YieldToday ?? (d is null ? 0 : await stats.DayYieldAsync(d.Serial, today, ct)),
+                yield_today_kwh = yieldToday,
+                // Same emission factor as /stats summary.co2_kg; null before the device is bound.
+                co2_today_kg = d is null ? null : LiveJson.Co2Kg(yieldToday),
+                // kWh charged into the battery since local midnight, by source; null without a device or without a battery.
+                battery_charged_today = d is null || present == false ? null : LiveJson.Charged(await stats.DayChargeAsync(d.Serial, today, ct)),
                 yield_yesterday_kwh = d is null ? 0 : await stats.DayYieldAsync(d.Serial, today.AddDays(-1), ct),
                 energy = t is null ? null : new
                 {

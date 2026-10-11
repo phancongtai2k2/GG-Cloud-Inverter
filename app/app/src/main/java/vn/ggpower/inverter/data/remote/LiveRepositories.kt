@@ -27,6 +27,7 @@ import vn.ggpower.inverter.data.battery.BatteryEnergyRepository
 import vn.ggpower.inverter.data.device.DeviceLoadException
 import vn.ggpower.inverter.data.device.DeviceRepository
 import vn.ggpower.inverter.data.home.BatterySample
+import vn.ggpower.inverter.data.home.ChargedToday
 import vn.ggpower.inverter.data.home.DayCurves
 import vn.ggpower.inverter.data.home.EnergyBucket
 import vn.ggpower.inverter.data.home.HomeOverview
@@ -320,6 +321,9 @@ class LiveHomeRepository @Inject constructor(private val api: ApiClient, private
                             batterySocPercent = t.num("soc_percent")?.roundToInt() ?: 0,
                         ),
                         battery = m.obj("battery_content")?.let(::content) ?: base.battery,
+                        // Thiếu trường (backend cũ) thì giữ số của bản tổng quan; null tường minh thì xoá.
+                        co2TodayKg = if ("co2_today_kg" in m) m.num("co2_today_kg") else base.co2TodayKg,
+                        chargedToday = if ("battery_charged_today" in m) m.obj("battery_charged_today")?.let(::charged) else base.chargedToday,
                     )
                     emit(current!!)
                 }
@@ -351,8 +355,14 @@ class LiveHomeRepository @Inject constructor(private val api: ApiClient, private
             mode = mode(o.str("mode")),
             backupSocPercent = o.int("backup_soc_percent") ?: 0,
             battery = o.obj("battery")?.let(::content) ?: NO_BATTERY,
+            co2TodayKg = o.num("co2_today_kg"),
+            chargedToday = o.obj("battery_charged_today")?.let(::charged),
         )
     }
+
+    /** `BatteryChargedToday` (contract 2026-10-11): kWh sạc vào pin hôm nay theo nguồn. */
+    private fun charged(o: JsonObject): ChargedToday =
+        ChargedToday(fromPvKwh = o.num("from_pv_kwh") ?: 0.0, fromGridKwh = o.num("from_grid_kwh") ?: 0.0)
 
     private suspend fun stats(projectId: String, selection: PeriodSelection): JsonObject {
         val period = when (selection.period) {

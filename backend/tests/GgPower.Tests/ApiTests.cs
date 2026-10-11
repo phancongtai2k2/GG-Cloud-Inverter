@@ -582,6 +582,18 @@ public class IngestTests(AppFixture app)
         var curves = (await app.Get($"/api/v1/projects/{project}/day-curves?date={today}", owner.Access)).Body!;
         Assert.NotEmpty(curves["power"]!.AsArray());
 
+        // Home screen: charged today by source (1 kW into the battery, all of it PV surplus), CO₂ from today's yield.
+        var overview = (await app.Get($"/api/v1/projects/{project}/overview", owner.Access)).Body!;
+        Assert.Equal("Test Inverter", (string)overview["model"]!);
+        Assert.Equal(5.1, (double)overview["co2_today_kg"]!);   // 7.5 kWh × 0.6766
+        var charged = overview["battery_charged_today"]!;
+        Assert.InRange((double)charged["from_pv_kwh"]!, 0.01, 0.03);
+        Assert.Equal(0, (double)charged["from_grid_kwh"]!);
+        // The roll-up copied the same figure into the live state, so the realtime frame carries it too.
+        var frame = (await app.Get($"/api/v1/projects/{project}/telemetry", owner.Access)).Body!;
+        Assert.Equal((double)charged["from_pv_kwh"]!, (double)frame["battery_charged_today"]!["from_pv_kwh"]!);
+        Assert.Equal(5.1, (double)frame["co2_today_kg"]!);
+
         var closed = await app.Get($"/api/v1/projects/{project}/stats?period=day&anchor=2026-01-01", owner.Access);
         Assert.Contains("immutable", closed.Raw.Headers.CacheControl!.ToString());
         var etag = closed.Raw.Headers.ETag!.Tag;

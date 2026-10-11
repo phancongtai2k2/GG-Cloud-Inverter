@@ -169,6 +169,15 @@ public sealed class StatsService(Db db, IMemoryCache cache, BackfillTracker back
         return await c.ExecuteScalarAsync<double?>("SELECT pv_kwh FROM rollup_1d WHERE serial = @serial AND day = @day", new { serial, day }) ?? 0;
     }
 
+    /// <summary>kWh charged into the battery on a local day: the PV part and the rest (from the grid).</summary>
+    public async Task<ChargedToday> DayChargeAsync(string serial, DateOnly day, CancellationToken ct)
+    {
+        await using var c = await db.OpenAsync(ct);
+        var r = await c.QuerySingleOrDefaultAsync<(double Pv, double Total)?>(
+            "SELECT pv_charge_kwh, charge_kwh FROM rollup_1d WHERE serial = @serial AND day = @day", new { serial, day });
+        return r is { } v ? new ChargedToday(v.Pv, Math.Max(v.Total - v.Pv, 0)) : new ChargedToday(0, 0);
+    }
+
     /// <summary>Average load of the last 7 days in kW (for the backup-hours estimate).</summary>
     public async Task<double?> AverageLoadKwAsync(string serial, CancellationToken ct)
     {

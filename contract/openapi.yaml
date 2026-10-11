@@ -1146,6 +1146,21 @@ components:
           oneOf:
             - { $ref: "#/components/schemas/BatteryContent" }
             - { type: "null" }
+        model: { type: [string, "null"], description: Model inverter do datalogger báo }
+        co2_today_kg:
+          type: [number, "null"]
+          description: CO₂ giảm hôm nay = yield_today_kwh × hệ số `Stats:Co2KgPerKwh`; null khi dự án chưa gắn thiết bị
+        battery_charged_today:
+          description: kWh đã sạc vào pin hôm nay theo nguồn (khác `battery` là năng lượng đang trong pin); null khi chưa gắn thiết bị hoặc inverter báo không có pin
+          oneOf:
+            - { $ref: "#/components/schemas/BatteryChargedToday" }
+            - { type: "null" }
+    BatteryChargedToday:
+      type: object
+      required: [from_pv_kwh, from_grid_kwh]
+      properties:
+        from_pv_kwh: { type: number, description: Phần sạc từ PV dư (rollup pv_charge_kwh) }
+        from_grid_kwh: { type: number, description: Phần còn lại (charge_kwh − pv_charge_kwh, không âm) }
     DayCurves:
       type: object
       required: [date, step_minutes, closed, power, battery]
@@ -1273,6 +1288,14 @@ components:
         battery_content:
           oneOf:
             - { $ref: "#/components/schemas/BatteryContent" }
+            - { type: "null" }
+        co2_today_kg:
+          type: [number, "null"]
+          description: CO₂ giảm hôm nay = yield_today_kwh × hệ số `Stats:Co2KgPerKwh` (như /stats summary.co2_kg); null khi không liên lạc được
+        battery_charged_today:
+          description: kWh đã sạc vào pin từ 00:00 giờ địa phương (từ bảng tổng hợp, trễ ≈ 30 s); null khi inverter báo không có pin hoặc chưa tính lần nào
+          oneOf:
+            - { $ref: "#/components/schemas/BatteryChargedToday" }
             - { type: "null" }
     TelemetryLive:
       type: object
