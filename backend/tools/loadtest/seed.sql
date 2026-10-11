@@ -3,6 +3,9 @@
 --   docker exec -i ggpower-pg-test psql -U ggpower -d ggpower_load -v n=2000 < seed.sql
 -- Run after the backend started once (it creates the tables and today's partitions).
 
+-- One transaction holding the roll-up tables, so a running backend does not write the same rows meanwhile.
+BEGIN;
+LOCK TABLE rollup_15m, rollup_1d, telemetry_raw IN EXCLUSIVE MODE;
 DELETE FROM rollup_15m WHERE serial LIKE 'LOAD-%';
 DELETE FROM rollup_1d WHERE serial LIKE 'LOAD-%';
 DELETE FROM telemetry_raw WHERE serial LIKE 'LOAD-%';
@@ -15,11 +18,18 @@ FROM generate_series(1, :n) AS i,
      generate_series(date_bin('15 minutes', now() - interval '4 days', TIMESTAMPTZ '2000-01-01'),
                      date_bin('15 minutes', now() - interval '40 minutes', TIMESTAMPTZ '2000-01-01'), interval '15 minutes') AS b;
 
+-- Day rows as a long-running system has them (the incremental roll-up updates them by difference).
+INSERT INTO rollup_1d (serial, day, pv_kwh, load_kwh, import_kwh, export_kwh, charge_kwh, discharge_kwh, pv_self_kwh, pv_charge_kwh, pv_export_kwh, soc_avg, soc_sum, soc_n)
+SELECT serial, (bucket AT TIME ZONE 'Asia/Ho_Chi_Minh')::date, sum(pv_kwh), sum(load_kwh), sum(import_kwh), sum(export_kwh), sum(charge_kwh),
+       sum(discharge_kwh), sum(pv_self_kwh), sum(pv_charge_kwh), sum(pv_export_kwh), avg(soc), sum(soc), count(soc)
+FROM rollup_15m WHERE serial LIKE 'LOAD-%' GROUP BY 1, 2;
+
 INSERT INTO telemetry_raw (serial, ts, inv_status, pv_w, grid_w, load_w, batt_w, soc)
 SELECT 'LOAD-' || lpad(i::text, 5, '0'), t, 3, 3000, 200, 1200, 1600, 60
 FROM generate_series(1, :n) AS i,
      generate_series(now() - interval '35 minutes', now() - interval '10 seconds', interval '5 seconds') AS t;
 
+COMMIT;
 ANALYZE rollup_15m;
 ANALYZE telemetry_raw;
 SELECT (SELECT count(*) FROM rollup_15m WHERE serial LIKE 'LOAD-%') AS rollup_rows,

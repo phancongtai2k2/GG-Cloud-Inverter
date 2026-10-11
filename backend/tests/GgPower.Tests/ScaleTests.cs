@@ -25,6 +25,48 @@ public class ScaleTests(AppFixture app)
         Assert.Contains(index, plan);
     }
 
+    // A4: the incremental roll-up gives the same numbers as a full pass, and leaves devices without new samples alone.
+    [Fact]
+    public async Task IncrementalRollupMatchesAFullPassAndSkipsQuietDevices()
+    {
+        var busy = await app.NewDevice();
+        var quiet = await app.NewDevice();
+        var rollup = app.Service<RollupService>();
+        await using var c = await app.Service<Db>().OpenAsync();
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        async Task FeedAndWait(string serial, long from)
+        {
+            for (var i = 0; i < 6; i++)
+                await app.Feed(serial, "telemetry", AppFixture.Telemetry(serial, pv: 3000, grid: -500, load: 1500, battFlow: -1000, ts: from + i * 5));
+            for (var k = 0; k < 50 && await c.ExecuteScalarAsync<int>("SELECT count(*) FROM telemetry_raw WHERE serial = @serial AND ts >= to_timestamp(@from)", new { serial, from }) < 6; k++)
+                await Task.Delay(100);
+            await Task.Delay(1200);   // the batch writer marks the rows for the roll-up right after writing them
+        }
+        const string Day = "SELECT pv_kwh, charge_kwh, pv_charge_kwh, soc_avg FROM rollup_1d WHERE serial = @serial ORDER BY day DESC LIMIT 1";
+
+        await FeedAndWait(busy, now - 60);
+        await FeedAndWait(quiet, now - 60);
+        // The first call may be the start-up full pass; the second is incremental either way.
+        await rollup.RunOnceAsync(DateTimeOffset.UtcNow, CancellationToken.None);
+        await rollup.RunOnceAsync(DateTimeOffset.UtcNow, CancellationToken.None);
+
+        // A quiet device keeps whatever its daily row holds: an incremental run does not touch it.
+        await c.ExecuteAsync("UPDATE rollup_1d SET pv_kwh = 999 WHERE serial = @quiet", new { quiet });
+        await FeedAndWait(busy, now - 25);
+        await rollup.RunOnceAsync(DateTimeOffset.UtcNow, CancellationToken.None);
+        Assert.Equal(999, await c.ExecuteScalarAsync<double>("SELECT pv_kwh FROM rollup_1d WHERE serial = @quiet ORDER BY day DESC LIMIT 1", new { quiet }));
+
+        // The busy device's numbers from the incremental runs equal a full recomputation.
+        var incremental = await c.QuerySingleAsync<(double Pv, double Chg, double PvChg, double Soc)>(Day, new { serial = busy });
+        Assert.True(incremental.Pv > 0);
+        await rollup.RunOnceAsync(DateTimeOffset.UtcNow, CancellationToken.None, lookBack: TimeSpan.FromMinutes(30));
+        var full = await c.QuerySingleAsync<(double Pv, double Chg, double PvChg, double Soc)>(Day, new { serial = busy });
+        Assert.Equal(full.Pv, incremental.Pv, 9);
+        Assert.Equal(full.Chg, incremental.Chg, 9);
+        Assert.Equal(full.PvChg, incremental.PvChg, 9);
+        Assert.Equal(full.Soc, incremental.Soc, 3);
+    }
+
     // A2: liveness never depends on anything else; readiness checks the database, MQTT (when ingesting) and the queue.
     [Fact]
     public async Task HealthEndpointsReportLiveAndReady()

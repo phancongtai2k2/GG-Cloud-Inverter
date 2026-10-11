@@ -56,3 +56,25 @@ thiết bị), chưa tính `battery_raw` và các trường firmware thật gử
   chiếm 1–1,5 lõi.
 - Dung lượng dữ liệu thô là trần thứ hai: vài trăm GB cho mỗi nghìn thiết bị nếu giữ 90 ngày.
 - Chưa đo: WebSocket / REST dưới tải người dùng, mất kết nối broker, mẫu đến trễ. Bổ sung khi tới các bước tương ứng.
+
+## Sau A4 — tổng hợp tăng dần (11/10/2026)
+
+Cùng máy, cùng cách chạy, 5.000 thiết bị, 6 phút.
+
+| Thiết bị | nhận/s (kỳ vọng) | bỏ | ghi lô | tổng hợp TB / max | CPU API | CPU PG TB / max | RAM API |
+|---:|---:|---:|---:|---:|---:|---:|---:|
+| 5.000 (nền) | 1.264 (1.250) | 0 | 235 ms | 11,6 s / 14,8 s | 13 % | 49 % / 149 % | 184 MB |
+| **5.000 (A4)** | 1.264 (1.250) | 0 | 178 ms | **2,4 s / 3,5 s** | 18 % | **27 % / 68 %** | 205 MB |
+
+Từng thay đổi và tác dụng (đo theo thứ tự, mỗi lần một thay đổi):
+
+| Thay đổi | Tổng hợp TB | Ghi chú |
+|---|---:|---|
+| Nền | 11,6 s | Quét 35 phút dữ liệu thô + dựng lại ~4 ngày `rollup_1d` của mọi thiết bị |
+| Chỉ thiết bị có mẫu mới, ngày bị chạm | 7,8 s | Ở trạng thái ổn định mọi thiết bị đều có mẫu mới nên lợi ít |
+| Nhìn lùi 1 phút thay vì 15 phút, `LATERAL` cho bảng ngày | 6,2 s | Bước 15 phút không nhanh lên dù đọc ít hơn 15 lần → nghẽn ở ghi |
+| `fillfactor = 70` (cập nhật HOT) | 4,9 s | Chỉ 17 % lần cập nhật `rollup_15m` là HOT trước đó |
+| Dòng ngày cập nhật **theo hiệu số** (mới − cũ của các khung đổi) | **2,4 s** | Không còn đọc lại mọi khung của ngày (mỗi khung một trang, tăng dần cả ngày) |
+
+Trần ước theo job tổng hợp: ~2,4 s mỗi 30 s ở 5.000 thiết bị → còn dư nhiều lần; trần tiếp theo sẽ là tốc độ ghi
+dữ liệu thô và dung lượng (giai đoạn C).

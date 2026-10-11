@@ -64,8 +64,8 @@ Còn lại nhỏ: màn Dữ liệu inverter/pin vẫn truyền chuỗi `reg_*` v
 | A0 | Bài thử tải `tools/GgPower.LoadGen`, số nền → `docs/LOADTEST.md` | **Xong**: ingest dư (5.000 tb = 13 % một lõi); tổng hợp 2,9 / 5,9 / 11,6 s ở 1k / 2k / 5k tb → trần ~10–12k; ≈ 3,2 MB/tb/ngày | 1f9415c |
 | A1 | Index `upper(serial)` | **Xong**: migration 003, test EXPLAIN | ff4e260 |
 | A2 | `/healthz/live`, `/healthz/ready` | **Xong**: ready kiểm DB ≤ 2 s, MQTT, hàng đợi < 80 %; Caddy dùng ở B7 | d714134 |
-| A3 | Metrics OpenTelemetry → `/metrics` (D1) | **Xong**: meter `GgPower` (ingest, ghi lô, tổng hợp, lệnh, kết nối, thiết bị) + HTTP; `docs/METRICS.md` | (commit kế tiếp ghi) |
-| A4 | Tổng hợp tăng dần (chỉ thiết bị / ngày có dữ liệu mới) | Chưa làm | |
+| A3 | Metrics OpenTelemetry → `/metrics` (D1) | **Xong**: meter `GgPower` (ingest, ghi lô, tổng hợp, lệnh, kết nối, thiết bị) + HTTP; `docs/METRICS.md` | 21aba2b |
+| A4 | Tổng hợp tăng dần (chỉ thiết bị / ngày có dữ liệu mới) | **Xong**: 5.000 tb 11,6 s → 2,4 s mỗi lần, PG 49 % → 27 % (`RollupTracker`, nhìn lùi 1 phút, ngày theo hiệu số, fillfactor 70; quét đầy đủ khi khởi động + mỗi 6 h) | (commit kế tiếp ghi) |
 | A5 | MQTT persistent session, hàng đợi broker (D2) | Chưa làm | |
 | A6 | Ghi status / cảnh báo / config-state qua hàng đợi | Chưa làm | |
 | A7 | Đo lại, chốt giai đoạn A | Chưa làm | |

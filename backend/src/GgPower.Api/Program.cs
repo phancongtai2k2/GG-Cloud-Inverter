@@ -44,6 +44,7 @@ builder.Services.AddSingleton<AuthService>();
 builder.Services.AddSingleton<LiveStateCache>();
 builder.Services.AddSingleton<RealtimeHub>();
 builder.Services.AddSingleton<BackfillTracker>();
+builder.Services.AddSingleton<RollupTracker>();
 builder.Services.AddSingleton<IngestPipeline>();
 builder.Services.AddSingleton<BatchWriter>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<BatchWriter>());
