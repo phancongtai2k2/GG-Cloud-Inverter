@@ -71,6 +71,10 @@ data class GgColorScheme(
     val dayChipOffText: Color,
     /** Vạch mốc trên thanh trượt (#b3bdb7, SOC dự phòng màn 16). */
     val sliderTick: Color,
+    /** Phần đã chọn và viền núm thanh trượt khi khoá ghi (Config.dc.html `resOff`: #b3bdb7 / #3a4743). */
+    val sliderDisabled: Color,
+    /** Ô mô tả trong hộp xác nhận (Config.dc.html: #f5f7f3 / ConfigDark: #15221d). */
+    val dialogInset: Color,
     /** Toast nổi (gg-inverter-design CLAUDE.md §4): nền rgba(19,32,27,.62) / rgba(238,243,239,.66), chữ trắng / #0c1612. */
     /** Nền công tắc khi tắt (Me.dc.html: #eaeee8 / MeDark: #0e1814). */
     val toggleOffTrack: Color,
@@ -139,6 +143,8 @@ private fun schemeOf(p: GgPalette, dark: Boolean) = GgColorScheme(
     dayChipOffBg = if (dark) p.sunken else Color(0xFFEEF1EC),
     dayChipOffText = if (dark) p.inkMuted else Color(0xFF9AA59F),
     sliderTick = if (dark) p.lineStrong else Color(0xFFB3BDB7),
+    sliderDisabled = if (dark) Color(0xFF3A4743) else Color(0xFFB3BDB7),
+    dialogInset = if (dark) p.card else p.surface,
     toggleOffTrack = if (dark) Color(0xFF0E1814) else p.sunken,
     zoomPillBorder = if (dark) Color(0xFF1F4A30) else Color(0xFFCFE9D8),
     batteryLiquidFront = if (dark) Color(0xFF2FB466) else Color(0xFF149C4A),

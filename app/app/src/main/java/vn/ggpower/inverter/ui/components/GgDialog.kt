@@ -33,6 +33,9 @@ import vn.ggpower.inverter.ui.theme.GgTheme
 /** Một dòng thay đổi: tên tham số và giá trị "cũ → mới" (BO_SUNG_v3.md §1). [label] trống: chỉ hiện [value] (ví dụ xoá chiến lược). */
 data class ChangeLine(val label: String, val value: String)
 
+/** Ô giải thích hệ quả thay đổi (Config.dc.html `dlg.descTitle` / `dlg.desc`). */
+data class ChangeDetail(val title: String, val text: String)
+
 /**
  * Khung dialog giữa màn (BO_SUNG_v3.md §1): bo `radius-lg`, nền `surface-raised`, bóng `shadow-overlay`, lề trong 20 dp.
  * [edgeToEdge]: rộng theo màn, cách mép 20 dp (Account__delete-dialog.png) thay cho độ rộng mặc định của hệ thống.
@@ -67,7 +70,8 @@ private fun GgDialogSurface(modifier: Modifier = Modifier, content: @Composable 
 /**
  * Hộp "Xác nhận thay đổi" dùng chung màn 16 và 16b (BO_SUNG_v3.md §1): tiêu đề `label` 600; mỗi dòng tên tham số
  * `body-sm` `ink-muted` trên, giá trị `body` 600 dưới; ghi chú `caption`; nút "Huỷ" · "Xác nhận" cao 48 dp.
- * [warning]: dòng `warning` trên đầu (đọc lại vì `CONFIG_STALE`); [info]: dòng `info` dưới ghi chú.
+ * [warning]: dòng `warning` trên đầu (đọc lại vì `CONFIG_STALE`); [info]: dòng `info` dưới ghi chú; [detail]: ô nền
+ * `dialogInset` bo 10 giải thích hệ quả (Config.dc.html: mô tả chế độ đích / SOC dự phòng sau khi đổi).
  */
 @Composable
 fun ConfirmChangesDialog(
@@ -76,8 +80,9 @@ fun ConfirmChangesDialog(
     onDismiss: () -> Unit,
     warning: String? = null,
     info: String? = null,
+    detail: ChangeDetail? = null,
 ) {
-    GgDialog(onDismiss) { ConfirmChangesContent(lines, onConfirm, onDismiss, warning, info) }
+    GgDialog(onDismiss) { ConfirmChangesContent(lines, onConfirm, onDismiss, warning, info, detail) }
 }
 
 @Composable
@@ -87,6 +92,7 @@ private fun ColumnScope.ConfirmChangesContent(
     onDismiss: () -> Unit,
     warning: String?,
     info: String?,
+    detail: ChangeDetail? = null,
 ) {
     val colors = GgTheme.colors
     val typo = GgTheme.typography
@@ -105,6 +111,19 @@ private fun ColumnScope.ConfirmChangesContent(
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 if (line.label.isNotBlank()) Text(line.label, style = typo.bodySm, color = colors.inkMuted)
                 Text(line.value, style = typo.body.copy(fontWeight = FontWeight.SemiBold), color = colors.ink)
+            }
+        }
+        if (detail != null) {
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(GgRadius.radiusMd))
+                    .background(colors.dialogInset)
+                    .padding(horizontal = 14.dp, vertical = GgSpacing.space3),
+                verticalArrangement = Arrangement.spacedBy(GgSpacing.space1),
+            ) {
+                Text(detail.title, style = typo.caption.copy(fontWeight = FontWeight.SemiBold), color = colors.inkMuted)
+                Text(detail.text, style = typo.bodySm, color = colors.ink)
             }
         }
     }

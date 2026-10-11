@@ -33,17 +33,14 @@ Cập nhật: 11/10/2026 · Nhánh: `feature/contract-and-theme` (9 commit trên
 | 6f1c410 | Thiết bị: thẻ Datalogger Wi-Fi (`DataloggerSummary`, `SignalLevel.fromRssi`) |
 | c0490b4 | Dữ liệu inverter/pin: nhóm xếp dọc (`DataSection`), bỏ tab + biểu đồ lịch sử; `LiveController` bỏ khái niệm nhóm |
 | 389b72f | Năng lượng pin: khối 3D một màu theo SOC, sóng sánh 2,6 s, vạch giới hạn sạc/xả, dung lượng khả dụng = SOC × định mức |
+| (commit này) | Config: hộp xác nhận có ô "Cách hoạt động của …" / "Sau khi thay đổi", thẻ chế độ bỏ viền, thanh SOC khoá màu `sliderDisabled` + mờ khi chưa có BMS, bỏ hẳn mã thanh ghi (xoá 22 chuỗi `reg_*`). TOU 16a/16b: đối chiếu xong, các mục mới đã có từ BO_SUNG_v3 |
 
 Trạng thái kiểm tra cuối: `./gradlew assembleDebug testMockDebugUnitTest testLiveDebugUnitTest :chart:testDebugUnitTest lint` **xanh**; backend `dotnet test` **93/93**.
 
 ## 4. Việc tiếp theo (theo thứ tự)
 
-### 4.1 App — Config / TOU (màn 16, 16a, 16b)
-Đo khác biệt HTML cũ → mới: Config 243 dòng, TouSchedule 19, TouStrategy 352. Màu TOU đã xong qua theme. Còn:
-- Config: **bỏ hiển thị mã thanh ghi** (E00F…); hộp xác nhận đổi chế độ hiển thị mô tả chế độ đích; trạng thái ghi "Đang ghi…" / "Đã áp dụng"; tag "Bản demo — chưa mở" ở bật/tắt inverter; thông báo "Chưa có truyền thông với pin (BMS)…" (dùng `bms_comm`); biến thể vai trò A/B/C (`data-props`).
-- TouStrategy: đổi tên chiến lược, hộp "bỏ thay đổi?", xác nhận ghi, thông báo "không ở chế độ TOU".
-- Cách làm: `diff <(sed 's/></>\n</g' app/docs/design/html/X.dc.html) <(sed 's/></>\n</g' app/gg-inverter-design/design/screens/X.dc.html)` — nhiều mục đã có sẵn từ BO_SUNG_v3, chỉ cần đối chiếu.
-- Sau khi bỏ mã thanh ghi ở Config: dọn chuỗi `reg_*` không còn dùng trong `strings.xml` (hiện 68 chuỗi; nhiều chuỗi đã không dùng từ khi màn Dữ liệu bỏ mã).
+### 4.1 App — Config / TOU: **xong** (xem bảng mục 3)
+Còn lại nhỏ: màn Dữ liệu inverter/pin vẫn truyền chuỗi `reg_*` vào `DataRow.register` dù không hiển thị (46 chuỗi) — dọn khi tiện.
 
 ### 4.2 App — Main (màn 4, khó nhất, khác biệt 2.371 dòng)
 - Sơ đồ ngôi nhà vector (SVG 700×690 scale 0,5) → Compose Canvas, giữ animation tia sáng / dòng chạy / chip CO₂ trôi; đường nét đứt nối chỉ số; inverter → tải màu cam.

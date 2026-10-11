@@ -458,7 +458,6 @@
     <string name="unit_watt">W</string>
     <string name="unit_volt">V</string>
     <string name="unit_hertz">Hz</string>
-    <string name="reg_df00">DF00 CmdPowerOnOff · 2-step confirmation</string>
     <!-- Ghi cấu hình -->
     <string name="action_cancel">Cancel</string>
     <string name="action_confirm">Confirm</string>
@@ -466,8 +465,15 @@
     <string name="confirm_title">Confirm changes</string>
     <string name="confirm_note">Changes are sent to the system and take effect only after the device confirms them.</string>
     <string name="confirm_stale">The configuration was just changed elsewhere. Please review before confirming.</string>
-    <string name="config_change_mode">Operating mode</string>
-    <string name="config_change_backup_soc">Backup SOC</string>
+    <string name="config_confirm_mode_title">How %1$s works</string>
+    <string name="config_confirm_mode_gg_ai">EMS cloud optimizes charging and discharging based on electricity prices, irradiance forecasts and your household\'s consumption habits.</string>
+    <string name="config_confirm_mode_self">Solar power supplies household loads first, surplus charges the battery, and only when the battery is full is power exported to the grid. In the evening the battery discharges to supply loads.</string>
+    <string name="config_confirm_mode_tou">The system charges and discharges the battery in the configured time slots to reduce costs under the electricity tariff (off-peak, normal, peak).</string>
+    <string name="config_confirm_mode_grid">Solar power is exported to the grid first; household loads and the battery use the rest. Only use with a power sale agreement.</string>
+    <string name="config_confirm_mode_battery">Solar power fully charges the battery first, then supplies loads; any shortfall comes from the grid. Suited to the rainy season or before a storm.</string>
+    <string name="config_confirm_soc_title">After the change</string>
+    <string name="config_confirm_soc">The battery always keeps at least %1$s to supply power during a grid outage.</string>
+    <string name="config_confirm_soc_hours">The battery always keeps at least %1$s to supply power during a grid outage, enough for about ~%2$s h of essential loads.</string>
     <string name="change_value">%1$s → %2$s</string>
     <string name="write_in_progress">Writing…</string>
     <string name="write_applied">Applied.</string>

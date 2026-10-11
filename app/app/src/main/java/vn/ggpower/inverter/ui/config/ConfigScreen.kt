@@ -73,6 +73,7 @@ import vn.ggpower.inverter.domain.tou.SlotKind
 import vn.ggpower.inverter.domain.tou.TouStrategy
 import vn.ggpower.inverter.domain.tou.summary
 import vn.ggpower.inverter.ui.components.ButtonSize
+import vn.ggpower.inverter.ui.components.ChangeDetail
 import vn.ggpower.inverter.ui.components.ChangeLine
 import vn.ggpower.inverter.ui.components.ConfirmChangesDialog
 import vn.ggpower.inverter.ui.components.GgCard
@@ -207,6 +208,7 @@ private fun ConfigScreenBody(
                     onConfirm = actions.onConfirm,
                     onDismiss = actions.onCancelConfirm,
                     warning = if (confirm.stale) stringResource(R.string.confirm_stale) else null,
+                    detail = changeDetail(confirm.request, state.config.settings),
                 )
             }
             if (state.showUnknownDialog) {
@@ -269,16 +271,17 @@ private fun Content(state: ConfigUiState.Content, onOpenTouSchedule: () -> Unit,
 
 // ---------- Ghi cấu hình (BO_SUNG_v3.md §1–3) ----------
 
+/** Dòng "cũ → mới" không kèm tên tham số (Config.dc.html `dlg.value`); ô [changeDetail] bên dưới nói rõ hệ quả. */
 @Composable
 private fun changeLine(request: ConfigRequest, config: ProjectConfig): ChangeLine = when (request) {
     is ConfigRequest.Mode -> ChangeLine(
-        stringResource(R.string.config_change_mode),
+        "",
         stringResource(R.string.change_value, stringResource(modeCardTexts(config.mode).first), stringResource(modeCardTexts(request.mode).first)),
     )
     is ConfigRequest.BackupSoc -> {
         val percent = stringResource(R.string.unit_percent)
         ChangeLine(
-            stringResource(R.string.config_change_backup_soc),
+            "",
             stringResource(
                 R.string.change_value,
                 GgFormat.withUnit(config.backupSocPercent.toLong(), percent),
@@ -288,6 +291,34 @@ private fun changeLine(request: ConfigRequest, config: ProjectConfig): ChangeLin
     }
     // Lịch TOU được sửa và xác nhận ở 16b, không mở từ màn này.
     is ConfigRequest.Tou -> ChangeLine(stringResource(R.string.config_section_tou), "")
+}
+
+/** Ô giải thích dưới dòng "cũ → mới" (Config.dc.html `dlg.descTitle` / `dlg.desc`). */
+@Composable
+private fun changeDetail(request: ConfigRequest, s: DeviceSettings): ChangeDetail? = when (request) {
+    is ConfigRequest.Mode -> ChangeDetail(
+        stringResource(R.string.config_confirm_mode_title, stringResource(modeCardTexts(request.mode).first)),
+        stringResource(
+            when (request.mode) {
+                OperatingMode.GgAi -> R.string.config_confirm_mode_gg_ai
+                OperatingMode.SelfConsumption -> R.string.config_confirm_mode_self
+                OperatingMode.Tou -> R.string.config_confirm_mode_tou
+                OperatingMode.MaxGridExport -> R.string.config_confirm_mode_grid
+                OperatingMode.BatteryPriority -> R.string.config_confirm_mode_battery
+                OperatingMode.Unknown -> return null
+            },
+        ),
+    )
+    is ConfigRequest.BackupSoc -> {
+        val percent = GgFormat.withUnit(request.percent.toLong(), stringResource(R.string.unit_percent))
+        val hours = backupHours(s.batteryCapacityKwh, request.percent, s.averageLoadKw)
+        ChangeDetail(
+            stringResource(R.string.config_confirm_soc_title),
+            if (hours != null) stringResource(R.string.config_confirm_soc_hours, percent, GgFormat.number(hours, 1))
+            else stringResource(R.string.config_confirm_soc, percent),
+        )
+    }
+    is ConfigRequest.Tou -> null
 }
 
 // ---------- Đầu mục, nhãn cấp ----------
@@ -353,7 +384,7 @@ private fun ModeCard(control: ModeControl, onClick: () -> Unit) {
             .alpha(if (enabled || control.selected) 1f else 0.6f)
             .clip(shape)
             .background(if (control.selected) colors.primarySoft else colors.cardBg)
-            .border(if (control.selected) 2.dp else 1.dp, if (control.selected) colors.primary else colors.cardBorder, shape)
+            .then(if (control.selected) Modifier.border(2.dp, colors.primary, shape) else Modifier)
             .selectable(
                 selected = control.selected,
                 enabled = enabled && !control.selected,
@@ -523,6 +554,7 @@ private fun BatteryCard(backupSoc: Int, s: DeviceSettings, controls: ConfigContr
                     SliderTickLabel(100, "100 $percent"),
                 ),
                 enabled = controls.backupSoc == ControlState.Enabled,
+                dimmed = controls.backupSocBlocked == BlockReason.BmsNotConnected,
             )
             if (writing) WritingRow()
             if (controls.backupSocBlocked == BlockReason.BmsNotConnected) {
@@ -544,12 +576,11 @@ private fun BatteryCard(backupSoc: Int, s: DeviceSettings, controls: ConfigContr
                     color = colors.ink,
                 )
             }
-            RegisterText(stringResource(R.string.reg_e00f))
         }
         if (s.available) {
-            ValueRow(R.string.config_stop_charge_soc, stringResource(R.string.reg_e01d), GgFormat.withUnit(s.stopChargeSocPercent.toLong(), percent))
-            ValueRow(R.string.config_low_soc_alarm, stringResource(R.string.reg_e01e), GgFormat.withUnit(s.lowSocAlarmPercent.toLong(), percent))
-            ValueRow(R.string.config_switch_to_grid_soc, stringResource(R.string.reg_e01f), GgFormat.withUnit(s.switchToGridSocPercent.toLong(), percent))
+            ValueRow(R.string.config_stop_charge_soc, GgFormat.withUnit(s.stopChargeSocPercent.toLong(), percent))
+            ValueRow(R.string.config_low_soc_alarm, GgFormat.withUnit(s.lowSocAlarmPercent.toLong(), percent))
+            ValueRow(R.string.config_switch_to_grid_soc, GgFormat.withUnit(s.switchToGridSocPercent.toLong(), percent))
         }
     }
 }
@@ -563,12 +594,12 @@ private fun DistributorChargeCard(s: DeviceSettings) {
             LevelBadge(Level.Distributor)
         }
         ValueRow(
-            R.string.config_max_charge_current, stringResource(R.string.reg_e20a), GgFormat.withUnit(s.maxChargeCurrentA.toLong(), amp),
+            R.string.config_max_charge_current, GgFormat.withUnit(s.maxChargeCurrentA.toLong(), amp),
             caption = s.bmsChargeLimitA?.let { stringResource(R.string.config_bms_limit, GgFormat.withUnit(it.toLong(), amp)) },
         )
-        ValueRow(R.string.config_grid_charge_current, stringResource(R.string.reg_e205), GgFormat.withUnit(s.gridChargeCurrentA.toLong(), amp))
+        ValueRow(R.string.config_grid_charge_current, GgFormat.withUnit(s.gridChargeCurrentA.toLong(), amp))
         ValueRow(
-            R.string.config_charge_limit_mode, stringResource(R.string.reg_e025),
+            R.string.config_charge_limit_mode,
             if (s.chargeLimitMode == 1) stringResource(R.string.config_charge_limit_bms, 1) else s.chargeLimitMode.toString(),
         )
     }
@@ -581,15 +612,15 @@ private fun GridSection(s: DeviceSettings, showTechnician: Boolean) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         SectionTitle(R.string.config_section_grid) { LevelBadge(Level.Distributor) }
         GgCard(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)) {
-            ValueRow(R.string.config_grid_work_mode, stringResource(R.string.reg_e037, s.gridWorkMode), gridModeName(s.gridWorkMode))
-            ValueRow(R.string.config_zero_export, stringResource(R.string.reg_e42c), GgFormat.withUnit(s.zeroExportW.toLong(), stringResource(R.string.unit_watt)))
-            ValueRow(R.string.config_max_line_power, stringResource(R.string.reg_e21d), GgFormat.withUnit(s.maxLinePowerW.toLong(), stringResource(R.string.unit_watt)))
+            ValueRow(R.string.config_grid_work_mode, gridModeName(s.gridWorkMode))
+            ValueRow(R.string.config_zero_export, GgFormat.withUnit(s.zeroExportW.toLong(), stringResource(R.string.unit_watt)))
+            ValueRow(R.string.config_max_line_power, GgFormat.withUnit(s.maxLinePowerW.toLong(), stringResource(R.string.unit_watt)))
             if (showTechnician) {
                 Row(Modifier.fillMaxWidth().padding(top = GgSpacing.space2), horizontalArrangement = Arrangement.End) {
                     LevelBadge(Level.Technician)
                 }
-                ValueRow(R.string.config_output_voltage, stringResource(R.string.reg_e208), GgFormat.withUnit(s.outputVoltageV.toLong(), stringResource(R.string.unit_volt)))
-                ValueRow(R.string.config_output_frequency, stringResource(R.string.reg_e209), GgFormat.withUnit(s.outputFrequencyHz.toLong(), stringResource(R.string.unit_hertz)))
+                ValueRow(R.string.config_output_voltage, GgFormat.withUnit(s.outputVoltageV.toLong(), stringResource(R.string.unit_volt)))
+                ValueRow(R.string.config_output_frequency, GgFormat.withUnit(s.outputFrequencyHz.toLong(), stringResource(R.string.unit_hertz)))
             }
         }
         Text(stringResource(R.string.config_grid_note), style = GgTheme.typography.caption.copy(fontWeight = FontWeight.Normal), color = GgTheme.colors.inkMuted)
@@ -617,13 +648,13 @@ private fun ProtectionCard(s: DeviceSettings, showTechnician: Boolean) {
     val p = s.protection
     Column(verticalArrangement = Arrangement.spacedBy(GgSpacing.space2)) {
         GgCard(contentPadding = PaddingValues(horizontal = 16.dp)) {
-            ToggleRow(R.string.config_auto_restart_overload, R.string.reg_e20d, p.autoRestartOverload)
-            ToggleRow(R.string.config_auto_restart_overtemp, R.string.reg_e20e, p.autoRestartOverTemp)
-            ToggleRow(R.string.config_stop_on_bms_loss, R.string.reg_e214, p.stopOnBmsLoss)
-            ToggleRow(R.string.config_alarm, R.string.reg_e210, p.alarmEnabled)
-            ToggleRow(R.string.config_power_saving, R.string.reg_e20c, p.powerSaving)
+            ToggleRow(R.string.config_auto_restart_overload, p.autoRestartOverload)
+            ToggleRow(R.string.config_auto_restart_overtemp, p.autoRestartOverTemp)
+            ToggleRow(R.string.config_stop_on_bms_loss, p.stopOnBmsLoss)
+            ToggleRow(R.string.config_alarm, p.alarmEnabled)
+            ToggleRow(R.string.config_power_saving, p.powerSaving)
             if (showTechnician) {
-                SettingRow(R.string.config_power_onoff, stringResource(R.string.reg_df00), minHeight = 56) {
+                SettingRow(R.string.config_power_onoff, minHeight = 56) {
                     LevelBadge(Level.Technician)
                 }
             }
@@ -633,9 +664,9 @@ private fun ProtectionCard(s: DeviceSettings, showTechnician: Boolean) {
 }
 
 @Composable
-private fun ToggleRow(@StringRes label: Int, @StringRes register: Int, checked: Boolean) {
+private fun ToggleRow(@StringRes label: Int, checked: Boolean) {
     val name = stringResource(label)
-    SettingRow(label, stringResource(register), minHeight = 56) {
+    SettingRow(label, minHeight = 56) {
         GgToggle(checked = checked, onCheckedChange = {}, enabled = false, contentDescription = name)
     }
 }
@@ -659,10 +690,10 @@ private fun DeviceSection(s: DeviceSettings) {
                 in 5..7 -> stringResource(R.string.config_parallel_3phase)
                 else -> s.parallelMode.toString()
             }
-            ValueRow(R.string.config_bms_comm, stringResource(R.string.reg_e215), comm)
-            ValueRow(R.string.config_bms_protocol, stringResource(R.string.reg_e21b), s.bmsProtocol)
-            ValueRow(R.string.config_modbus_address, stringResource(R.string.reg_e200), s.modbusAddress.toString())
-            ValueRow(R.string.config_parallel_mode, stringResource(R.string.reg_e201), parallel)
+            ValueRow(R.string.config_bms_comm, comm)
+            ValueRow(R.string.config_bms_protocol, s.bmsProtocol)
+            ValueRow(R.string.config_modbus_address, s.modbusAddress.toString())
+            ValueRow(R.string.config_parallel_mode, parallel)
         }
     }
 }
@@ -713,22 +744,13 @@ private fun changeText(value: ChangedValue): String = when (value) {
 @Composable
 private fun rowTitle(): TextStyle = GgTheme.typography.body.copy(fontSize = 14.sp, lineHeight = 20.sp)
 
-/** Mã thanh ghi: monospace 11/14 `lineStrong`. */
-@Composable
-@Suppress("UNUSED_PARAMETER")
-private fun RegisterText(text: String) {
-    // Mã thanh ghi không hiển thị cho người dùng (quyết 06/10/2026). Giữ hàm và tham số ở các lời gọi để bật lại
-    // cho bản kỹ thuật khi cần.
-}
-
 /**
- * Dòng tham số (Config.dc.html): nội dung cao tối thiểu 52 dp (56 dp với công tắc) cộng đệm dọc 8; tên 14/20 500, mã thanh ghi bên
- * dưới, chú thích 12/16 `warning` nếu có; phần phải là [trailing].
+ * Dòng tham số (Config.dc.html): nội dung cao tối thiểu 52 dp (56 dp với công tắc) cộng đệm dọc 8; tên 14/20 500 (không hiện mã thanh ghi),
+ * chú thích 12/16 `warning` nếu có; phần phải là [trailing].
  */
 @Composable
 private fun SettingRow(
     @StringRes label: Int,
-    register: String,
     caption: String? = null,
     minHeight: Int = 52,
     trailing: @Composable () -> Unit,
@@ -746,7 +768,6 @@ private fun SettingRow(
                 style = rowTitle().copy(fontWeight = FontWeight.Medium),
                 color = colors.ink,
             )
-            RegisterText(register)
             if (caption != null) {
                 Text(caption, style = GgTheme.typography.caption.copy(fontWeight = FontWeight.Normal), color = colors.warning)
             }
@@ -758,11 +779,10 @@ private fun SettingRow(
 @Composable
 private fun ValueRow(
     @StringRes label: Int,
-    register: String,
     value: String,
     caption: String? = null,
 ) {
-    SettingRow(label, register, caption = caption) {
+    SettingRow(label, caption = caption) {
         Text(
             value,
             style = rowTitle().copy(fontWeight = FontWeight.SemiBold, fontFeatureSettings = "tnum"),
