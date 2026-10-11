@@ -16,7 +16,7 @@ import vn.ggpower.inverter.domain.format.GgFormat
 import vn.ggpower.inverter.domain.format.NumberStyle
 import vn.ggpower.inverter.domain.settings.AppLanguage
 
-/** Bộ màu đang dùng (light hoặc dark), lấy từ [GgLight] / [GgDark]. Màn hình chỉ đọc màu qua `GgTheme.colors`. */
+/** Bộ màu đang dùng (light hoặc dark), dựng từ [LightGgPalette] / [DarkGgPalette]. Màn hình chỉ đọc màu qua `GgTheme.colors`. */
 @Immutable
 data class GgColorScheme(
     val ggOrange: Color,
@@ -29,6 +29,8 @@ data class GgColorScheme(
     val ink: Color,
     val inkMuted: Color,
     val primary: Color,
+    /** Nền nút chính và mọi khối tô `primary` mang chữ / icon [onPrimary] (dark: #178A47, đậm hơn [primary]). */
+    val primaryFill: Color,
     val onPrimary: Color,
     val primarySoft: Color,
     val accent: Color,
@@ -50,9 +52,9 @@ data class GgColorScheme(
     val energyLoad: Color,
     val cardBg: Color,
     val cardBorder: Color,
-    /** Màu bóng; dark không đổ bóng (tokens.md: shadow-card dark = none). */
+    /** Màu bóng (thiết kế mới: dark cũng đổ bóng, màu đen). */
     val shadow: Color,
-    /** Đoạn sạc / xả trên thanh 24h (tokens.md: tou-charge = energy-pv, tou-discharge = energy-battery). */
+    /** Đoạn sạc / xả TOU (thiết kế mới: sạc xanh, xả cam). */
     val touCharge: Color,
     val touDischarge: Color,
     /** Chữ "CN" khi chưa chọn (tokens.md: sunday-text = danger). */
@@ -102,43 +104,46 @@ data class GgColorScheme(
     val qrOnContent: Color,
 )
 
-val GgLightColors = GgColorScheme(
-    ggOrange = GgLight.ggOrange, ggGreen = GgLight.ggGreen,
-    surface = GgLight.surface, surfaceRaised = GgLight.surfaceRaised, surfaceSunken = GgLight.surfaceSunken,
-    line = GgLight.line, lineStrong = GgLight.lineStrong,
-    ink = GgLight.ink, inkMuted = GgLight.inkMuted,
-    primary = GgLight.primary, onPrimary = GgLight.onPrimary, primarySoft = GgLight.primarySoft,
-    accent = GgLight.accent, onAccent = GgLight.onAccent, accentText = GgLight.accentText, accentSoft = GgLight.accentSoft,
-    focus = GgLight.focus,
-    success = GgLight.success, successSoft = GgLight.successSoft,
-    warning = GgLight.warning, warningSoft = GgLight.warningSoft,
-    danger = GgLight.danger, dangerSoft = GgLight.dangerSoft,
-    info = GgLight.info, infoSoft = GgLight.infoSoft,
-    energyPv = GgLight.energyPv, energyBattery = GgLight.energyBattery,
-    energyGrid = GgLight.energyGrid, energyLoad = GgLight.energyLoad,
-    cardBg = GgLight.cardBg, cardBorder = GgLight.cardBorder,
-    shadow = GgLight.ink,
-    touCharge = GgLight.energyPv, touDischarge = GgLight.energyBattery,
-    sundayText = GgLight.danger,
+// Bảng màu thiết kế mới (GgColors.kt). Các ô ngoài bảng màu (vẽ minh hoạ, QR…) giữ giá trị prototype cũ cho tới khi
+// làm lại màn tương ứng.
+private fun schemeOf(p: GgPalette, dark: Boolean) = GgColorScheme(
+    ggOrange = GgOrange, ggGreen = GgGreen,
+    surface = p.surface, surfaceRaised = p.raised, surfaceSunken = p.sunken,
+    line = p.line, lineStrong = p.lineStrong,
+    ink = p.ink, inkMuted = p.inkMuted,
+    primary = p.primary, primaryFill = p.primaryFill, onPrimary = p.onPrimary, primarySoft = p.primarySoft,
+    accent = p.accent, onAccent = if (dark) p.surface else p.ink, accentText = p.accentText, accentSoft = p.accentSoft,
+    focus = if (dark) PrimaryHoverDark else p.primary,
+    success = p.primary, successSoft = p.primarySoft,
+    warning = p.warning, warningSoft = p.warningSoft,
+    danger = p.danger, dangerSoft = p.dangerSoft,
+    info = p.info, infoSoft = p.infoSoft,
+    energyPv = p.energyPv, energyBattery = p.energyBattery, energyGrid = p.energyGrid, energyLoad = p.energyLoad,
+    cardBg = p.card,
+    // Thẻ không còn viền; màu này chỉ còn cho viền thanh thẻ nổi và đường kẻ đặc biệt (#e3e8e1 / #26352f).
+    cardBorder = if (dark) p.line else Color(0xFFE3E8E1),
+    shadow = if (dark) Color.Black else p.ink,
+    touCharge = p.touCharge, touDischarge = p.touDischarge,
+    sundayText = p.danger,
     strategy = StrategyColors,
-    dangerText = Color(0xFFB3261E),
-    disabledFill = Color(0xFFC9D1CB),
-    dayChipOffBg = Color(0xFFEEF1EC),
-    dayChipOffText = Color(0xFF9AA59F),
-    sliderTick = Color(0xFFB3BDB7),
-    scrim = Color(0x800E1512),
-    flowHub = Color(0xFF60EB98),
-    flowGlow = GgDark.primary,
-    flowHead = GgDark.primaryHover,
-    badgeDistributorText = Color(0xFF8A4B00),
-    batteryGlass = Color(0xFFEEF3F8),
-    batteryOutline = Color(0xFFB3C3D3),
-    batteryEdge = Color(0xFFC9D6E3),
+    dangerText = if (dark) p.danger else Color(0xFFB3261E),
+    disabledFill = p.disabledFill,
+    dayChipOffBg = if (dark) p.sunken else Color(0xFFEEF1EC),
+    dayChipOffText = if (dark) p.inkMuted else Color(0xFF9AA59F),
+    sliderTick = if (dark) p.lineStrong else Color(0xFFB3BDB7),
+    scrim = if (dark) Color(0x99000000) else Color(0x800E1512),
+    flowHub = if (dark) p.primaryFill else Color(0xFF60EB98),
+    flowGlow = DarkGgPalette.primary,
+    flowHead = PrimaryHoverDark,
+    badgeDistributorText = if (dark) p.accentText else Color(0xFF8A4B00),
+    batteryGlass = if (dark) p.card else Color(0xFFEEF3F8),
+    batteryOutline = if (dark) p.lineStrong else Color(0xFFB3C3D3),
+    batteryEdge = if (dark) p.line else Color(0xFFC9D6E3),
     batteryPvSide = Color(0xFFB85A0A),
     batteryPvTop = Color(0xFFF7A452),
     batteryGridSide = Color(0xFF24588F),
     batteryGridTop = Color(0xFF6FA8E8),
-    batteryHighlight = Color.White,
+    batteryHighlight = if (dark) p.ink else Color.White,
     qrBackground = Color(0xFF0E1512),
     qrScrim = Color(0xB80E1512),
     qrFrameFill = Color(0x0FFFFFFF),
@@ -148,53 +153,10 @@ val GgLightColors = GgColorScheme(
     qrOnContent = Color(0xFF13201B),
 )
 
-// Token dark không có card-bg / card-border: thẻ tách bằng surface-raised + line (tokens.md, shadow-card).
-val GgDarkColors = GgColorScheme(
-    ggOrange = GgDark.ggOrange, ggGreen = GgDark.ggGreen,
-    surface = GgDark.surface, surfaceRaised = GgDark.surfaceRaised, surfaceSunken = GgDark.surfaceSunken,
-    line = GgDark.line, lineStrong = GgDark.lineStrong,
-    ink = GgDark.ink, inkMuted = GgDark.inkMuted,
-    primary = GgDark.primary, onPrimary = GgDark.onPrimary, primarySoft = GgDark.primarySoft,
-    accent = GgDark.accent, onAccent = GgDark.onAccent, accentText = GgDark.accentText, accentSoft = GgDark.accentSoft,
-    focus = GgDark.focus,
-    success = GgDark.success, successSoft = GgDark.successSoft,
-    warning = GgDark.warning, warningSoft = GgDark.warningSoft,
-    danger = GgDark.danger, dangerSoft = GgDark.dangerSoft,
-    info = GgDark.info, infoSoft = GgDark.infoSoft,
-    energyPv = GgDark.energyPv, energyBattery = GgDark.energyBattery,
-    energyGrid = GgDark.energyGrid, energyLoad = GgDark.energyLoad,
-    cardBg = GgDark.surfaceRaised, cardBorder = GgDark.line,
-    shadow = Color.Transparent,
-    touCharge = GgDark.energyPv, touDischarge = GgDark.energyBattery,
-    sundayText = GgDark.danger,
-    strategy = StrategyColors,
-    // Chưa có thiết kế dark cho các giá trị dưới: tạm lấy token dark gần nghĩa nhất.
-    dangerText = GgDark.danger,
-    disabledFill = GgDark.lineStrong,
-    dayChipOffBg = GgDark.surfaceSunken,
-    dayChipOffText = GgDark.inkMuted,
-    sliderTick = GgDark.lineStrong,
-    scrim = Color(0x99000000),
-    flowHub = GgDark.primary,
-    flowGlow = GgDark.primary,
-    flowHead = GgDark.primaryHover,
-    badgeDistributorText = GgDark.accentText,
-    batteryGlass = GgDark.surfaceRaised,
-    batteryOutline = GgDark.lineStrong,
-    batteryEdge = GgDark.line,
-    batteryPvSide = Color(0xFFB85A0A),
-    batteryPvTop = Color(0xFFF7A452),
-    batteryGridSide = Color(0xFF24588F),
-    batteryGridTop = GgLight.energyGrid,
-    batteryHighlight = GgDark.ink,
-    qrBackground = Color(0xFF0E1512),
-    qrScrim = Color(0xB80E1512),
-    qrFrameFill = Color(0x0FFFFFFF),
-    qrHint = Color(0xFFE3E8E1),
-    qrButton = Color(0x24FFFFFF),
-    qrContent = Color(0xFFFFFFFF),
-    qrOnContent = Color(0xFF13201B),
-)
+private val PrimaryHoverDark = Color(0xFF5BD68C)
+
+val GgLightColors = schemeOf(LightGgPalette, dark = false)
+val GgDarkColors = schemeOf(DarkGgPalette, dark = true)
 
 private val LocalGgColors = staticCompositionLocalOf { GgLightColors }
 private val LocalGgTypography = staticCompositionLocalOf { GgTypographyDefault }
@@ -220,7 +182,7 @@ fun GgPowerTheme(
     // Material 3 chỉ dùng cho component có sẵn (dialog, sheet, text field…); màu vẫn lấy từ token.
     val material = if (darkTheme) {
         darkColorScheme(
-            primary = colors.primary, onPrimary = colors.onPrimary,
+            primary = colors.primaryFill, onPrimary = colors.onPrimary,
             background = colors.surface, onBackground = colors.ink,
             surface = colors.surfaceRaised, onSurface = colors.ink,
             surfaceVariant = colors.surfaceSunken, onSurfaceVariant = colors.inkMuted,
@@ -229,7 +191,7 @@ fun GgPowerTheme(
         )
     } else {
         lightColorScheme(
-            primary = colors.primary, onPrimary = colors.onPrimary,
+            primary = colors.primaryFill, onPrimary = colors.onPrimary,
             background = colors.surface, onBackground = colors.ink,
             surface = colors.surfaceRaised, onSurface = colors.ink,
             surfaceVariant = colors.surfaceSunken, onSurfaceVariant = colors.inkMuted,

@@ -392,7 +392,7 @@ private fun ModeCard(control: ModeControl, onClick: () -> Unit) {
             Text(stringResource(desc), style = GgTheme.typography.caption.copy(fontWeight = FontWeight.Normal), color = colors.inkMuted)
         }
         if (control.selected) {
-            Box(Modifier.size(22.dp).clip(CircleShape).background(colors.primary), contentAlignment = Alignment.Center) {
+            Box(Modifier.size(22.dp).clip(CircleShape).background(colors.primaryFill), contentAlignment = Alignment.Center) {
                 Icon(painterResource(R.drawable.ic_check), contentDescription = null, tint = colors.onPrimary, modifier = Modifier.size(14.dp))
             }
         }

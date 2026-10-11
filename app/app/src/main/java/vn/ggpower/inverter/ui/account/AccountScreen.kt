@@ -255,7 +255,7 @@ private fun CameraBadge(modifier: Modifier = Modifier) {
             .border(3.dp, colors.surface, CircleShape)
             .padding(3.dp)
             .clip(CircleShape)
-            .background(colors.primary),
+            .background(colors.primaryFill),
         contentAlignment = Alignment.Center,
     ) {
         Icon(painterResource(R.drawable.ic_camera), contentDescription = null, tint = colors.onPrimary, modifier = Modifier.size(16.dp))

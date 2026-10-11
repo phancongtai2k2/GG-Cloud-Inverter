@@ -265,7 +265,7 @@ private fun MessageItem(message: TicketMessage, showDate: Boolean) {
                 color = if (mine) colors.onPrimary else colors.ink,
                 modifier = Modifier
                     .clip(shape)
-                    .background(if (mine) colors.primary else colors.surfaceRaised)
+                    .background(if (mine) colors.primaryFill else colors.surfaceRaised)
                     .then(if (mine) Modifier else Modifier.border(1.dp, colors.cardBorder, shape))
                     .padding(horizontal = 14.dp, vertical = 10.dp),
             )
@@ -311,7 +311,7 @@ private fun Composer(state: TicketDetailUiState, actions: TicketDetailActions) {
             Modifier
                 .size(48.dp)
                 .clip(CircleShape)
-                .background(colors.primary)
+                .background(colors.primaryFill)
                 .clickable(enabled = state.canSend, role = Role.Button, onClick = actions.onSend),
             contentAlignment = Alignment.Center,
         ) {

@@ -67,7 +67,7 @@ fun PrimaryButton(
     val muted = !enabled && mutedWhenDisabled
     BaseButton(
         text = text, onClick = onClick, modifier = modifier, enabled = enabled && !loading, size = size, icon = icon,
-        background = when { enabled -> colors.primary; muted -> colors.line; else -> colors.disabledFill },
+        background = when { enabled -> colors.primaryFill; muted -> colors.line; else -> colors.disabledFill },
         content = if (muted) colors.inkMuted else colors.onPrimary,
         border = null,
         loading = loading,

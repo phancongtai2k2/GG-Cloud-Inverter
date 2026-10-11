@@ -274,8 +274,8 @@ private fun AgreeRow(agreed: Boolean, onToggle: () -> Unit, onOpenTerms: () -> U
             Modifier
                 .size(22.dp)
                 .clip(shape)
-                .background(if (agreed) colors.primary else colors.surfaceRaised)
-                .border(2.dp, if (agreed) colors.primary else colors.lineStrong, shape),
+                .background(if (agreed) colors.primaryFill else colors.surfaceRaised)
+                .border(2.dp, if (agreed) colors.primaryFill else colors.lineStrong, shape),
             contentAlignment = Alignment.Center,
         ) {
             if (agreed) Icon(painterResource(R.drawable.ic_check), contentDescription = null, tint = colors.onPrimary, modifier = Modifier.size(14.dp))

@@ -60,8 +60,8 @@ fun DayChips(
                         .height(32.dp)
                         .alpha(if (on) 1f else 0.6f)
                         .clip(shape)
-                        .background(if (on) colors.primary else colors.dayChipOffBg)
-                        .border(1.dp, if (on) colors.primary else colors.cardBorder, shape),
+                        .background(if (on) colors.primaryFill else colors.dayChipOffBg)
+                        .border(1.dp, if (on) colors.primaryFill else colors.cardBorder, shape),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
