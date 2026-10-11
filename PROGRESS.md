@@ -55,10 +55,21 @@ Còn lại nhỏ: màn Dữ liệu inverter/pin vẫn truyền chuỗi `reg_*` v
 ### 4.3 Backend — trường mới cho thiết kế: **xong** (3 commit, xem `contract/CHANGES.md` các mục 2026-10-11)
 `/overview`: model, co2_today_kg, battery_charged_today (cả frame `device`, làm mới bởi RollupService); Datalogger ở `/devices` + snapshot; `BatteryLive` giới hạn SOC sạc/xả; `BMS_NOT_CONNECTED` chặn SOC dự phòng. App (live) đã đọc hết. **Còn phía firmware**: `logger_sn`, `conn_type`, `charge_stop_soc` (backend đọc sẵn). Backend test 94/94.
 
-### 4.4 Backend — nâng cấp để mở rộng
-- Nhanh: index `upper(serial)`; `/healthz` kiểm tra DB + tách liveness/readiness; metrics (OpenTelemetry/Prometheus); rollup chỉ cho thiết bị có dữ liệu mới (bỏ quét 3 ngày mọi thiết bị mỗi 30 s); MQTT persistent session + client id cố định; ghi status/alarm qua hàng đợi thay vì trong handler MQTT.
-- Trung bình: vé realtime / khoá lệnh / cache → Redis; WebSocket fan-out qua pub/sub; file upload → object storage (S3/MinIO); leader election cho timer (rollup, báo cáo ngày, TOU 00:00, offline monitor); `AlertStore.RaiseAsync` thành upsert trong transaction.
-- Lớn: tách worker ingest khỏi API (`$share/` subscription), cân nhắc TimescaleDB, xác thực MQTT động; CI; thay CentOS 7, build image ở CI, backup ngoài máy.
+### 4.4 Backend — nâng cấp để mở rộng (đang làm)
+**Đặc tả và trình tự: `backend/docs/KE_HOACH_NANG_CAP_BACKEND.docx`** (đọc bằng `pandoc -t plain <file>`; sinh lại bằng `backend/tools/docgen/ke-hoach-nang-cap.js`). Làm đúng thứ tự, mỗi bước một commit, quyết định hỏi bằng popup rồi ghi vào mục 2. Cập nhật bảng dưới sau mỗi bước.
+
+| Bước | Nội dung | Trạng thái | Commit |
+|---|---|---|---|
+| A0 | Bài thử tải `tools/GgPower.LoadGen`, số nền → `docs/LOADTEST.md` | Chưa làm | |
+| A1 | Index `upper(serial)` | Chưa làm | |
+| A2 | `/healthz/live`, `/healthz/ready` | Chưa làm | |
+| A3 | Metrics OpenTelemetry → `/metrics` (D1) | Chưa làm | |
+| A4 | Tổng hợp tăng dần (chỉ thiết bị / ngày có dữ liệu mới) | Chưa làm | |
+| A5 | MQTT persistent session, hàng đợi broker (D2) | Chưa làm | |
+| A6 | Ghi status / cảnh báo / config-state qua hàng đợi | Chưa làm | |
+| A7 | Đo lại, chốt giai đoạn A | Chưa làm | |
+| B0–B7 | Leader cho job, upsert cảnh báo, interface + Redis, realtime / ack qua pub/sub, object storage, 2 instance (D3, D4) | Chưa làm | |
+| C1–C6 | Tách vai trò, live state lên Redis, EMQX + nhiều worker, TimescaleDB, xác thực MQTT, vận hành (D5–D8) | Chưa làm | |
 
 ## 5. Môi trường trên máy này
 
