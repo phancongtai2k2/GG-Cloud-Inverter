@@ -60,7 +60,7 @@ Còn lại nhỏ: màn Dữ liệu inverter/pin vẫn truyền chuỗi `reg_*` v
 
 | Bước | Nội dung | Trạng thái | Commit |
 |---|---|---|---|
-| A0 | Bài thử tải `tools/GgPower.LoadGen`, số nền → `docs/LOADTEST.md` | Chưa làm | |
+| A0 | Bài thử tải `tools/GgPower.LoadGen`, số nền → `docs/LOADTEST.md` | **Xong**: ingest dư (5.000 tb = 13 % một lõi); tổng hợp 2,9 / 5,9 / 11,6 s ở 1k / 2k / 5k tb → trần ~10–12k; ≈ 3,2 MB/tb/ngày | 2bb087e |
 | A1 | Index `upper(serial)` | Chưa làm | |
 | A2 | `/healthz/live`, `/healthz/ready` | Chưa làm | |
 | A3 | Metrics OpenTelemetry → `/metrics` (D1) | Chưa làm | |

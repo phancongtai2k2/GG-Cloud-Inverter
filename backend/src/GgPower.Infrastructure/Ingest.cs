@@ -694,7 +694,10 @@ public sealed class RollupService(Db db, PartitionMaintenance partitions, Backfi
                     await c.ExecuteAsync("DELETE FROM reset_tokens WHERE expires_at < now() - interval '1 day'");
                     lastMaintenance = now;
                 }
+                var started = System.Diagnostics.Stopwatch.GetTimestamp();
                 await RunOnceAsync(now, stop);
+                // Load tests turn this on (Logging:LogLevel:GgPower.Infrastructure.RollupService = Debug) to measure the job.
+                log.LogDebug("rollup took {Ms} ms for {Devices} device(s)", System.Diagnostics.Stopwatch.GetElapsedTime(started).TotalMilliseconds, live.All.Count());
             }
             catch (OperationCanceledException) when (stop.IsCancellationRequested) { break; }
             catch (Exception ex) { log.LogError(ex, "rollup failed"); }
