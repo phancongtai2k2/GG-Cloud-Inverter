@@ -428,6 +428,8 @@
     <string name="config_tou_duration">· %1$s</string>
     <string name="config_tou_duration_overnight">· %1$s, qua đêm</string>
     <string name="unit_hour">giờ</string>
+    <string name="unit_day_word">ngày</string>
+    <string name="unit_month_word">tháng</string>
     <string name="unit_minute">phút</string>
     <string name="cd_reset_zoom">Đặt lại thu phóng</string>
     <string name="config_section_battery">Pin và ngưỡng SOC</string>

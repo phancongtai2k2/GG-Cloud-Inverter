@@ -433,6 +433,8 @@
     <string name="config_tou_duration">· %1$s</string>
     <string name="config_tou_duration_overnight">· %1$s, overnight</string>
     <string name="unit_hour">h</string>
+    <string name="unit_day_word">days</string>
+    <string name="unit_month_word">months</string>
     <string name="unit_minute">min</string>
     <string name="cd_reset_zoom">Reset zoom</string>
     <string name="config_section_battery">Battery and SOC thresholds</string>

@@ -103,3 +103,31 @@ fun windowLength(total: Double, zoom: Float, decimalSeparator: Char = ','): Stri
     return if (abs(v - r) < 0.05) r.toString() else String.format(java.util.Locale.ROOT, "%.1f", v).replace('.', decimalSeparator)
 }
 
+
+/**
+ * Nhãn trục thời gian của cửa sổ đang xem [t0]..[t1] (hàm `ZT` của Main.dc.html): chọn bước nhỏ nhất trong [steps] sao
+ * cho cửa sổ chia không quá 4 khoảng (không bước nào đủ thì lấy bước lớn nhất), đặt nhãn ở các bội của bước.
+ */
+fun zoomTicks(t0: Double, t1: Double, steps: List<Double>, label: (Double) -> String): List<AxisTick> {
+    if (steps.isEmpty() || t1 <= t0) return emptyList()
+    val asc = steps.sorted()
+    val step = asc.firstOrNull { (t1 - t0) / it <= 4.01 } ?: asc.last()
+    val out = mutableListOf<AxisTick>()
+    var t = kotlin.math.ceil(t0 / step - 1e-9) * step
+    while (t <= t1 + 1e-6) {
+        out += AxisTick(t, label(t))
+        t += step
+    }
+    return out
+}
+
+/** Bước nhãn của trục 24 giờ (phút): 6 h, 3 h, 2 h, 1 h, 30 phút, 15 phút. */
+val DayMinuteSteps = listOf(360.0, 180.0, 120.0, 60.0, 30.0, 15.0)
+
+/** Nhãn giờ của trục phút (hàm `ZHM`): tròn giờ → "6h", lẻ phút → "06:30". [hourSuffix] theo ngôn ngữ. */
+fun hourMinuteLabel(minutes: Double, hourSuffix: String = "h"): String {
+    val total = Math.round(minutes).toInt()
+    val h = total / 60
+    val m = total % 60
+    return if (m == 0) "$h$hourSuffix" else String.format(java.util.Locale.ROOT, "%02d:%02d", h, m)
+}

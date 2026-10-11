@@ -1,5 +1,11 @@
 package vn.ggpower.chart
 
+import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -130,14 +136,25 @@ fun CartesianChart(
     contentDescription: String? = null,
     selectionDescription: String? = null,
     geometry: ChartGeometry = ChartGeometry.Default,
+    zoom: ChartZoomState? = null,
+    zoomTicks: ((Double, Double) -> List<AxisTick>)? = null,
 ) {
     val measurer = rememberTextMeasurer()
     val currentOnSelect by rememberUpdatedState(onSelect)
     val lastIndex = model.xs.lastIndex
+    val view = zoomedModel(model, zoom?.window, zoomTicks)
+    var widthPx by remember { mutableFloatStateOf(0f) }
+    val density = LocalDensity.current.density
     Canvas(
         modifier = modifier
             .fillMaxWidth()
             .height(geometry.height)
+            .onSizeChanged { widthPx = it.width.toFloat() }
+            .then(
+                if (zoom != null) {
+                    Modifier.chartPinchZoom(zoom, geometry.plotLeft * density) { plotRightDp(model, geometry, widthPx / density) * density }
+                } else Modifier,
+            )
             .semantics {
                 if (contentDescription != null) this.contentDescription = contentDescription
                 if (selectionDescription != null) stateDescription = selectionDescription
@@ -146,17 +163,17 @@ fun CartesianChart(
                     setProgress { v -> currentOnSelect(v.roundToInt().coerceIn(0, lastIndex)); true }
                 }
             }
-            .pointerInput(model) {
-                detectTapGestures { p -> currentOnSelect(indexAt(model, geometry, p.x, size.width.toFloat(), density)) }
+            .pointerInput(view) {
+                detectTapGestures { p -> currentOnSelect(indexAt(view, geometry, p.x, size.width.toFloat(), density)) }
             }
-            .pointerInput(model) {
+            .pointerInput(view) {
                 detectHorizontalDragGestures { change, _ ->
                     change.consume()
-                    currentOnSelect(indexAt(model, geometry, change.position.x, size.width.toFloat(), density))
+                    currentOnSelect(indexAt(view, geometry, change.position.x, size.width.toFloat(), density))
                 }
             },
     ) {
-        drawCartesian(model, geometry, selectedIndex, style, measurer)
+        drawCartesian(view, geometry, selectedIndex, style, measurer, clipPlot = view !== model)
     }
 }
 
@@ -169,7 +186,14 @@ private fun indexAt(model: CartesianChartModel, g: ChartGeometry, xPx: Float, wi
     return nearestIndex(model.xs, scale.invert(xPx / density)).coerceAtLeast(0)
 }
 
-private fun DrawScope.drawCartesian(model: CartesianChartModel, g: ChartGeometry, selected: Int, style: ChartStyle, measurer: TextMeasurer) {
+private fun DrawScope.drawCartesian(
+    model: CartesianChartModel,
+    g: ChartGeometry,
+    selected: Int,
+    style: ChartStyle,
+    measurer: TextMeasurer,
+    clipPlot: Boolean = false,
+) {
     val d = density
     val widthDp = size.width / d
     val xScale = LinearScale(model.xMin, model.xMax, g.plotLeft * d, plotRightDp(model, g, widthDp) * d)
@@ -179,18 +203,24 @@ private fun DrawScope.drawCartesian(model: CartesianChartModel, g: ChartGeometry
     val plotRight = plotRightDp(model, g, widthDp) * d
     val gridDash = PathEffect.dashPathEffect(floatArrayOf(3 * d, 4 * d))
 
+    // Khi phóng to, đường / cột / vùng tô chỉ vẽ trong vùng vẽ (dữ liệu ngoài cửa sổ bị cắt).
+    fun plotClip(block: DrawScope.() -> Unit) =
+        if (clipPlot) clipRect(left = plotLeft, top = 0f, right = plotRight, bottom = size.height) { block() } else block()
+
     // Vùng tô (vẽ trước để nằm dưới lưới và đường)
-    model.series.filter { it.areaColor != null }.forEach { s ->
-        val scale = if (s.axis == AxisSide.Right && rightScale != null) rightScale else leftScale
-        val pts = s.values.mapIndexedNotNull { i, v -> v?.let { Offset(xScale.map(model.xs[i]), scale.map(it)) } }
-        if (pts.size >= 2) {
-            val area = Path().apply {
-                moveTo(pts.first().x, g.plotBottom * d)
-                pts.forEach { lineTo(it.x, it.y) }
-                lineTo(pts.last().x, g.plotBottom * d)
-                close()
+    plotClip {
+        model.series.filter { it.areaColor != null }.forEach { s ->
+            val scale = if (s.axis == AxisSide.Right && rightScale != null) rightScale else leftScale
+            val pts = s.values.mapIndexedNotNull { i, v -> v?.let { Offset(xScale.map(model.xs[i]), scale.map(it)) } }
+            if (pts.size >= 2) {
+                val area = Path().apply {
+                    moveTo(pts.first().x, g.plotBottom * d)
+                    pts.forEach { lineTo(it.x, it.y) }
+                    lineTo(pts.last().x, g.plotBottom * d)
+                    close()
+                }
+                drawPath(area, s.areaColor!!)
             }
-            drawPath(area, s.areaColor!!)
         }
     }
 
@@ -216,42 +246,46 @@ private fun DrawScope.drawCartesian(model: CartesianChartModel, g: ChartGeometry
         drawLabel(measurer, t.label, style, anchorX = xScale.map(t.value), baselineY = g.xLabelBaseline * d, align = LabelAlign.Center)
     }
 
-    // Cột (dương lên, âm xuống từ đường 0)
-    model.bars.forEach { b ->
-        val scale = if (b.axis == AxisSide.Right && rightScale != null) rightScale else leftScale
-        val zero = scale.map(0.0.coerceIn(scale.domainMin, scale.domainMax))
-        val w = b.width.toPx()
-        b.values.forEachIndexed { i, v ->
-            if (v == null || v == 0.0) return@forEachIndexed
-            val cx = xScale.map(model.xs[i]) + b.offset * (w + 1 * d)
-            val y = scale.map(v)
-            val alpha = if (i == selected) 1f else style.barDimAlpha
-            drawRect(b.color, Offset(cx - w / 2, minOf(y, zero)), Size(w, abs(zero - y)), alpha = alpha)
+    plotClip {
+        // Cột (dương lên, âm xuống từ đường 0)
+        model.bars.forEach { b ->
+            val scale = if (b.axis == AxisSide.Right && rightScale != null) rightScale else leftScale
+            val zero = scale.map(0.0.coerceIn(scale.domainMin, scale.domainMax))
+            val w = b.width.toPx()
+            b.values.forEachIndexed { i, v ->
+                if (v == null || v == 0.0) return@forEachIndexed
+                val cx = xScale.map(model.xs[i]) + b.offset * (w + 1 * d)
+                val y = scale.map(v)
+                val alpha = if (i == selected) 1f else style.barDimAlpha
+                drawRect(b.color, Offset(cx - w / 2, minOf(y, zero)), Size(w, abs(zero - y)), alpha = alpha)
+            }
         }
-    }
-
-    // Đường
-    model.series.forEach { s ->
-        val scale = if (s.axis == AxisSide.Right && rightScale != null) rightScale else leftScale
-        val path = Path()
-        var open = false
-        s.values.forEachIndexed { i, v ->
-            if (v == null) { open = false; return@forEachIndexed }
-            val x = xScale.map(model.xs[i]); val y = scale.map(v)
-            if (open) path.lineTo(x, y) else { path.moveTo(x, y); open = true }
+    
+        // Đường
+        model.series.forEach { s ->
+            val scale = if (s.axis == AxisSide.Right && rightScale != null) rightScale else leftScale
+            val path = Path()
+            var open = false
+            s.values.forEachIndexed { i, v ->
+                if (v == null) { open = false; return@forEachIndexed }
+                val x = xScale.map(model.xs[i]); val y = scale.map(v)
+                if (open) path.lineTo(x, y) else { path.moveTo(x, y); open = true }
+            }
+            drawPath(
+                path, s.color,
+                style = Stroke(
+                    width = s.width.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round,
+                    pathEffect = s.dash?.let { dash -> PathEffect.dashPathEffect(dash.map { it.toPx() }.toFloatArray()) },
+                ),
+            )
         }
-        drawPath(
-            path, s.color,
-            style = Stroke(
-                width = s.width.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round,
-                pathEffect = s.dash?.let { dash -> PathEffect.dashPathEffect(dash.map { it.toPx() }.toFloatArray()) },
-            ),
-        )
     }
 
     // Thanh kéo: vạch đứt, núm tròn 12 dp ở đáy, chấm 9 dp viền 1,5 dp trên từng chuỗi
-    if (selected in model.xs.indices) {
-        val x = xScale.map(model.xs[selected])
+    val scrubX = if (selected in model.xs.indices) xScale.map(model.xs[selected]) else Float.NaN
+    // Điểm đang chọn nằm ngoài cửa sổ phóng thì ẩn thanh kéo (như prototype).
+    if (!scrubX.isNaN() && scrubX >= plotLeft - 0.5f && scrubX <= plotRight + 0.5f) {
+        val x = scrubX
         drawLine(style.scrubColor, Offset(x, g.plotTop * d), Offset(x, g.plotBottom * d), strokeWidth = 1 * d, pathEffect = PathEffect.dashPathEffect(floatArrayOf(3 * d, 3 * d)))
         model.series.forEach { s ->
             val v = s.values.getOrNull(selected) ?: return@forEach
@@ -290,4 +324,21 @@ internal fun DrawScope.drawLabel(
         else -> 0f
     }
     drawText(layout, topLeft = Offset(x, y))
+}
+
+/**
+ * Mô hình của cửa sổ đang xem: trục x thu về phần [ZoomWindow.start]..[ZoomWindow.end] của [CartesianChartModel.xMin]..
+ * [CartesianChartModel.xMax]; nhãn x tính lại bằng [ticks] (ví dụ [zoomTicks]) hoặc lọc nhãn sẵn có. Không phóng thì trả
+ * nguyên [model].
+ */
+internal fun zoomedModel(
+    model: CartesianChartModel,
+    window: ZoomWindow?,
+    ticks: ((Double, Double) -> List<AxisTick>)?,
+): CartesianChartModel {
+    if (window == null || !window.zoomed) return model
+    val span = model.xMax - model.xMin
+    val v0 = model.xMin + span * window.start
+    val v1 = model.xMin + span * window.end
+    return model.copy(xMin = v0, xMax = v1, xTicks = ticks?.invoke(v0, v1) ?: model.xTicks.filter { it.value in v0..v1 })
 }

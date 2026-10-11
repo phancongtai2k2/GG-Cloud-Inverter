@@ -1,5 +1,12 @@
 package vn.ggpower.inverter.ui.home
 
+import androidx.compose.runtime.remember
+import vn.ggpower.inverter.ui.components.ZoomResetPill
+import vn.ggpower.chart.hourMinuteLabel
+import vn.ggpower.chart.DayMinuteSteps
+import vn.ggpower.chart.zoomTicks
+import vn.ggpower.chart.windowLength
+import vn.ggpower.chart.ChartZoomState
 import androidx.compose.ui.layout.layout
 import vn.ggpower.inverter.domain.home.HomeWidget
 import vn.ggpower.inverter.domain.home.HomeLayout
@@ -146,15 +153,19 @@ private fun periodLabel(selection: PeriodSelection): String = when (selection.pe
 
 /** Thẻ biểu đồ: tiêu đề 18/26 600, dòng thời điểm 12/16 `inkMuted` (sát tiêu đề), chú giải, biểu đồ. */
 @Composable
-private fun ChartCard(title: String, stamp: String?, content: @Composable () -> Unit) {
+private fun ChartCard(title: String, stamp: String?, trailing: (@Composable () -> Unit)? = null, content: @Composable () -> Unit) {
     GgCard(verticalSpacing = GgSpacing.space3) {
         Column {
-            Text(
-                title,
-                style = GgTheme.typography.body.copy(fontSize = 18.sp, lineHeight = 26.sp, fontWeight = FontWeight.SemiBold),
-                color = GgTheme.colors.ink,
-                modifier = Modifier.semantics { heading() },
-            )
+            // Tiêu đề và nút đặt lại thu phóng (ZoomResetPill) cùng hàng, cách nhau 8 dp.
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(GgSpacing.space2)) {
+                Text(
+                    title,
+                    style = GgTheme.typography.body.copy(fontSize = 18.sp, lineHeight = 26.sp, fontWeight = FontWeight.SemiBold),
+                    color = GgTheme.colors.ink,
+                    modifier = Modifier.weight(1f).semantics { heading() },
+                )
+                trailing?.invoke()
+            }
             if (stamp != null) {
                 Text(stamp, style = GgTheme.typography.caption.copy(fontWeight = FontWeight.Normal, fontFeatureSettings = "tnum"), color = GgTheme.colors.inkMuted, modifier = Modifier.padding(top = 8.dp))
             }
@@ -305,6 +316,30 @@ private fun hourTicks(suffix: String) = DayHourTicks.map { AxisTick(it * 60.0, "
 private fun stampOf(state: StatsUiState, minute: Int): String =
     GgFormat.dateTimeShort(state.selection.anchor.atTime(LocalTime.of(minute / 60 % 24, minute % 60)))
 
+/** Thu phóng trục 24 giờ của biểu đồ ngày (Main.dc.html `ZM` "pw" / "bat"): tối đa ×8, về 1× khi đổi ngày. */
+@Composable
+private fun rememberDayZoom(selection: PeriodSelection): ChartZoomState = remember(selection) { ChartZoomState(maxZoom = 8f) }
+
+/** Nút đặt lại thu phóng: độ dài cửa sổ ("6 giờ", "1,5 giờ") — chỉ hiện khi đang phóng. */
+@Composable
+private fun ZoomPill(zoom: ChartZoomState, label: (Float) -> String) {
+    val w = zoom.window
+    if (w.zoomed) ZoomResetPill(label(w.zoom), zoom::reset, Modifier.height(26.dp))
+}
+
+@Composable
+private fun hoursLabel(): (Float) -> String {
+    val hour = stringResource(R.string.unit_hour)
+    return { z -> "${windowLength(24.0, z, GgFormat.defaultStyle.decimalSeparator)} $hour" }
+}
+
+/** Nhãn trục x của cửa sổ đang xem (hàm `ZT`): bước 6 h … 15 phút, "6h" / "09:30". */
+@Composable
+private fun dayZoomTicks(): (Double, Double) -> List<AxisTick> {
+    val suffix = stringResource(R.string.chart_hour_suffix)
+    return { a, b -> zoomTicks(a, b, DayMinuteSteps) { hourMinuteLabel(it, suffix) } }
+}
+
 /** 4.5 · Công suất (Ngày): 4 đường PV / Lưới / S16 Pre / Tải, trục kW co theo dữ liệu, đường 0 đậm. */
 @Composable
 private fun PowerDayCard(state: StatsUiState, onSelect: (Int) -> Unit) {
@@ -319,7 +354,9 @@ private fun PowerDayCard(state: StatsUiState, onSelect: (Int) -> Unit) {
     val bat = s?.let { GgFormat.signedWithUnit(it.batteryKw, 1, kw) } ?: missing
     val load = s?.let { GgFormat.withUnit(it.loadKw, 1, kw) } ?: missing
     val stamp = s?.let { stampOf(state, it.minute) }
-    ChartCard(stringResource(R.string.chart_power_title), stamp) {
+    val zoom = rememberDayZoom(state.selection)
+    val hours = hoursLabel()
+    ChartCard(stringResource(R.string.chart_power_title), stamp, trailing = { ZoomPill(zoom, hours) }) {
         ChartLegend(
             listOf(
                 LegendEntry(LegendSwatch.Line(colors.energyPv), stringResource(R.string.legend_pv), pv),
@@ -349,6 +386,8 @@ private fun PowerDayCard(state: StatsUiState, onSelect: (Int) -> Unit) {
                 model, i, onSelect, ggChartStyle(),
                 contentDescription = stringResource(R.string.cd_chart_power),
                 selectionDescription = stringResource(R.string.cd_power_selection, stamp.orEmpty(), pv, grid, bat, load),
+                zoom = zoom,
+                zoomTicks = dayZoomTicks(),
             )
         }
     }
@@ -367,7 +406,9 @@ private fun BatteryDayCard(state: StatsUiState, onSelect: (Int) -> Unit) {
     val soc = s?.let { GgFormat.withUnit(it.socPercent.toLong(), pct) } ?: missing
     val stamp = s?.let { stampOf(state, it.minute) }
     val areaFill = colors.energyBattery.copy(alpha = 0.12f)
-    ChartCard(stringResource(R.string.chart_battery_title), stamp) {
+    val zoom = rememberDayZoom(state.selection)
+    val hours = hoursLabel()
+    ChartCard(stringResource(R.string.chart_battery_title), stamp, trailing = { ZoomPill(zoom, hours) }) {
         ChartLegend(
             listOf(
                 LegendEntry(LegendSwatch.Line(colors.energyBattery), stringResource(R.string.legend_bms_current), amp),
@@ -395,6 +436,8 @@ private fun BatteryDayCard(state: StatsUiState, onSelect: (Int) -> Unit) {
                 model, i, onSelect, ggChartStyle(),
                 contentDescription = stringResource(R.string.cd_chart_battery),
                 selectionDescription = stringResource(R.string.cd_battery_selection, stamp.orEmpty(), amp, soc),
+                zoom = zoom,
+                zoomTicks = dayZoomTicks(),
             )
         }
     }
@@ -416,7 +459,28 @@ private fun YieldChartCard(state: StatsUiState, onSelect: (Int) -> Unit) {
     val export = b?.let { energy(it.exportKwh) } ?: missing
     val eff = efficiency?.getOrNull(i)?.let { GgFormat.withUnit(it, 2, stringResource(R.string.unit_kw)) } ?: missing
     val stamp = if (b != null) yieldStamp(state.selection, i) else null
-    ChartCard(stringResource(R.string.chart_yield_title), stamp) {
+    // Main.dc.html `ZM` "y_…": tối đa ×4 (≤ 20 cột) hoặc ×8; về 1× khi đổi kỳ.
+    val n = buckets?.size ?: 0
+    val zoom = remember(state.selection, n) { ChartZoomState(maxZoom = if (n > 20) 8f else 4f) }
+    val hourSuffix = stringResource(R.string.chart_hour_suffix)
+    val monthPrefix = stringResource(R.string.chart_month_prefix)
+    val windowUnit = when (state.selection.period) {
+        StatsPeriod.Day -> stringResource(R.string.unit_hour)
+        StatsPeriod.Month -> stringResource(R.string.unit_day_word)
+        StatsPeriod.Year -> stringResource(R.string.unit_month_word)
+    }
+    val windowLabel: (Float) -> String = { z ->
+        if (state.selection.period == StatsPeriod.Day) "${windowLength(24.0, z, GgFormat.defaultStyle.decimalSeparator)} $windowUnit"
+        else "${Math.round(n / z)} $windowUnit"
+    }
+    val barLabel: (Int) -> String = { k ->
+        when (state.selection.period) {
+            StatsPeriod.Day -> "${k * 2}$hourSuffix"
+            StatsPeriod.Month -> "${k + 1}"
+            StatsPeriod.Year -> "$monthPrefix${k + 1}"
+        }
+    }
+    ChartCard(stringResource(R.string.chart_yield_title), stamp, trailing = { ZoomPill(zoom, windowLabel) }) {
         ChartLegend(
             listOf(
                 LegendEntry(LegendSwatch.Square(colors.energyPv), stringResource(R.string.legend_pv_self), self),
@@ -447,6 +511,8 @@ private fun YieldChartCard(state: StatsUiState, onSelect: (Int) -> Unit) {
                 model, i, onSelect, ggChartStyle(barChart = true),
                 contentDescription = stringResource(R.string.cd_chart_yield),
                 selectionDescription = stringResource(R.string.cd_yield_selection, stamp.orEmpty(), self, charge, export),
+                zoom = zoom,
+                zoomLabel = barLabel,
             )
         }
     }

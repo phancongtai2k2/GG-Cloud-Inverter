@@ -43,11 +43,11 @@ Trạng thái kiểm tra cuối: `./gradlew assembleDebug testMockDebugUnitTest 
 ### 4.1 App — Config / TOU: **xong** (xem bảng mục 3)
 Còn lại nhỏ: màn Dữ liệu inverter/pin vẫn truyền chuỗi `reg_*` vào `DataRow.register` dù không hiển thị (46 chuỗi) — dọn khi tiện.
 
-### 4.2 App — Main (màn 4, khó nhất, khác biệt 2.371 dòng)
+### 4.2 App — Main (màn 4): **xong** (4 commit: 3a83f91, 3e24033, 703ad15 + commit thu phóng)
 - ~~Sơ đồ ngôi nhà~~ **xong** (commit 1/3): `ui/home/house/` — hình tĩnh SINH bằng `app/tools/svg2kt.mjs` (`node app/tools/svg2kt.mjs <Main.dc.html> <HouseArt.kt>`), vệt sáng 5 lớp theo `<animate>`, nhãn, chip CO₂ trôi. Mock theo số thiết kế (lưới 0,5, pin 1,6); `HomeOverview.co2TodayKg` null ở live. `EnergyFlowDiagram` cũ giữ cho kiểu "Sơ đồ khối" (commit 3).
 - ~~Nền trời dark~~ **xong** (commit 2/3): `SkyBackdrop` + `domain/home/Sky.kt` (6h–18h là ngày, 46 sao sinh như prototype, có test).
 - ~~Tuỳ chỉnh màn hình chính~~ **xong** (commit 3a): `HomeCustomizeScreen` phủ toàn màn (carousel bắt dính giữa, kéo tay nắm đổi chỗ, ẩn/thêm, Áp dụng), `domain/home/HomeLayout.kt` (+ test) lưu trong `SettingsStore`; "Sơ đồ khối" làm lại theo thiết kế mới (`NodesFlowDiagram`, vệt sáng dùng chung `FlowComet.kt`); thẻ "Chế độ & pin" hai ô cạnh nhau, cố định dưới sơ đồ.
-- ~~Tab Ngày/Tháng/Năm đặt trên biểu đồ đầu~~ **xong** (3a). **Còn (3b): biểu đồ thu phóng** — Công suất / Pin (ngày, maxZoom 8, nhãn trục theo hàm `ZT`) và Sản lượng PV (cột, mức 1·2·4 hoặc 1·2·4·8), dùng `chartPinchZoom` + `ZoomResetPill` trong `chart/`.
+- ~~Tab Ngày/Tháng/Năm đặt trên biểu đồ đầu~~ **xong** (3a). ~~Biểu đồ thu phóng~~ **xong** (3b): `CartesianChart` / `StackedBarChart` nhận `zoom: ChartZoomState` (cửa sổ x, cắt vùng vẽ, nhãn `zoomTicks`, `barWindow`); Công suất / Pin ngày tối đa ×8, Sản lượng PV ×4 / ×8; nút `ZoomResetPill` ở tiêu đề. Biểu đồ Tháng/Năm dạng đường chưa phóng (thiết kế không có).
 - ~~Icon tổng quan `primary`; ô "Dung lượng sạc hôm nay"~~ **xong** (3a): `HomeOverview.chargedToday` (mock 10,2 / 1,9 kWh, live "—").
 
 ### 4.3 Backend — trường mới cho thiết kế (xem bảng "Đang chờ" trong `contract/CHANGES.md`)
