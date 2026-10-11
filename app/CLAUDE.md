@@ -6,7 +6,7 @@
 - Build cả hai bản: `./gradlew assembleDebug` (từng bản: `assembleMockDebug` · `assembleLiveDebug`)
 - Unit test: `./gradlew testMockDebugUnitTest testLiveDebugUnitTest`
 - Lint: `./gradlew lint` (chạy trên bản mặc định `mockDebug`)
-- Hai bản build (quy trình B1): `mock` dùng toàn bộ `Fake…Repository`, không cần mạng, applicationId `vn.ggpower.inverter.mock`; `live` gọi backend, địa chỉ đặt ở `local.properties` khoá `ggp.api.baseUrl.live` (không commit). Trước khi nối backend (B5), `live` vẫn dùng dữ liệu giả lập.
+- Hai bản build (quy trình B1): `mock` dùng toàn bộ `Fake…Repository`, không cần mạng, applicationId `vn.ggpower.inverter.mock`; `live` gọi backend, địa chỉ đặt ở `local.properties` khoá `ggp.api.baseUrl.live` (không commit). `live` đã nối backend thật; hợp đồng API ở `../contract/` (đổi API → đọc `../contract/CHANGES.md`).
 - Xem prototype: `cd docs/design/html && python3 -m http.server 8000` rồi mở `http://localhost:8000/<Tên>.dc.html`
 
 ## Nhắc nhanh

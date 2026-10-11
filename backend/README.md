@@ -26,8 +26,9 @@ Kiểm tra: `http://localhost:5080/healthz`. Máy ảo Android gọi máy dev qu
 
 ## Kiểm thử
 
-**Test tự động** (`.
-un.ps1 -Test`, khoảng 15 giây): 77 test trong `tests/GgPower.Tests`.
+**Test tự động** (`.\run.ps1 -Test`, khoảng 35 giây): 93 test trong `tests/GgPower.Tests`.
+- `ContractTests.cs`: route thật phải khớp `../contract/openapi.yaml` (hợp đồng với app) và mọi `$ref` trong đó phải
+  trỏ đúng. Thêm / đổi endpoint thì sửa `openapi.yaml` và ghi vào `../contract/CHANGES.md`.
 - `DomainTests.cs`: quy tắc thuần — khung giờ TOU (kể cả qua nửa đêm), ánh xạ chế độ ↔ lệnh datalogger, phân tích bản tin,
   quy tắc tài khoản và mật khẩu, ước tính nguồn năng lượng trong pin.
 - `ApiTests.cs`: chạy cả ứng dụng với cơ sở dữ liệu `ggpower_test` (bị xoá trắng mỗi lần chạy; test từ chối chạy nếu tên

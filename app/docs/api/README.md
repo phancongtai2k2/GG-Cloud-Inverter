@@ -1,12 +1,14 @@
 # Hợp đồng API
 
-| File | Phạm vi | Trạng thái |
-|---|---|---|
-| `config-write.openapi.yaml` | Đọc cấu hình, gửi lệnh ghi (3 nhóm của ADR-001), lịch sử thay đổi, công tắc tắt ghi, danh sách serial demo | **Nháp 0.2.0 — chưa duyệt** (0.2.0: thêm tham số chỉ xem `settings`, tên người thực hiện ở lịch sử) |
+Từ 11/10/2026 hợp đồng app ↔ backend nằm ở thư mục gốc của kho: [`../../../contract/`](../../../contract/README.md)
+(`openapi.yaml`, `realtime.md`, `CHANGES.md`). Bản `live` đã nối backend thật; mọi endpoint dùng trong
+`data/remote/` phải có trong `contract/openapi.yaml`.
 
-Mọi phần khác (đăng nhập, dự án, realtime, cảnh báo, hỗ trợ…) **chưa có hợp đồng**.
+| File | Trạng thái |
+|---|---|
+| `config-write.openapi.yaml` | **Đã thay thế** bởi `contract/openapi.yaml` (nhóm `config`). Giữ lại để tra lịch sử quyết định (ADR-001, mô tả thanh ghi); không dùng làm nguồn. |
 
 Quy tắc cho agent:
-- Chỗ nào chưa có hợp đồng: chỉ dùng `Fake…Repository`, không tự đặt endpoint.
-- `config-write.openapi.yaml` còn là nháp. Dùng nó để định hình model và `Fake…Repository` của màn 16, 16a, 16b (trạng thái lệnh, mã lỗi), **chưa nối backend thật** cho tới khi Phòng EMS và backend duyệt và đổi trạng thái thành "Đã duyệt".
-- Điểm chưa rõ: ghi vào `docs/OPEN_QUESTIONS.md`.
+- Cần endpoint hoặc trường chưa có trong `contract/openapi.yaml`: không tự đặt. Ghi vào mục "Đang chờ" của
+  `contract/CHANGES.md` (và `docs/OPEN_QUESTIONS.md` nếu cần quyết định), dùng `Fake…Repository` cho tới khi backend làm xong.
+- Backend đổi hợp đồng: đọc mục mới nhất trong `contract/CHANGES.md`, làm theo dòng "App cần làm".
