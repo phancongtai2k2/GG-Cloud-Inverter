@@ -585,6 +585,15 @@
     <string name="device_soh">SOH</string>
     <string name="device_soc">SoC</string>
     <string name="device_open_data">Theo dõi dữ liệu chi tiết</string>
+    <string name="datalogger_title">Datalogger Wi-Fi</string>
+    <string name="datalogger_signal">Tín hiệu</string>
+    <string name="datalogger_link">Kết nối</string>
+    <string name="signal_strong">Mạnh</string>
+    <string name="signal_medium">Trung bình</string>
+    <string name="signal_weak">Yếu</string>
+    <string name="link_wifi">Wi-Fi</string>
+    <string name="link_ethernet">Ethernet</string>
+    <string name="link_cellular">4G</string>
     <string name="cd_battery_level">Mức pin</string>
     <string name="battery_charging_until_full">Đang sạc · đầy sau ~%1$s giờ</string>
     <string name="battery_discharging_remaining">Đang xả · còn ~%1$s giờ</string>

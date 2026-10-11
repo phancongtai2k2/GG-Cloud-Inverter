@@ -45,8 +45,12 @@ import vn.ggpower.inverter.R
 import vn.ggpower.inverter.data.device.FakeDeviceRepository
 import vn.ggpower.inverter.domain.device.BatteryState
 import vn.ggpower.inverter.domain.device.BatterySummary
+import vn.ggpower.inverter.domain.device.DataloggerSummary
 import vn.ggpower.inverter.domain.device.InverterSummary
+import vn.ggpower.inverter.domain.device.LinkType
+import vn.ggpower.inverter.domain.device.SignalLevel
 import vn.ggpower.inverter.domain.format.GgFormat
+import vn.ggpower.inverter.domain.project.ProjectStatus
 import vn.ggpower.inverter.ui.components.ButtonSize
 import vn.ggpower.inverter.ui.components.FloatingTabBar
 import vn.ggpower.inverter.ui.components.FloatingTabBarContentPadding
@@ -124,6 +128,7 @@ fun DevicesScreen(
                     state.units.forEach { unit ->
                         InverterCard(unit.inverter, temperatureUnit, onOpenInverterData)
                         unit.battery?.let { BatteryCard(it, onOpenBatteryData) }
+                        unit.datalogger?.let { DataloggerCard(it) }
                     }
                 }
             }
@@ -242,6 +247,49 @@ private fun BatteryCard(battery: BatterySummary, onClick: () -> Unit) {
         ))
     }
 }
+
+/**
+ * Thẻ Datalogger Wi-Fi (gg-inverter-design Device.dc.html): không bấm được, không có chân "Theo dõi dữ liệu". Đầu thẻ như
+ * thẻ inverter (icon 48, tên 18/26, SN đơn cách, chip trạng thái); ba ô Tín hiệu · Kết nối · Firmware.
+ */
+@Composable
+private fun DataloggerCard(logger: DataloggerSummary) {
+    val colors = GgTheme.colors
+    val dash = stringResource(R.string.value_missing)
+    GgCard(verticalSpacing = GgSpacing.space4) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(GgSpacing.space3)) {
+            DeviceIcon(R.drawable.ic_datalogger, colors.primary)
+            Column(Modifier.weight(1f)) {
+                Text(stringResource(R.string.datalogger_title), style = deviceTitle(), color = colors.ink)
+                Text(stringResource(R.string.device_serial, logger.serial ?: dash), style = monoStyle(), color = colors.inkMuted)
+            }
+            when (logger.online) {
+                true -> ProjectStatusChip(ProjectStatus.Online)
+                false -> ProjectStatusChip(ProjectStatus.Offline)
+                null -> Unit
+            }
+        }
+        MetricRow(listOf(
+            Metric(stringResource(R.string.datalogger_signal), logger.signal?.let { stringResource(it.label) } ?: dash),
+            Metric(stringResource(R.string.datalogger_link), logger.link?.let { stringResource(it.label) } ?: dash),
+            Metric(stringResource(R.string.device_firmware), logger.firmware ?: dash, mono = true),
+        ))
+    }
+}
+
+private val SignalLevel.label: Int
+    get() = when (this) {
+        SignalLevel.Strong -> R.string.signal_strong
+        SignalLevel.Medium -> R.string.signal_medium
+        SignalLevel.Weak -> R.string.signal_weak
+    }
+
+private val LinkType.label: Int
+    get() = when (this) {
+        LinkType.WiFi -> R.string.link_wifi
+        LinkType.Ethernet -> R.string.link_ethernet
+        LinkType.Cellular -> R.string.link_cellular
+    }
 
 /** "Đang sạc · đầy sau ~2 giờ" / "Đang xả · còn ~3 giờ" / "Đứng yên". */
 @Composable

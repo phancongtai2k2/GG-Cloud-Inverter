@@ -52,6 +52,7 @@ import vn.ggpower.inverter.domain.battery.BatteryEnergy
 import vn.ggpower.inverter.domain.config.OperatingMode
 import vn.ggpower.inverter.domain.device.BatteryState
 import vn.ggpower.inverter.domain.device.BatterySummary
+import vn.ggpower.inverter.domain.device.DataloggerSummary
 import vn.ggpower.inverter.domain.device.DeviceUnit
 import vn.ggpower.inverter.domain.device.InverterSummary
 import vn.ggpower.inverter.domain.home.BatteryContent
@@ -445,6 +446,19 @@ class LiveDeviceRepository @Inject constructor(private val api: ApiClient) : Dev
                         voltageV = it.num("voltage_v"), sohPercent = it.int("soh_percent"),
                     )
                 },
+                // Backend chưa có khối datalogger riêng (contract/CHANGES.md, "Đang chờ"): firmware lấy từ logger_firmware,
+                // online suy từ trạng thái inverter (datalogger là đường liên lạc duy nhất); serial, tín hiệu, kết nối để trống.
+                datalogger = DataloggerSummary(
+                    serial = null,
+                    online = when (inv.str("status")) {
+                        null, "waiting_connection" -> null
+                        "offline" -> false
+                        else -> true
+                    },
+                    signal = null,
+                    link = null,
+                    firmware = inv.str("logger_firmware"),
+                ),
             )
         }
     }

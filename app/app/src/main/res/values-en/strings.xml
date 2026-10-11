@@ -570,6 +570,15 @@
     <string name="device_soh">SOH</string>
     <string name="device_soc">SoC</string>
     <string name="device_open_data">View detailed data</string>
+    <string name="datalogger_title">Wi-Fi datalogger</string>
+    <string name="datalogger_signal">Signal</string>
+    <string name="datalogger_link">Connection</string>
+    <string name="signal_strong">Strong</string>
+    <string name="signal_medium">Medium</string>
+    <string name="signal_weak">Weak</string>
+    <string name="link_wifi">Wi-Fi</string>
+    <string name="link_ethernet">Ethernet</string>
+    <string name="link_cellular">4G</string>
     <string name="cd_battery_level">Battery level</string>
     <string name="battery_charging_until_full">Charging · full in ~%1$s h</string>
     <string name="battery_discharging_remaining">Discharging · ~%1$s h left</string>

@@ -3,8 +3,11 @@ package vn.ggpower.inverter.data.device
 import kotlinx.coroutines.delay
 import vn.ggpower.inverter.domain.device.BatteryState
 import vn.ggpower.inverter.domain.device.BatterySummary
+import vn.ggpower.inverter.domain.device.DataloggerSummary
 import vn.ggpower.inverter.domain.device.DeviceUnit
 import vn.ggpower.inverter.domain.device.InverterSummary
+import vn.ggpower.inverter.domain.device.LinkType
+import vn.ggpower.inverter.domain.device.SignalLevel
 import vn.ggpower.inverter.domain.project.ProjectStatus
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -43,6 +46,14 @@ class FakeDeviceRepository @Inject constructor() : DeviceRepository {
             sohPercent = 98,
         )
 
-        val SAMPLE = listOf(DeviceUnit(INVERTER, BATTERY))
+        val DATALOGGER = DataloggerSummary(
+            serial = "GGW-25031501",
+            online = true,
+            signal = SignalLevel.Strong,
+            link = LinkType.WiFi,
+            firmware = "v1.0.17",
+        )
+
+        val SAMPLE = listOf(DeviceUnit(INVERTER, BATTERY, DATALOGGER))
     }
 }
