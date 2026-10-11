@@ -240,9 +240,13 @@ public sealed class AppFixture : WebApplicationFactory<Program>
 
     // ----- device helpers -----
 
-    public Task Feed(string serial, string kind, object payload, bool retained = false) =>
-        Service<IngestPipeline>().HandleAsync($"solar/ggp/inverter/{serial}/up/{kind}",
+    /// <summary>Delivers one device message and waits until its database work (status, alarms…) is done.</summary>
+    public async Task Feed(string serial, string kind, object payload, bool retained = false)
+    {
+        await Service<IngestPipeline>().HandleAsync($"solar/ggp/inverter/{serial}/up/{kind}",
             Encoding.UTF8.GetBytes(payload as string ?? JsonSerializer.Serialize(payload)), CancellationToken.None, retained);
+        await Service<DeviceEventQueue>().DrainAsync();
+    }
 
     public static object Telemetry(string serial, double pv = 1500, double grid = 200, double load = 900, double battFlow = -800, double soc = 60, long? ts = null) => new
     {

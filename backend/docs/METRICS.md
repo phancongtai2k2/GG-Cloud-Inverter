@@ -13,6 +13,9 @@ Bước A3 của `backend/docs/KE_HOACH_NANG_CAP_BACKEND.docx`; code ở `src/Gg
 | `ggpower_ingest_queue_length` | gauge | Dòng đang chờ ghi | > 50 % `ggpower_ingest_queue_capacity` |
 | `ggpower_ingest_queue_capacity` | gauge | Dung lượng hàng đợi trước khi bỏ dòng | — |
 | `ggpower_writer_rows_total` | counter | Dòng dữ liệu thô đã ghi DB | — |
+| `ggpower_events_queue_length` | gauge | Sự kiện thiết bị (status, cảnh báo, config/state, firmware) chờ ghi DB | > 1.000 kéo dài |
+| `ggpower_events_dropped_total` | counter | Status / firmware bị bỏ vì hàng đợi sự kiện đầy | Bất kỳ giá trị tăng nào |
+| `ggpower_events_failed_total` | counter | Sự kiện bỏ cuộc sau khi thử lại (DB lỗi lâu) | Bất kỳ giá trị tăng nào |
 | `ggpower_writer_batch_duration_milliseconds` | histogram | Thời gian ghi một lô | p95 > 1.000 ms |
 | `ggpower_rollup_duration_milliseconds` | histogram | Thời gian một lần job tổng hợp (chu kỳ 30 s) | p95 > 15.000 ms (nửa chu kỳ) |
 | `ggpower_commands_submitted_total{group}` | counter | Lệnh ghi cấu hình được nhận | — |

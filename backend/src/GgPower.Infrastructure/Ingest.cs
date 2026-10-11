@@ -166,7 +166,7 @@ public interface IDeviceEventSink
 /// </summary>
 public sealed class IngestPipeline(
     Db db, LiveStateCache live, RealtimeHub hub, IOptions<IngestOptions> options, IEnumerable<IDeviceEventSink> sinks,
-    BackfillTracker backfill, TimeProvider clock, ILogger<IngestPipeline> log)
+    BackfillTracker backfill, DeviceEventQueue events, TimeProvider clock, ILogger<IngestPipeline> log)
 {
     private readonly TimeSpan _alertReopen = TimeSpan.FromMinutes(Math.Max(0, options.Value.AlertReopenMinutes));
     private readonly IDeviceEventSink[] _sinks = sinks.ToArray();
@@ -272,20 +272,26 @@ public sealed class IngestPipeline(
                 case "config/state":
                     var state = j.Clone();
                     lock (d.Gate) { d.ConfigState = state; d.ConfigStateAt = now; Touch(d, now); }
-                    await ExecAsync("UPDATE devices SET config_state = @v::jsonb, config_state_at = @now WHERE serial = @serial",
-                        new { v = state.GetRawText(), now, serial = d.Serial }, ct);
+                    // Commands wait on the in-memory state; the database copy (read at start-up) may follow a moment later.
                     foreach (var s in _sinks) s.OnConfigState(d.Serial, state);
                     hub.Publish(d.Serial, LiveJson.Bytes(new { type = "config_changed", serial = d.Serial }));
+                    var stateJson = state.GetRawText();
+                    await events.EnqueueAsync("config/state", c => ExecAsync(
+                        "UPDATE devices SET config_state = @v::jsonb, config_state_at = @now WHERE serial = @serial",
+                        new { v = stateJson, now, serial = d.Serial }, c), mayDrop: false, ct);
                     break;
 
                 case "firmware":
                     var fw = j.Clone();
                     lock (d.Gate) { d.Firmware = fw; Touch(d, now); }
-                    await ExecAsync("UPDATE devices SET firmware_json = @v::jsonb WHERE serial = @serial", new { v = fw.GetRawText(), serial = d.Serial }, ct);
+                    var fwJson = fw.GetRawText();
+                    await events.EnqueueAsync("firmware", c => ExecAsync("UPDATE devices SET firmware_json = @v::jsonb WHERE serial = @serial",
+                        new { v = fwJson, serial = d.Serial }, c), mayDrop: true, ct);
                     break;
 
+                // Alerts, counters and notifications go through the event queue; never dropped.
                 case "alarm" when Payloads.Alarm(j, t.Serial, now) is { } a:
-                    await OnAlarmAsync(d, a, now, ct);
+                    await events.EnqueueAsync("alarm", c => OnAlarmAsync(d, a, now, c), mayDrop: false, ct);
                     break;
 
                 case "command/ack" when Payloads.Ack(j, t.Serial) is { } ack:
@@ -340,16 +346,22 @@ public sealed class IngestPipeline(
                 d.Dirty = true;
             }
         }
-        await ExecAsync(
+        hub.Publish(d.Serial, LiveJson.Bytes(LiveJson.Snapshot(d, now)));
+        var args = new
+        {
+            online = st.Online, raw = raw.GetRawText(), model = st.Model, fw = st.InverterFw, logger = st.LoggerFw, comm = st.InverterComm,
+            now, serial = d.Serial, replayed = _replayed,
+        };
+        // An "offline" status must reach the database (it decides the state after a restart); a newer "online" one
+        // supersedes an older one, so those may be dropped when the queue is full.
+        await events.EnqueueAsync("status", c => ExecAsync(
             """
             UPDATE devices SET online = @online, status_json = @raw::jsonb,
                    model = COALESCE(@model, model), inverter_fw = COALESCE(@fw, inverter_fw),
                    logger_fw = COALESCE(@logger, logger_fw), inverter_comm = COALESCE(@comm, inverter_comm),
                    last_seen = CASE WHEN @online AND NOT @replayed THEN @now ELSE last_seen END
             WHERE serial = @serial
-            """,
-            new { online = st.Online, raw = raw.GetRawText(), model = st.Model, fw = st.InverterFw, logger = st.LoggerFw, comm = st.InverterComm, now, serial = d.Serial, replayed = _replayed }, ct);
-        hub.Publish(d.Serial, LiveJson.Bytes(LiveJson.Snapshot(d, now)));
+            """, args, c), mayDrop: st.Online, ct);
     }
 
     private async Task OnAlarmAsync(DeviceLive d, AlarmEvent a, DateTimeOffset now, CancellationToken ct)

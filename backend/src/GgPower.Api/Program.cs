@@ -45,6 +45,9 @@ builder.Services.AddSingleton<LiveStateCache>();
 builder.Services.AddSingleton<RealtimeHub>();
 builder.Services.AddSingleton<BackfillTracker>();
 builder.Services.AddSingleton<RollupTracker>();
+// Registered before MqttLink: hosted services stop in reverse order, so it still writes what MQTT delivered last.
+builder.Services.AddSingleton<DeviceEventQueue>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<DeviceEventQueue>());
 builder.Services.AddSingleton<IngestPipeline>();
 builder.Services.AddSingleton<BatchWriter>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<BatchWriter>());
@@ -216,7 +219,8 @@ app.MapGet("/healthz", (MqttLink mqtt, RealtimeHub hub, BatchWriter writer, Inge
 
 HealthEndpoints.Map(app);
 GgMetrics.Observe(app.Services.GetRequiredService<IngestPipeline>(), app.Services.GetRequiredService<BatchWriter>(),
-    app.Services.GetRequiredService<RealtimeHub>(), app.Services.GetRequiredService<LiveStateCache>(), app.Services.GetRequiredService<TimeProvider>());
+    app.Services.GetRequiredService<RealtimeHub>(), app.Services.GetRequiredService<LiveStateCache>(), app.Services.GetRequiredService<DeviceEventQueue>(),
+    app.Services.GetRequiredService<TimeProvider>());
 app.MapPrometheusScrapingEndpoint("/metrics").WithMetadata(new Microsoft.AspNetCore.Routing.HttpMethodMetadata(["GET"])).DisableRateLimiting();
 
 var api = app.MapGroup("/api/v1");

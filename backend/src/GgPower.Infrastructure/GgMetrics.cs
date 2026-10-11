@@ -27,9 +27,12 @@ public static class GgMetrics
     private static int _observed;
 
     /// <summary>Registers the gauges and counters read from live objects. Called once by the host; later calls are ignored.</summary>
-    public static void Observe(IngestPipeline ingest, BatchWriter writer, RealtimeHub hub, LiveStateCache live, TimeProvider clock)
+    public static void Observe(IngestPipeline ingest, BatchWriter writer, RealtimeHub hub, LiveStateCache live, DeviceEventQueue events, TimeProvider clock)
     {
         if (Interlocked.Exchange(ref _observed, 1) == 1) return;
+        Meter.CreateObservableGauge("ggpower.events.queue.length", () => events.Pending, description: "Device events (status, alarms…) waiting for the database");
+        Meter.CreateObservableCounter("ggpower.events.dropped", () => events.Dropped, description: "Status / firmware events dropped because the event queue was full");
+        Meter.CreateObservableCounter("ggpower.events.failed", () => events.Failed, description: "Device events given up after retries");
         Meter.CreateObservableCounter("ggpower.ingest.received", () => ingest.Received, description: "MQTT messages received from devices");
         Meter.CreateObservableCounter("ggpower.ingest.rejected", () => ingest.Rejected, description: "Messages rejected (bad topic, tenant, serial or payload)");
         Meter.CreateObservableCounter("ggpower.ingest.dropped", () => ingest.Dropped, description: "Raw rows dropped because the write queue was full");

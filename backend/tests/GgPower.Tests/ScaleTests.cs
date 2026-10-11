@@ -108,7 +108,8 @@ public class ScaleTests(AppFixture app)
         var serial = await app.NewDevice();
         // A pipeline and writer of their own, so the running ones do not take these samples.
         var pipeline = new IngestPipeline(sp.GetRequiredService<Db>(), sp.GetRequiredService<LiveStateCache>(), sp.GetRequiredService<RealtimeHub>(),
-            sp.GetRequiredService<IOptions<IngestOptions>>(), [], sp.GetRequiredService<BackfillTracker>(), sp.GetRequiredService<TimeProvider>(),
+            sp.GetRequiredService<IOptions<IngestOptions>>(), [], sp.GetRequiredService<BackfillTracker>(), sp.GetRequiredService<DeviceEventQueue>(),
+            sp.GetRequiredService<TimeProvider>(),
             NullLogger<IngestPipeline>.Instance);
         var writer = new BatchWriter(sp.GetRequiredService<Db>(), pipeline, sp.GetRequiredService<LiveStateCache>(), sp.GetRequiredService<BackfillTracker>(),
             new RollupTracker(), NullLogger<BatchWriter>.Instance);
@@ -122,6 +123,41 @@ public class ScaleTests(AppFixture app)
 
         await using var c = await sp.GetRequiredService<Db>().OpenAsync();
         Assert.Equal(20, await c.ExecuteScalarAsync<int>("SELECT count(*) FROM telemetry_raw WHERE serial = @serial AND ts >= to_timestamp(@from)", new { serial, from }));
+    }
+
+    // A6: device events are written off the receive path — a stuck database does not hold up the MQTT handler.
+    [Fact]
+    public async Task StatusIsHandledWhileTheDatabaseWriteWaits()
+    {
+        var serial = await app.NewDevice();
+        var queue = app.Service<DeviceEventQueue>();
+        var release = new TaskCompletionSource();
+        await queue.EnqueueAsync("blocker", _ => release.Task, mayDrop: false, CancellationToken.None);   // the "slow database"
+
+        var watch = System.Diagnostics.Stopwatch.StartNew();
+        await app.Service<IngestPipeline>().HandleAsync($"solar/ggp/inverter/{serial}/up/status",
+            JsonSerializer.SerializeToUtf8Bytes(new { sn = serial, state = "online", model = "Queued Model" }), CancellationToken.None);
+        Assert.True(watch.ElapsedMilliseconds < 1000, $"handler took {watch.ElapsedMilliseconds} ms");
+        Assert.Equal("Queued Model", app.Service<LiveStateCache>().Get(serial)!.Model);   // memory is updated at once
+
+        release.SetResult();
+        await queue.DrainAsync();
+        await using var c = await app.Service<Db>().OpenAsync();
+        Assert.Equal("Queued Model", await c.ExecuteScalarAsync<string>("SELECT model FROM devices WHERE serial = @serial", new { serial }));
+    }
+
+    [Fact]
+    public async Task FullEventQueueDropsStatusButWaitsForAlarms()
+    {
+        var queue = new DeviceEventQueue(NullLogger<DeviceEventQueue>.Instance);   // not started: nothing is consumed
+        for (var i = 0; i < DeviceEventQueue.Capacity; i++)
+            await queue.EnqueueAsync("status", _ => Task.CompletedTask, mayDrop: true, CancellationToken.None);
+        await queue.EnqueueAsync("status", _ => Task.CompletedTask, mayDrop: true, CancellationToken.None);
+        Assert.Equal(1, queue.Dropped);
+        using var timeout = new CancellationTokenSource(TimeSpan.FromMilliseconds(200));
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
+            await queue.EnqueueAsync("alarm", _ => Task.CompletedTask, mayDrop: false, timeout.Token));
+        Assert.Equal(DeviceEventQueue.Capacity, queue.Pending);
     }
 
     [Fact]
