@@ -978,7 +978,7 @@ components:
         INVALID_CREDENTIALS, ACCOUNT_LOCKED, ACCOUNT_NOT_VERIFIED, EMAIL_TAKEN, PHONE_TAKEN, CODE_WRONG, CODE_EXPIRED,
         CODE_LOCKED, TOKEN_EXPIRED, WRONG_PASSWORD, SERIAL_NOT_FOUND, SERIAL_OWNED, PROJECT_LIMIT, PROJECT_NOT_FOUND,
         ROLE_NOT_PERMITTED, DEVICE_NOT_FOUND, ALERT_NOT_FOUND, COMMAND_NOT_FOUND, TICKET_NOT_FOUND, TICKET_CLOSED,
-        ATTACHMENT_LIMIT, GROUP_NOT_IN_ALLOWLIST, DEVICE_READ_ONLY, WRITE_DISABLED_BY_SERVER, GATEWAY_OFFLINE,
+        ATTACHMENT_LIMIT, GROUP_NOT_IN_ALLOWLIST, DEVICE_READ_ONLY, WRITE_DISABLED_BY_SERVER, GATEWAY_OFFLINE, BMS_NOT_CONNECTED,
         CONFIG_STALE, COMMAND_IN_PROGRESS, IDEMPOTENCY_KEY_REUSED, RATE_LIMITED.
       properties:
         code: { type: string }
@@ -1531,7 +1531,7 @@ components:
             required: [group, reason]
             properties:
               group: { $ref: "#/components/schemas/WriteGroup" }
-              reason: { type: string, enum: [NOT_SUPPORTED_BY_DEVICE] }
+              reason: { type: string, enum: [NOT_SUPPORTED_BY_DEVICE, BMS_NOT_CONNECTED], description: "BMS_NOT_CONNECTED: inverter báo không có pin hoặc bms_comm là fault / disabled" }
         backup_soc_range:
           type: object
           properties:

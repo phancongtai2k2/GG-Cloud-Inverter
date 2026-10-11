@@ -131,6 +131,7 @@ public sealed class CommandService(
         if (!await AllowlistedAsync(d.Serial, ct)) return SubmitResult.Fail(409, "DEVICE_READ_ONLY");
         if (!await WriteEnabledAsync(ct)) return SubmitResult.Fail(409, "WRITE_DISABLED_BY_SERVER");
         if (!GatewayOnline(d) || !Mqtt.IsConnected || d.ConfigState is null) return SubmitResult.Fail(409, "GATEWAY_OFFLINE");
+        if (group == WriteGroups.BackupSoc && d.BmsDisconnected) return SubmitResult.Fail(409, "BMS_NOT_CONNECTED");
 
         var tou = await TouAsync(d.Serial, ct);
         var strategies = ParseStrategies(tou.Strategies);

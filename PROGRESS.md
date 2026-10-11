@@ -38,7 +38,7 @@ Cập nhật: 11/10/2026 · Nhánh: `feature/contract-and-theme` (16 commit trê
 | 73dd9d7 | Config: hộp xác nhận có ô "Cách hoạt động của …" / "Sau khi thay đổi", thẻ chế độ bỏ viền, thanh SOC khoá màu `sliderDisabled` + mờ khi chưa có BMS, bỏ hẳn mã thanh ghi (xoá 22 chuỗi `reg_*`). TOU 16a/16b: đối chiếu xong, các mục mới đã có từ BO_SUNG_v3 |
 | 3a83f91 · 3e24033 · 703ad15 · 5487056 | Main: sơ đồ ngôi nhà (hình sinh từ SVG), nền trời dark, tuỳ chỉnh màn hình chính + sơ đồ khối mới + thẻ Chế độ & pin, thu phóng biểu đồ (chi tiết mục 4.2) |
 
-Trạng thái kiểm tra cuối (sau Main 3b): `./gradlew assembleDebug testMockDebugUnitTest testLiveDebugUnitTest :chart:testDebugUnitTest lint` **xanh**; backend `dotnet test` **93/93** (chưa chạy lại — backend chưa đổi). **Phần app của kế hoạch đã xong; việc tiếp theo là 4.3 Backend.**
+Trạng thái kiểm tra cuối (sau Main 3b): `./gradlew assembleDebug testMockDebugUnitTest testLiveDebugUnitTest :chart:testDebugUnitTest lint` **xanh**; backend `dotnet test` **94/94**. **Xong phần app và 4.3; việc tiếp theo là 4.4 (nâng cấp backend để mở rộng).**
 
 ## 4. Việc tiếp theo (theo thứ tự)
 
@@ -52,8 +52,8 @@ Còn lại nhỏ: màn Dữ liệu inverter/pin vẫn truyền chuỗi `reg_*` v
 - ~~Tab Ngày/Tháng/Năm đặt trên biểu đồ đầu~~ **xong** (3a). ~~Biểu đồ thu phóng~~ **xong** (3b): `CartesianChart` / `StackedBarChart` nhận `zoom: ChartZoomState` (cửa sổ x, cắt vùng vẽ, nhãn `zoomTicks`, `barWindow`); Công suất / Pin ngày tối đa ×8, Sản lượng PV ×4 / ×8; nút `ZoomResetPill` ở tiêu đề. Biểu đồ Tháng/Năm dạng đường chưa phóng (thiết kế không có).
 - ~~Icon tổng quan `primary`; ô "Dung lượng sạc hôm nay"~~ **xong** (3a): `HomeOverview.chargedToday` (mock 10,2 / 1,9 kWh, live "—").
 
-### 4.3 Backend — trường mới cho thiết kế (xem bảng "Đang chờ" trong `contract/CHANGES.md`)
-Datalogger (serial, rssi→mức, kiểu kết nối, firmware — `signal_rssi`/`ip_addr` đã có trong `up/status`), giới hạn SOC sạc/xả (cần firmware), CO₂ hôm nay + model trong `/overview`, sạc hôm nay theo nguồn (`rollup_15m.pv_charge_kwh`). Mỗi trường: sửa `openapi.yaml` → thêm mục `CHANGES.md` → code + test → nối app (bỏ "—").
+### 4.3 Backend — trường mới cho thiết kế: **xong** (3 commit, xem `contract/CHANGES.md` các mục 2026-10-11)
+`/overview`: model, co2_today_kg, battery_charged_today (cả frame `device`, làm mới bởi RollupService); Datalogger ở `/devices` + snapshot; `BatteryLive` giới hạn SOC sạc/xả; `BMS_NOT_CONNECTED` chặn SOC dự phòng. App (live) đã đọc hết. **Còn phía firmware**: `logger_sn`, `conn_type`, `charge_stop_soc` (backend đọc sẵn). Backend test 94/94.
 
 ### 4.4 Backend — nâng cấp để mở rộng
 - Nhanh: index `upper(serial)`; `/healthz` kiểm tra DB + tách liveness/readiness; metrics (OpenTelemetry/Prometheus); rollup chỉ cho thiết bị có dữ liệu mới (bỏ quét 3 ngày mọi thiết bị mỗi 30 s); MQTT persistent session + client id cố định; ghi status/alarm qua hàng đợi thay vì trong handler MQTT.

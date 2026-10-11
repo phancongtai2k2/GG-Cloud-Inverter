@@ -151,9 +151,14 @@ public static class ConfigEndpoints
                 write_access = new
                 {
                     state = writeState, role,
-                    writable_groups = writeState == "enabled" ? ConfigMapping.WritableGroups(state) : [],
-                    // A datalogger whose firmware cannot write the backup SOC reports it as blocked rather than silently missing.
-                    blocked_groups = ConfigMapping.SupportsBackupSoc(state) ? [] : new[] { new { group = WriteGroups.BackupSoc, reason = "NOT_SUPPORTED_BY_DEVICE" } },
+                    writable_groups = writeState == "enabled"
+                        ? ConfigMapping.WritableGroups(state).Where(g => g != WriteGroups.BackupSoc || !d.BmsDisconnected).ToArray()
+                        : [],
+                    // A group the device cannot apply right now is reported as blocked rather than silently missing:
+                    // firmware that cannot write the backup SOC, or no link to the battery's BMS.
+                    blocked_groups = !ConfigMapping.SupportsBackupSoc(state)
+                        ? new[] { new { group = WriteGroups.BackupSoc, reason = "NOT_SUPPORTED_BY_DEVICE" } }
+                        : d.BmsDisconnected ? new[] { new { group = WriteGroups.BackupSoc, reason = "BMS_NOT_CONNECTED" } } : [],
                     backup_soc_range = new { min = ConfigMapping.BackupSocMin, max = ConfigMapping.BackupSocMax },
                     writable_modes = OperatingModes.WritableFor(role),
                 },

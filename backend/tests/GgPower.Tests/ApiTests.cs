@@ -1029,6 +1029,21 @@ public class CommandTests(AppFixture app)
         Assert.Equal("NOT_SUPPORTED_BY_DEVICE", (string)config["write_access"]!["blocked_groups"]![0]!["reason"]!);
         var (s, body) = await Submit(owner3, old, new { group = "backup_soc", based_on_version = await app.Version(owner3, old), soc_percent = 30 });
         Assert.Equal((HttpStatusCode.Forbidden, "GROUP_NOT_IN_ALLOWLIST"), (s, (string)body!["code"]!));
+
+        // no link to the BMS: blocked with its own reason (the app explains it), and refused; it comes back with the link
+        var (owner4, noBms) = await Setup();
+        var ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        await app.Feed(noBms, "battery", new { sn = noBms, ts, soc = 60, voltage = 52.0, current = 0.0, present = true, bms_comm = "fault" });
+        config = (await app.Get($"/api/v1/devices/{noBms}/config", owner4.Access)).Body!;
+        Assert.DoesNotContain("backup_soc", config["write_access"]!["writable_groups"]!.AsArray().Select(x => (string)x!));
+        Assert.Equal(("backup_soc", "BMS_NOT_CONNECTED"),
+            ((string)config["write_access"]!["blocked_groups"]![0]!["group"]!, (string)config["write_access"]!["blocked_groups"]![0]!["reason"]!));
+        (s, body) = await Submit(owner4, noBms, new { group = "backup_soc", based_on_version = await app.Version(owner4, noBms), soc_percent = 30 });
+        Assert.Equal((HttpStatusCode.Conflict, "BMS_NOT_CONNECTED"), (s, (string)body!["code"]!));
+        await app.Feed(noBms, "battery", new { sn = noBms, ts = ts + 1, soc = 60, voltage = 52.0, current = 0.0, present = true, bms_comm = "ok" });
+        config = (await app.Get($"/api/v1/devices/{noBms}/config", owner4.Access)).Body!;
+        Assert.Contains("backup_soc", config["write_access"]!["writable_groups"]!.AsArray().Select(x => (string)x!));
+        Assert.Empty(config["write_access"]!["blocked_groups"]!.AsArray());
     }
 
     [Fact]

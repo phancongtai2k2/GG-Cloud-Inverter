@@ -51,6 +51,12 @@ public sealed class DeviceLive
     /// </summary>
     public bool? BatteryPresent => Battery?.Present ?? Telemetry?.BatteryPresent;
 
+    /// <summary>
+    /// The inverter has no working link to the battery's BMS (no battery, or the link reported as fault / disabled), so the
+    /// backup SOC cannot be applied. "unknown" or not reported does not block.
+    /// </summary>
+    public bool BmsDisconnected => BatteryPresent == false || Battery?.BmsComm is "fault" or "disabled";
+
     /// <summary>online | warning | error | offline (the app's ProjectStatus).</summary>
     public string StatusName(DateTimeOffset now) =>
         !IsReachable(now) ? "offline"

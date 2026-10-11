@@ -26,6 +26,16 @@
 
 ---
 
+## 2026-10-11 · SOC dự phòng bị chặn khi không có truyền thông BMS
+- Loại: thêm      Phá tương thích: không
+- Phạm vi: GET /devices/{serial}/config (`write_access.blocked_groups[].reason`); POST /devices/{serial}/config-commands
+- Chi tiết: khi inverter báo không có pin, hoặc `bms_comm` là `fault` / `disabled`, nhóm `backup_soc` bị bỏ khỏi
+  `writable_groups` và có trong `blocked_groups` với `reason = BMS_NOT_CONNECTED` (giá trị enum mới; `unknown` hay chưa báo thì
+  không chặn). Gửi lệnh `backup_soc` lúc đó trả `409 BMS_NOT_CONNECTED` (mã lỗi mới). Có lại truyền thông là mở lại ngay.
+- Backend: `DeviceLive.BmsDisconnected`; test `BackupSocIsWrittenAndReadBack`.
+- App cần làm: đã làm — đọc `blocked_groups` → `BlockReason.BmsNotConnected` (màn 16 hiện "Chưa có truyền thông với pin (BMS)…",
+  thanh SOC mờ); mã lỗi `BMS_NOT_CONNECTED` đã có sẵn ở luồng ghi.
+
 ## 2026-10-11 · Thẻ Datalogger; giới hạn SOC sạc / xả của pin
 - Loại: thêm      Phá tương thích: không
 - Phạm vi: GET /projects/{projectId}/devices (`DeviceEntry.datalogger`); GET /projects/{projectId}/telemetry và frame `device`
@@ -73,4 +83,4 @@ Các trường dưới đây **chưa có** trong hợp đồng. Khi backend làm
 
 | Màn (thiết kế mới) | Dữ liệu cần | Đề xuất vị trí | Ghi chú |
 |---|---|---|---|
-| Config · thông báo "chưa có truyền thông BMS" | cờ truyền thông BMS | đã có `bms_comm` ở `DeviceEntry` / `DeviceSnapshot` | Có thể không cần trường mới; cân nhắc thêm vào `ConfigSnapshot` cho tiện |
+| Device · Datalogger; BatteryEnergy · vạch sạc | **Firmware** gửi `logger_sn`, `conn_type` (up/status) và `charge_stop_soc` (config/state) | Backend đã đọc sẵn (mục 2026-10-11 ở trên) | Chưa gửi thì app hiện "—" / ẩn vạch sạc; không cần đổi hợp đồng khi firmware làm xong |
