@@ -1,5 +1,8 @@
 package vn.ggpower.inverter.ui.home
 
+import androidx.compose.ui.layout.layout
+import vn.ggpower.inverter.domain.home.HomeWidget
+import vn.ggpower.inverter.domain.home.HomeLayout
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -63,23 +66,44 @@ data class StatsActions(
     val onSelectYield: (Int) -> Unit = {},
 )
 
-/** Mục 4.4–4.8: bộ chọn kỳ (cách nhau 4 dp, mũi tên cách biểu đồ 8 dp), 3 thẻ biểu đồ và thẻ chỉ số tổng hợp. */
+/**
+ * Các thẻ tuỳ chỉnh được của Màn hình chính theo [layout] (Main.dc.html `wg`, `order`): Tổng quan (4.8), Công suất (4.5),
+ * Sản lượng PV (4.7), Pin S16 Pre (4.6). Dải Ngày / Tháng / Năm và hàng ‹ kỳ › đứng ngay trên biểu đồ đầu tiên; không có
+ * biểu đồ nào thì ẩn. Gọi trong cột cách nhau 12 dp của màn.
+ */
 @Composable
-fun HomeStats(state: StatsUiState, actions: StatsActions) {
-    Column(verticalArrangement = Arrangement.spacedBy(GgSpacing.space1)) {
-        PeriodSelector(state, actions)
-        Column(Modifier.padding(top = GgSpacing.space2), verticalArrangement = Arrangement.spacedBy(GgSpacing.space3)) {
-            PowerChartCard(state, actions.onSelectPower)
-            BatteryChartCard(state, actions.onSelectBattery)
-            YieldChartCard(state, actions.onSelectYield)
-            SummaryCard(state)
+fun HomeWidgets(layout: HomeLayout, state: StatsUiState, actions: StatsActions) {
+    val firstChart = layout.firstChartIndex
+    layout.widgets.forEachIndexed { i, widget ->
+        if (i == firstChart) PeriodSelector(state, actions)
+        when (widget) {
+            HomeWidget.Summary -> SummaryCard(state)
+            HomeWidget.Power -> PowerChartCard(state, actions.onSelectPower)
+            HomeWidget.Yield -> YieldChartCard(state, actions.onSelectYield)
+            HomeWidget.Battery -> BatteryChartCard(state, actions.onSelectBattery)
         }
     }
 }
 
-/** Segmented Ngày / Tháng / Năm (cỡ nhỏ) và hàng ‹ kỳ › (nút 44 × 40, nhãn 13/20 600). */
+/**
+ * Segmented Ngày / Tháng / Năm (cỡ nhỏ) và hàng ‹ kỳ › (nút 48, nhãn 13/20 600): cách nhau 12 dp như các khối khác;
+ * hàng kỳ cách biểu đồ bên dưới 8 dp (`margin-bottom: -4px` của prototype) nên khối báo cao hụt 4 dp.
+ */
 @Composable
 private fun PeriodSelector(state: StatsUiState, actions: StatsActions) {
+    Column(
+        Modifier.layout { measurable, constraints ->
+            val p = measurable.measure(constraints)
+            layout(p.width, (p.height - 4.dp.roundToPx()).coerceAtLeast(0)) { p.place(0, 0) }
+        },
+        verticalArrangement = Arrangement.spacedBy(GgSpacing.space3),
+    ) {
+        PeriodTabs(state, actions)
+    }
+}
+
+@Composable
+private fun PeriodTabs(state: StatsUiState, actions: StatsActions) {
     val periods = StatsPeriod.entries
     SegmentedControl(
         options = listOf(stringResource(R.string.period_day), stringResource(R.string.period_month), stringResource(R.string.period_year)),
@@ -449,13 +473,13 @@ private fun SummaryCard(state: StatsUiState) {
     val s = state.summary
     val missing = stringResource(R.string.value_missing)
     val rows = listOf(
-        Triple(R.drawable.ic_energy_load to colors.energyLoad, R.string.summary_consumption,
+        Triple(R.drawable.ic_energy_load to colors.primary, R.string.summary_consumption,
             s?.let { GgFormat.energy(it.consumptionKwh, stringResource(R.string.unit_kwh), stringResource(R.string.unit_mwh)) } ?: missing),
         Triple(R.drawable.ic_shield_check to colors.primary, R.string.summary_self_use,
             s?.let { GgFormat.withUnit(it.selfUsePercent.toLong(), stringResource(R.string.unit_percent)) } ?: missing),
         Triple(R.drawable.ic_money to colors.primary, R.string.summary_saving,
             s?.let { GgFormat.money(it.savingVnd, stringResource(R.string.unit_vnd)) } ?: missing),
-        Triple(R.drawable.ic_leaf to colors.energyBattery, R.string.summary_co2,
+        Triple(R.drawable.ic_leaf to colors.primary, R.string.summary_co2,
             s?.let { GgFormat.mass(it.co2Kg, stringResource(R.string.unit_kg), stringResource(R.string.unit_ton)) } ?: missing),
     )
     GgCard(contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = GgSpacing.space4, vertical = GgSpacing.space1)) {

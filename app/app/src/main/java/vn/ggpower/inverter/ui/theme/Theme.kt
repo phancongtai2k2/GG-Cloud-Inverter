@@ -98,11 +98,11 @@ data class GgColorScheme(
     val onToast: Color,
     /** Lớp phủ sau bottom sheet / dialog: rgba(14,21,18,0.5) (TouStrategy.dc.html). */
     val scrim: Color,
-    /** Sơ đồ dòng năng lượng (Main.dc.html): vòng GG SmartBox #60eb98 (chưa có token); tia sáng: quầng #34c26f, lõi #5bd68c
-     *  (giá trị primary / primary-hover của token dark, prototype dùng cả ở light). */
+    /** Sơ đồ khối (Main.dc.html `vw.nodes`): vòng GG SmartBox #149c4a (chung sáng/tối); ray đường nối #c9cdd2 / #3a4743;
+     *  nền nút Tải #eaeee8 / #0e1814. */
     val flowHub: Color,
-    val flowGlow: Color,
-    val flowHead: Color,
+    val nodesFlowTrack: Color,
+    val nodeLoadBg: Color,
     /** Chữ nhãn "CẤP B · NHÀ PHÂN PHỐI" (#8a4b00 trên nền accent-soft, Config.dc.html). */
     val badgeDistributorText: Color,
     /** Khối pin 3D màn 11 (BatteryEnergy.dc.html, chưa có token): nền kính #eef3f8, viền #b3c3d3, cạnh #c9d6e3;
@@ -169,9 +169,9 @@ private fun schemeOf(p: GgPalette, dark: Boolean) = GgColorScheme(
     toastBg = if (dark) Color(0xA8EEF3EF) else Color(0x9E13201B),
     onToast = if (dark) p.surface else Color.White,
     scrim = if (dark) Color(0x99000000) else Color(0x800E1512),
-    flowHub = if (dark) p.primaryFill else Color(0xFF60EB98),
-    flowGlow = DarkGgPalette.primary,
-    flowHead = PrimaryHoverDark,
+    flowHub = Color(0xFF149C4A),
+    nodesFlowTrack = if (dark) Color(0xFF3A4743) else Color(0xFFC9CDD2),
+    nodeLoadBg = if (dark) Color(0xFF0E1814) else p.sunken,
     badgeDistributorText = if (dark) p.accentText else Color(0xFF8A4B00),
     batteryGlass = if (dark) p.card else Color(0xFFEEF3F8),
     batteryOutline = if (dark) p.lineStrong else Color(0xFFB3C3D3),

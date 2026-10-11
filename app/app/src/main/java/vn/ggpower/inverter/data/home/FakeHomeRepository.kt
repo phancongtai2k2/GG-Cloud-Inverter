@@ -91,6 +91,7 @@ class FakeHomeRepository @Inject constructor(
             backupSocPercent = 20,
             battery = BatteryContent(capacityKwh = 16.0, fromPvKwh = 10.2, fromGridKwh = 1.9),
             co2TodayKg = 10.4,
+            chargedToday = ChargedToday(fromPvKwh = 10.2, fromGridKwh = 1.9),
         )
 
         // Bảng chỉ số tổng hợp đặc tả 4.8.

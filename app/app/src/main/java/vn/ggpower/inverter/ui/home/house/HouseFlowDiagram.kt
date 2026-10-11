@@ -87,27 +87,23 @@ private fun svgPath(vararg points: Float): Path = Path().apply {
     }
 }
 
-/**
- * Một đường năng lượng (Main.dc.html, nhóm "Đường năng lượng"): toạ độ SVG theo chiều "xuôi", độ dài vệt dài nhất
- * [head] (đơn vị SVG), chu kỳ [periodMs] và phần chu kỳ vệt đang chạy [travel] (phần còn lại nghỉ) — lấy nguyên từ `<animate>`.
- */
-private class FlowLine(val path: Path, val head: Float, val periodMs: Int, val travel: Float, val orange: Boolean)
+/** Đường của sơ đồ ngôi nhà: toạ độ và vệt theo đơn vị SVG, quy về khung 700 × 690; nét 1,7. */
+private fun houseLine(head: Float, periodMs: Int, travel: Float, vararg points: Float, orange: Boolean = false) =
+    FlowLine(svgPath(*points), head * ViewScale, periodMs, travel, FlowStroke * ViewScale, orange)
+
 
 /** PV: tấm pin trên mái → biến tần. */
-private val PvLine = FlowLine(svgPath(128.15f, 94.3f, 113.5f, 96.7f, 113.5f, 133.15f), 29.15f, 2690, 0.817f, orange = false)
+private val PvLine = houseLine(29.15f, 2690, 0.817f, 128.15f, 94.3f, 113.5f, 96.7f, 113.5f, 133.15f)
 
 /** Biến tần → Energy Hub (chiều xuôi = sạc pin). */
-private val BatteryLine = FlowLine(svgPath(111.9f, 157.9f, 111.9f, 170.1f), 9.75f, 1250, 0.72f, orange = false)
+private val BatteryLine = houseLine(9.75f, 1250, 0.72f, 111.9f, 157.9f, 111.9f, 170.1f)
 
 /** Biến tần → tải trong nhà, màu cam. */
-private val LoadLine = FlowLine(svgPath(121f, 145.2f, 155.5f, 150f, 173.5f, 145.95f), 35f, 2710, 0.871f, orange = true)
+private val LoadLine = houseLine(35f, 2710, 0.871f, 121f, 145.2f, 155.5f, 150f, 173.5f, 145.95f, orange = true)
 
 /** Cột điện → biến tần (chiều xuôi = mua điện). */
-private val GridLine = FlowLine(svgPath(40f, 203.3f, 76.5f, 195f, 76.5f, 139f, 106f, 143.1f), 35f, 8390, 0.958f, orange = false)
+private val GridLine = houseLine(35f, 8390, 0.958f, 40f, 203.3f, 76.5f, 195f, 76.5f, 139f, 106f, 143.1f)
 
-/** 5 lớp của một vệt sáng: độ dài theo tỉ lệ vệt dài nhất, độ đậm tăng dần về đầu vệt. */
-private val CometLengths = floatArrayOf(1f, 0.75f, 0.52f, 0.32f, 0.14f)
-private val CometAlphas = floatArrayOf(0.25f, 0.45f, 0.65f, 0.85f, 1f)
 private const val FlowStroke = 1.7f
 
 /**
@@ -169,7 +165,7 @@ fun HouseFlowDiagram(snapshot: EnergySnapshot, co2Kg: Double?, modifier: Modifie
             Canvas(Modifier.fillMaxSize().graphicsLayer()) {
                 scale(size.width / ArtWidth, pivot = Offset.Zero) {
                     drawArt(HouseBack)
-                    val track = Stroke(width = FlowStroke * ViewScale, cap = StrokeCap.Round, join = StrokeJoin.Round)
+                    val track = Stroke(width = PvLine.stroke, cap = StrokeCap.Round, join = StrokeJoin.Round)
                     flows.forEach { (line, _) -> drawPath(line.path, colors.houseFlowTrack, style = track) }
                 }
             }
@@ -228,13 +224,6 @@ fun HouseFlowDiagram(snapshot: EnergySnapshot, co2Kg: Double?, modifier: Modifie
     }
 }
 
-/** Chiều vệt sáng: true = xuôi theo toạ độ đường, false = ngược, null = không có dòng điện. */
-private fun FlowDirection.forward(forwardWhen: FlowDirection): Boolean? = when (this) {
-    FlowDirection.None -> null
-    forwardWhen -> true
-    else -> false
-}
-
 /** Đường nét đứt dọc nối chỉ số với sơ đồ (x, y đầu, y cuối) — khung 700 × 690. */
 private val LeaderLines = listOf(
     Triple(238f, 128f, 216f),
@@ -243,50 +232,9 @@ private val LeaderLines = listOf(
     Triple(530f, 558f, 420f),
 )
 
-/** Đồng hồ chung cho mọi vệt sáng (ms, tăng liên tục); dừng khi [active] = false. */
-@Composable
-private fun flowClock(active: Boolean): State<Float> {
-    if (!active) return remember { mutableStateOf(0f) }
-    val transition = rememberInfiniteTransition(label = "houseFlow")
-    // Bội chung đủ dài để 4 chu kỳ không bị giật khi vòng lặp quay về 0.
-    return transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 600_000f,
-        animationSpec = infiniteRepeatable(tween(600_000, easing = LinearEasing), RepeatMode.Restart),
-        label = "clock",
-    )
-}
-
-private val segment = Path()
-private val measure = PathMeasure()
-
-/**
- * Vệt sáng 5 lớp (Main.dc.html `stroke-dasharray` + `<animate stroke-dashoffset>`): đầu vệt đi từ 0 tới hết đường cộng
- * độ dài vệt dài nhất trong [FlowLine.travel] của chu kỳ, rồi nghỉ tới hết chu kỳ.
- */
-private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawComet(line: FlowLine, forward: Boolean, nowMs: Float, color: Color) {
-    measure.setPath(line.path, false)
-    val length = measure.length
-    val longest = line.head * ViewScale
-    val phase = (nowMs % line.periodMs) / line.periodMs
-    if (phase >= line.travel) return
-    val head = phase / line.travel * (length + longest)
-    val style = Stroke(width = FlowStroke * ViewScale, cap = StrokeCap.Round)
-    for (i in CometLengths.indices) {
-        val tail = head - longest * CometLengths[i]
-        var a = tail.coerceIn(0f, length)
-        var b = head.coerceIn(0f, length)
-        if (b <= a) continue
-        if (!forward) { val ra = length - b; b = length - a; a = ra }
-        segment.reset()
-        measure.getSegment(a, b, segment, true)
-        drawPath(segment, color.copy(alpha = CometAlphas[i]), style = style)
-    }
-}
-
 /** Chữ theo cỡ px của prototype (đã nhân [k] → dp), không phóng theo cỡ chữ hệ thống để giữ đúng bố cục hình. */
 @Composable
-private fun artText(k: Float, sizePx: Float, lineHeightPx: Float, weight: FontWeight = FontWeight.Normal): TextStyle {
+internal fun artText(k: Float, sizePx: Float, lineHeightPx: Float, weight: FontWeight = FontWeight.Normal): TextStyle {
     val fontScale = LocalDensity.current.fontScale
     fun px(v: Float): TextUnit = (v * k / fontScale).sp
     return GgTheme.typography.body.copy(fontSize = px(sizePx), lineHeight = px(lineHeightPx), fontWeight = weight, fontFeatureSettings = "tnum")
@@ -294,7 +242,7 @@ private fun artText(k: Float, sizePx: Float, lineHeightPx: Float, weight: FontWe
 
 /** Cột chữ căn giữa tại [centerX]; đỉnh tại [top] (hoặc tâm dọc nếu [centerY]) — toạ độ khung 700 × 690. */
 @Composable
-private fun ArtLabel(k: Float, centerX: Float, top: Float, centerY: Boolean = false, gap: Float = 0f, content: @Composable () -> Unit) {
+internal fun ArtLabel(k: Float, centerX: Float, top: Float, centerY: Boolean = false, gap: Float = 0f, content: @Composable () -> Unit) {
     Layout(
         content = { Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy((gap * k).dp)) { content() } },
     ) { measurables, constraints ->

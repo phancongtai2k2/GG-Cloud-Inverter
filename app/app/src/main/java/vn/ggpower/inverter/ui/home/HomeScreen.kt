@@ -1,5 +1,13 @@
 package vn.ggpower.inverter.ui.home
 
+import vn.ggpower.inverter.data.home.ChargedToday
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.runtime.saveable.rememberSaveable
+import vn.ggpower.inverter.ui.home.house.NodesFlowDiagram
+import vn.ggpower.inverter.domain.home.HomeLayout
+import vn.ggpower.inverter.domain.home.FlowView
 import vn.ggpower.inverter.ui.home.house.SkyHeight
 import vn.ggpower.inverter.ui.home.house.SkyBackdrop
 import vn.ggpower.inverter.domain.home.SkyMode
@@ -86,9 +94,12 @@ fun HomeRoute(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val stats by viewModel.statsState.collectAsStateWithLifecycle()
+    val layout by viewModel.layout.collectAsStateWithLifecycle()
     HomeScreen(
         state, stats, tabs, onOpenAlerts, onOpenConfig, onOpenBatteryEnergy,
         onBackToProjects = onBackToProjects,
+        layout = layout,
+        onApplyLayout = viewModel::onApplyLayout,
         statsActions = StatsActions(
             onPeriodChange = viewModel::onPeriodChange,
             onPrevious = viewModel::onPrevious,
@@ -116,9 +127,13 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     onBackToProjects: () -> Unit = {},
     statsActions: StatsActions = StatsActions(),
+    layout: HomeLayout = HomeLayout(),
+    onApplyLayout: (HomeLayout) -> Unit = {},
 ) {
     val colors = GgTheme.colors
     val overview = (state as? HomeUiState.Content)?.overview
+    // Màn "Tuỳ chỉnh màn hình chính" phủ toàn màn (cả thanh tab), như prototype.
+    var customizing by rememberSaveable { mutableStateOf(false) }
     Box(modifier.fillMaxSize().background(colors.surface)) {
         Column(Modifier.fillMaxSize().statusBarsPadding()) {
             ScreenHeader(
@@ -140,14 +155,25 @@ fun HomeScreen(
                 ) {
                     ProjectLine(overview)
                     InsightBanner(overview)
-                    EnergyFlowSection(overview)
-                    ModeBox(overview.mode, overview.backupSocPercent, onOpenConfig)
-                    BatteryBox(overview.energy.batterySocPercent, overview.battery, onOpenBatteryEnergy)
-                    if (stats != null) HomeStats(stats, statsActions)
+                    EnergyFlowSection(overview, layout.view, onCustomize = { customizing = true })
+                    ModeBatteryRow(overview, onOpenConfig, onOpenBatteryEnergy)
+                    if (stats != null) HomeWidgets(layout, stats, statsActions)
                 }
             }
         }
         FloatingTabBar(items = tabs, modifier = Modifier.align(Alignment.BottomCenter))
+        if (customizing && overview != null) {
+            HomeCustomizeScreen(
+                initial = layout,
+                snapshot = overview.energy,
+                co2Kg = overview.co2TodayKg,
+                onClose = { customizing = false },
+                onApply = {
+                    onApplyLayout(it)
+                    customizing = false
+                },
+            )
+        }
     }
 }
 
@@ -157,7 +183,7 @@ fun HomeScreen(
  * 28 dp trên tiêu đề, vẽ sau nội dung; ngày/đêm theo giờ máy (6h–18h là ngày).
  */
 @Composable
-private fun EnergyFlowSection(overview: HomeOverview) {
+private fun EnergyFlowSection(overview: HomeOverview, view: FlowView, onCustomize: () -> Unit) {
     val colors = GgTheme.colors
     var onScreen by remember { mutableStateOf(true) }
     val night = remember { isNightSky(SkyMode.Auto, LocalTime.now().hour) }
@@ -179,13 +205,36 @@ private fun EnergyFlowSection(overview: HomeOverview) {
             )
         }
         Column(verticalArrangement = Arrangement.spacedBy(GgSpacing.space3)) {
-            Text(
-                stringResource(R.string.energy_flow_title),
-                style = cardTitle(),
-                color = colors.ink,
-                modifier = Modifier.semantics { heading() },
-            )
-            HouseFlowDiagram(overview.energy, overview.co2TodayKg)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    stringResource(R.string.energy_flow_title),
+                    style = cardTitle(),
+                    color = colors.ink,
+                    modifier = Modifier.weight(1f).semantics { heading() },
+                )
+                // Nút 44 dp lùi ra mép phải 10 dp và không làm hàng cao thêm (margin −9 −10 −9 0 của prototype).
+                IconButton(
+                    onClick = onCustomize,
+                    modifier = Modifier
+                        .layout { measurable, constraints ->
+                            val p = measurable.measure(constraints)
+                            val v = 9.dp.roundToPx()
+                            layout(p.width - 10.dp.roundToPx(), (p.height - 2 * v).coerceAtLeast(0)) { p.place(0, -v) }
+                        }
+                        .size(44.dp),
+                ) {
+                    Icon(
+                        painterResource(R.drawable.ic_layout_grid),
+                        contentDescription = stringResource(R.string.cd_home_customize),
+                        tint = colors.inkMuted,
+                        modifier = Modifier.size(22.dp),
+                    )
+                }
+            }
+            when (view) {
+                FlowView.House -> HouseFlowDiagram(overview.energy, overview.co2TodayKg)
+                FlowView.Nodes -> NodesFlowDiagram(overview.energy)
+            }
         }
     }
 }
@@ -269,11 +318,23 @@ private fun emphasize(full: String, part: String, color: Color): AnnotatedString
 }
 
 /**
- * Box Chế độ hoạt động (4.3a): thẻ đệm 14 / 12 / 14 / 16, ô icon 44 dp bo 12 dp, nhãn 12/16 500, tên chế độ 16/22 600,
- * tóm tắt 12/16 `inkMuted`, mũi tên 20 dp. Bấm → Cấu hình dự án (16).
+ * Thẻ "Chế độ & pin" (Main.dc.html `wg.mode`, cố định ngay dưới sơ đồ): hai thẻ cạnh nhau cách 12 dp, cao bằng nhau,
+ * đệm 14, các dòng cách 6 dp.
  */
 @Composable
-private fun ModeBox(mode: OperatingMode, backupSoc: Int, onClick: () -> Unit) {
+private fun ModeBatteryRow(overview: HomeOverview, onOpenConfig: () -> Unit, onOpenBatteryEnergy: () -> Unit) {
+    Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(GgSpacing.space3)) {
+        ModeCard(overview.mode, overview.backupSocPercent, onOpenConfig, Modifier.weight(1f).fillMaxHeight())
+        BatteryCard(overview.energy.batterySocPercent, overview.chargedToday, onOpenBatteryEnergy, Modifier.weight(1f).fillMaxHeight())
+    }
+}
+
+/**
+ * Thẻ Chế độ hoạt động: ô icon 32 bo 10 `primarySoft`, mũi tên 20 `inkMuted`; "Chế độ hoạt động" 12/16 500, tên chế độ
+ * 15/20 600, mô tả ngắn + SOC dự phòng 11/15 `inkMuted`. Bấm → Cấu hình dự án (16).
+ */
+@Composable
+private fun ModeCard(mode: OperatingMode, backupSoc: Int, onClick: () -> Unit, modifier: Modifier) {
     val colors = GgTheme.colors
     val (nameRes, shortRes, icon) = modeTexts(mode)
     val name = stringResource(nameRes)
@@ -282,23 +343,20 @@ private fun ModeBox(mode: OperatingMode, backupSoc: Int, onClick: () -> Unit) {
     val cd = stringResource(R.string.cd_mode_box, name)
     GgCard(
         onClick = onClick,
-        contentPadding = PaddingValues(start = 16.dp, top = 14.dp, end = 12.dp, bottom = 14.dp),
-        modifier = Modifier.semantics { contentDescription = cd },
+        contentPadding = PaddingValues(14.dp),
+        verticalSpacing = 6.dp,
+        modifier = modifier.semantics { contentDescription = cd },
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(GgSpacing.space3),
-        ) {
-            Box(Modifier.size(44.dp).clip(RoundedCornerShape(12.dp)).background(colors.primarySoft), contentAlignment = Alignment.Center) {
-                Icon(painterResource(icon), contentDescription = null, tint = colors.primary, modifier = Modifier.size(22.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.size(32.dp).clip(RoundedCornerShape(10.dp)).background(colors.primarySoft), contentAlignment = Alignment.Center) {
+                Icon(painterResource(icon), contentDescription = null, tint = colors.primary, modifier = Modifier.size(20.dp))
             }
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(stringResource(R.string.mode_label), style = GgTheme.typography.caption, color = colors.inkMuted)
-                Text(name, style = GgTheme.typography.body.copy(fontSize = 16.sp, lineHeight = 22.sp, fontWeight = FontWeight.SemiBold), color = colors.ink)
-                Text(summary, style = GgTheme.typography.caption.copy(fontWeight = FontWeight.Normal), color = colors.inkMuted)
-            }
+            Spacer(Modifier.weight(1f))
             Icon(painterResource(R.drawable.ic_chevron_right), contentDescription = null, tint = colors.inkMuted, modifier = Modifier.size(20.dp))
         }
+        Text(stringResource(R.string.mode_label), style = GgTheme.typography.caption, color = colors.inkMuted)
+        Text(name, style = GgTheme.typography.body.copy(fontSize = 15.sp, lineHeight = 20.sp, fontWeight = FontWeight.SemiBold), color = colors.ink)
+        Text(summary, style = GgTheme.typography.caption.copy(fontSize = 11.sp, lineHeight = 15.sp, fontWeight = FontWeight.Normal), color = colors.inkMuted)
     }
 }
 
@@ -312,46 +370,41 @@ private fun modeTexts(mode: OperatingMode): Triple<Int, Int, Int> = when (mode) 
 }
 
 /**
- * Box Pin S16 Pre (4.3): đệm 16, các dòng cách 8 dp. Đầu box: icon pin 18 dp `energyBattery`, "Pin S16 Pre" 13/20 `inkMuted`,
- * mũi tên 18 dp. SOC 24/28 600 + "%" 12/16. Thanh 12 dp bo tròn: cam = Từ PV, xanh dương = Từ lưới. Chú giải 12/16 500.
- * Bấm → Nguồn năng lượng pin (11).
+ * Thẻ Pin S16 Pre: icon pin 18 `energyBattery`, "Pin S16 Pre" 12/16 500, mũi tên 18; SOC 24/28 600 + "%" 12/16;
+ * "Dung lượng sạc hôm nay" 11/14; chú giải Từ PV / Từ lưới (ô 8 bo 2, giá trị 600 canh phải) dồn xuống đáy thẻ.
+ * [charged] null (bản live chưa có số) → "—". Bấm → Nguồn năng lượng pin (11).
  */
 @Composable
-private fun BatteryBox(soc: Int, battery: BatteryContent, onClick: () -> Unit) {
+private fun BatteryCard(soc: Int, charged: ChargedToday?, onClick: () -> Unit, modifier: Modifier) {
     val colors = GgTheme.colors
     val kwh = stringResource(R.string.unit_kwh)
-    val pvText = GgFormat.withUnit(battery.fromPvKwh, 1, kwh)
-    val gridText = GgFormat.withUnit(battery.fromGridKwh, 1, kwh)
-    val socText = GgFormat.withUnit(soc.toLong(), stringResource(R.string.unit_percent))
-    GgCard(onClick = onClick, onClickLabel = stringResource(R.string.cd_battery_box), verticalSpacing = GgSpacing.space2) {
+    val missing = stringResource(R.string.value_missing)
+    val pvText = charged?.let { GgFormat.withUnit(it.fromPvKwh, 1, kwh) } ?: missing
+    val gridText = charged?.let { GgFormat.withUnit(it.fromGridKwh, 1, kwh) } ?: missing
+    GgCard(
+        onClick = onClick,
+        onClickLabel = stringResource(R.string.cd_battery_box),
+        contentPadding = PaddingValues(14.dp),
+        verticalSpacing = 6.dp,
+        modifier = modifier,
+    ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             Icon(painterResource(R.drawable.ic_battery), contentDescription = null, tint = colors.energyBattery, modifier = Modifier.size(18.dp))
-            Text(stringResource(R.string.battery_box_title), style = GgTheme.typography.bodySm, color = colors.inkMuted, modifier = Modifier.weight(1f))
+            Text(stringResource(R.string.battery_box_title), style = GgTheme.typography.caption, color = colors.inkMuted, modifier = Modifier.weight(1f), maxLines = 1)
             Icon(painterResource(R.drawable.ic_chevron_right), contentDescription = null, tint = colors.inkMuted, modifier = Modifier.size(18.dp))
         }
-        Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(GgSpacing.space1)) {
-            Text(soc.toString(), style = GgTheme.typography.metric, color = colors.ink)
+        Row(Modifier.padding(top = 2.dp), verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(GgSpacing.space1)) {
+            Text(soc.toString(), style = GgTheme.typography.metric.copy(fontSize = 24.sp, lineHeight = 28.sp, fontWeight = FontWeight.SemiBold), color = colors.ink)
             Text(stringResource(R.string.unit_percent), style = GgTheme.typography.caption, color = colors.inkMuted, modifier = Modifier.padding(bottom = 3.dp))
         }
-        val barDescription = stringResource(R.string.cd_battery_bar, socText, pvText, gridText)
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .height(12.dp)
-                .clip(CircleShape)
-                .background(colors.surfaceSunken)
-                .clearAndSetSemantics { contentDescription = barDescription },
-        ) {
-            if (battery.pvFraction > 0) Box(Modifier.weight(battery.pvFraction.toFloat()).height(12.dp).background(colors.energyPv))
-            if (battery.gridFraction > 0) {
-                // Vạch ngăn 1 dp màu nền thẻ giữa hai nguồn (inset box-shadow trong prototype).
-                Box(Modifier.size(1.dp, 12.dp).background(colors.cardBg))
-                Box(Modifier.weight(battery.gridFraction.toFloat()).height(12.dp).background(colors.energyGrid))
-            }
-            val rest = 1.0 - battery.pvFraction - battery.gridFraction
-            if (rest > 0) Box(Modifier.weight(rest.toFloat()).height(12.dp))
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(GgSpacing.space4)) {
+        Text(
+            stringResource(R.string.battery_charged_today),
+            style = GgTheme.typography.caption.copy(fontSize = 11.sp, lineHeight = 14.sp, fontWeight = FontWeight.Normal),
+            color = colors.inkMuted,
+            modifier = Modifier.offset(y = (-4).dp),
+        )
+        Spacer(Modifier.weight(1f))
+        Column(verticalArrangement = Arrangement.spacedBy(GgSpacing.space1)) {
             LegendValue(colors.energyPv, stringResource(R.string.battery_from_pv), pvText)
             LegendValue(colors.energyGrid, stringResource(R.string.battery_from_grid), gridText)
         }
@@ -360,16 +413,10 @@ private fun BatteryBox(soc: Int, battery: BatteryContent, onClick: () -> Unit) {
 
 @Composable
 private fun LegendValue(color: Color, label: String, value: String) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        Box(Modifier.size(10.dp).clip(RoundedCornerShape(3.dp)).background(color))
-        Text(
-            buildAnnotatedString {
-                append("$label ")
-                withStyle(SpanStyle(fontWeight = FontWeight.SemiBold, color = GgTheme.colors.ink, fontFeatureSettings = "tnum")) { append(value) }
-            },
-            style = GgTheme.typography.caption,
-            color = GgTheme.colors.inkMuted,
-        )
+    Row(Modifier.fillMaxWidth().semantics(mergeDescendants = true) {}, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Box(Modifier.size(8.dp).clip(RoundedCornerShape(2.dp)).background(color))
+        Text(label, style = GgTheme.typography.caption, color = GgTheme.colors.inkMuted, modifier = Modifier.weight(1f), maxLines = 1)
+        Text(value, style = GgTheme.typography.caption.copy(fontWeight = FontWeight.SemiBold, fontFeatureSettings = "tnum"), color = GgTheme.colors.ink, maxLines = 1)
     }
 }
 

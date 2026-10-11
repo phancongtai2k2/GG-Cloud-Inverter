@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import vn.ggpower.inverter.domain.home.HomeLayout
 import vn.ggpower.inverter.domain.settings.TemperatureUnit
 import vn.ggpower.inverter.domain.settings.ThemeMode
 import javax.inject.Inject
@@ -39,6 +40,16 @@ class SettingsStore @Inject constructor(@ApplicationContext private val context:
     fun temperatureUnitIn(scope: CoroutineScope): StateFlow<TemperatureUnit> =
         temperatureUnit.stateIn(scope, SharingStarted.WhileSubscribed(5_000), TemperatureUnit.Celsius)
 
+    /** Bố cục Màn hình chính (kiểu sơ đồ, thứ tự và ẩn/hiện thẻ), chung cho mọi dự án. */
+    val homeLayout: Flow<HomeLayout> = context.settingsDataStore.data.map { p -> HomeLayout.decode(p[HOME_VIEW], p[HOME_WIDGETS]) }
+
+    suspend fun setHomeLayout(layout: HomeLayout) {
+        context.settingsDataStore.edit {
+            it[HOME_VIEW] = layout.view.name
+            it[HOME_WIDGETS] = layout.encodeWidgets()
+        }
+    }
+
     suspend fun setThemeMode(mode: ThemeMode) {
         context.settingsDataStore.edit { it[THEME] = mode.name }
     }
@@ -50,5 +61,7 @@ class SettingsStore @Inject constructor(@ApplicationContext private val context:
     private companion object {
         val THEME = stringPreferencesKey("theme_mode")
         val TEMPERATURE = stringPreferencesKey("temperature_unit")
+        val HOME_VIEW = stringPreferencesKey("home_view")
+        val HOME_WIDGETS = stringPreferencesKey("home_widgets")
     }
 }
