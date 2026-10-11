@@ -18,7 +18,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -279,7 +278,6 @@ private fun remainingText(remaining: WarrantyRemaining): String = when (remainin
 private fun HistoryCard(entries: List<WarrantyHistoryEntry>) {
     GgCard(contentPadding = PaddingValues(horizontal = GgSpacing.space4, vertical = GgSpacing.space1)) {
         entries.forEachIndexed { index, entry ->
-            if (index > 0) HorizontalDivider(thickness = 1.dp, color = GgTheme.colors.cardBorder)
             HistoryRow(entry)
         }
     }

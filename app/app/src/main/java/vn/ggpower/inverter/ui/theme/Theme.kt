@@ -71,6 +71,9 @@ data class GgColorScheme(
     val dayChipOffText: Color,
     /** Vạch mốc trên thanh trượt (#b3bdb7, SOC dự phòng màn 16). */
     val sliderTick: Color,
+    /** Toast nổi (gg-inverter-design CLAUDE.md §4): nền rgba(19,32,27,.62) / rgba(238,243,239,.66), chữ trắng / #0c1612. */
+    val toastBg: Color,
+    val onToast: Color,
     /** Lớp phủ sau bottom sheet / dialog: rgba(14,21,18,0.5) (TouStrategy.dc.html). */
     val scrim: Color,
     /** Sơ đồ dòng năng lượng (Main.dc.html): vòng GG SmartBox #60eb98 (chưa có token); tia sáng: quầng #34c26f, lõi #5bd68c
@@ -131,6 +134,8 @@ private fun schemeOf(p: GgPalette, dark: Boolean) = GgColorScheme(
     dayChipOffBg = if (dark) p.sunken else Color(0xFFEEF1EC),
     dayChipOffText = if (dark) p.inkMuted else Color(0xFF9AA59F),
     sliderTick = if (dark) p.lineStrong else Color(0xFFB3BDB7),
+    toastBg = if (dark) Color(0xA8EEF3EF) else Color(0x9E13201B),
+    onToast = if (dark) p.surface else Color.White,
     scrim = if (dark) Color(0x99000000) else Color(0x800E1512),
     flowHub = if (dark) p.primaryFill else Color(0xFF60EB98),
     flowGlow = DarkGgPalette.primary,

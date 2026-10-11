@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -23,7 +24,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -55,6 +55,7 @@ import vn.ggpower.inverter.data.support.FakeSupportContactRepository
 import vn.ggpower.inverter.ui.components.FloatingTabBar
 import vn.ggpower.inverter.ui.components.FloatingTabBarContentPadding
 import vn.ggpower.inverter.ui.components.GgCard
+import vn.ggpower.inverter.ui.components.GgToast
 import vn.ggpower.inverter.ui.components.ScreenHeader
 import vn.ggpower.inverter.ui.components.SectionHeader
 import vn.ggpower.inverter.ui.components.TabItem
@@ -128,13 +129,17 @@ fun ServiceScreen(
                 verticalArrangement = Arrangement.spacedBy(GgSpacing.space3),
             ) {
                 ContactCard(state, onCopy)
-                CopiedToast(state.copied)
                 SectionHeader(stringResource(R.string.service_section_tools), Modifier.padding(top = GgSpacing.space1))
                 ToolCard(R.drawable.ic_compass, colors.infoSoft, colors.info, R.string.service_explore, R.string.service_explore_desc, onOpenExplore)
                 ToolCard(R.drawable.ic_ticket, colors.accentSoft, colors.accentText, R.string.service_support, R.string.service_support_desc, onOpenSupport)
                 ToolCard(R.drawable.ic_warranty, colors.primarySoft, colors.primary, R.string.service_warranty, R.string.service_warranty_desc, onOpenWarranty)
             }
         }
+        // Toast là lớp nổi cách đáy 104 dp (gg-inverter-design CLAUDE.md §4), không đẩy nội dung.
+        CopiedToast(
+            state.copied,
+            Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(bottom = 104.dp),
+        )
         FloatingTabBar(items = tabs, modifier = Modifier.align(Alignment.BottomCenter))
     }
 }
@@ -142,7 +147,7 @@ fun ServiceScreen(
 private val titleStyle
     @Composable get() = GgTheme.typography.body.copy(lineHeight = 22.sp, fontWeight = FontWeight.SemiBold)
 
-/** Box liên hệ: tiêu đề 15/22 600 (đệm 14 16 6); hai dòng cách nhau bằng viền 1 dp. */
+/** Box liên hệ: tiêu đề 15/22 600 (đệm 14 16 6); hai dòng không kẻ phân cách. */
 @Composable
 private fun ContactCard(state: ServiceUiState, onCopy: (ContactField) -> Unit) {
     GgCard(contentPadding = PaddingValues(0.dp)) {
@@ -163,7 +168,6 @@ private fun ContactCard(state: ServiceUiState, onCopy: (ContactField) -> Unit) {
             copied = state.copied == ContactField.Hotline,
             onCopy = { onCopy(ContactField.Hotline) },
         )
-        HorizontalDivider(thickness = 1.dp, color = GgTheme.colors.cardBorder)
         ContactRow(
             icon = R.drawable.ic_mail,
             label = R.string.service_email_label,
@@ -225,10 +229,9 @@ private fun ContactRow(
     }
 }
 
-/** Thông báo nhỏ giữa trang: viên tròn nền `ink`, chữ 12/16 600 màu nền sáng, dấu ✓ 16; đệm 6 12. */
+/** Thông báo "Đã sao chép" (GgToast), hiện / ẩn mờ dần. */
 @Composable
-private fun CopiedToast(copied: ContactField?) {
-    val colors = GgTheme.colors
+private fun CopiedToast(copied: ContactField?, modifier: Modifier = Modifier) {
     // Giữ dòng của lần sao chép cuối để lúc mờ dần chữ không bị trống.
     val last = remember { arrayOfNulls<ContactField>(1) }
     if (copied != null) last[0] = copied
@@ -237,20 +240,9 @@ private fun CopiedToast(copied: ContactField?) {
         ContactField.Email -> stringResource(R.string.service_copied_email)
         null -> ""
     }
-    AnimatedVisibility(visible = copied != null, enter = fadeIn(), exit = fadeOut(), modifier = Modifier.fillMaxWidth()) {
+    AnimatedVisibility(visible = copied != null, enter = fadeIn(), exit = fadeOut(), modifier = modifier.fillMaxWidth()) {
         Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-            Row(
-                Modifier
-                    .clip(RoundedCornerShape(GgRadius.radiusPill))
-                    .background(colors.ink)
-                    .padding(horizontal = GgSpacing.space3, vertical = 6.dp)
-                    .semantics { liveRegion = LiveRegionMode.Polite },
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(painterResource(R.drawable.ic_check_thin), contentDescription = null, tint = colors.surfaceRaised, modifier = Modifier.size(16.dp))
-                Text(text, style = GgTheme.typography.caption.copy(fontWeight = FontWeight.SemiBold), color = colors.surfaceRaised)
-            }
+            GgToast(text)
         }
     }
 }

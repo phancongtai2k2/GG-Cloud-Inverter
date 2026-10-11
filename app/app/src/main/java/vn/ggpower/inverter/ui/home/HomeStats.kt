@@ -460,7 +460,6 @@ private fun SummaryCard(state: StatsUiState) {
     )
     GgCard(contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = GgSpacing.space4, vertical = GgSpacing.space1)) {
         rows.forEachIndexed { k, (icon, label, value) ->
-            if (k > 0) Box(Modifier.fillMaxWidth().height(1.dp).background(colors.line))
             Row(
                 Modifier.fillMaxWidth().padding(vertical = GgSpacing.space3).semantics(mergeDescendants = true) {},
                 verticalAlignment = Alignment.CenterVertically,

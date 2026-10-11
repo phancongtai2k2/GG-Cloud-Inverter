@@ -28,7 +28,6 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -149,9 +148,6 @@ private val rowTitle
 private val rowDesc
     @Composable get() = GgTheme.typography.caption.copy(fontWeight = FontWeight.Normal)
 
-@Composable
-private fun CardDivider() = HorizontalDivider(thickness = 1.dp, color = GgTheme.colors.cardBorder)
-
 /** Thẻ hồ sơ: avatar 52 chữ viết tắt 18/700, tên 16/22 600, email và SĐT 12/16; dòng "Thông tin tài khoản" cao 52. */
 @Composable
 private fun ProfileCard(profile: UserProfile?, onOpenAccount: () -> Unit) {
@@ -191,7 +187,6 @@ private fun ProfileCard(profile: UserProfile?, onOpenAccount: () -> Unit) {
                 }
             }
         }
-        CardDivider()
         Row(
             Modifier
                 .fillMaxWidth()
@@ -213,9 +208,7 @@ private fun ProfileCard(profile: UserProfile?, onOpenAccount: () -> Unit) {
 private fun NotificationsCard(prefs: NotificationPrefs, onChange: (NotificationPrefs) -> Unit) {
     GgCard(contentPadding = PaddingValues(0.dp)) {
         SwitchRow(R.string.me_notif_alerts, R.string.me_notif_alerts_desc, prefs.deviceAlerts) { onChange(prefs.copy(deviceAlerts = it)) }
-        CardDivider()
         SwitchRow(R.string.me_notif_daily, R.string.me_notif_daily_desc, prefs.dailyReport) { onChange(prefs.copy(dailyReport = it)) }
-        CardDivider()
         SwitchRow(R.string.me_notif_news, R.string.me_notif_news_desc, prefs.ggPowerNews) { onChange(prefs.copy(ggPowerNews = it)) }
     }
 }
@@ -253,14 +246,12 @@ private fun SystemCard(
             listOf(stringResource(R.string.unit_celsius), stringResource(R.string.unit_fahrenheit)),
             units.indexOf(state.temperatureUnit),
         ) { onTemperatureUnit(units[it]) }
-        CardDivider()
         val modes = listOf(ThemeMode.Light, ThemeMode.Dark, ThemeMode.Auto)
         SegmentRow(
             R.string.me_theme,
             listOf(stringResource(R.string.me_theme_light), stringResource(R.string.me_theme_dark), stringResource(R.string.me_theme_auto)),
             modes.indexOf(state.themeMode),
         ) { onThemeMode(modes[it]) }
-        CardDivider()
         LanguageRow(state.language, state.languageOpen, onToggleLanguageList, onLanguage)
     }
 }

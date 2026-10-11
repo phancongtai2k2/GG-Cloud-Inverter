@@ -67,6 +67,7 @@ import vn.ggpower.inverter.domain.support.TicketMessage
 import vn.ggpower.inverter.domain.support.TicketStatus
 import vn.ggpower.inverter.domain.support.TicketType
 import vn.ggpower.inverter.domain.support.messageShowsDate
+import vn.ggpower.inverter.ui.components.GgToast
 import vn.ggpower.inverter.ui.components.ButtonSize
 import vn.ggpower.inverter.ui.components.ErrorBox
 import vn.ggpower.inverter.ui.components.GgCard
@@ -330,25 +331,7 @@ private fun Composer(state: TicketDetailUiState, actions: TicketDetailActions) {
 }
 
 @Composable
-private fun CopiedToast() {
-    val colors = GgTheme.colors
-    Row(
-        Modifier
-            .clip(RoundedCornerShape(GgRadius.radiusPill))
-            .background(colors.ink)
-            .padding(horizontal = GgSpacing.space3, vertical = 6.dp)
-            .semantics { liveRegion = LiveRegionMode.Polite },
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(painterResource(R.drawable.ic_check_thin), contentDescription = null, tint = colors.surfaceRaised, modifier = Modifier.size(16.dp))
-        Text(
-            stringResource(R.string.support_sent_copied),
-            style = GgTheme.typography.caption.copy(fontWeight = FontWeight.SemiBold),
-            color = colors.surfaceRaised,
-        )
-    }
-}
+private fun CopiedToast() = GgToast(stringResource(R.string.support_sent_copied))
 
 @Composable
 private fun ColumnScope.LoadError(noConnection: Boolean, onRetry: () -> Unit) {

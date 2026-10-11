@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -343,7 +342,6 @@ private fun FlagsCard(flags: List<BmsFlag>, showAll: Boolean, onToggle: () -> Un
                 )
                 Column {
                     ofKind.forEachIndexed { i, f ->
-                        if (i > 0) HorizontalDivider(thickness = 1.dp, color = colors.cardBorder)
                         Row(Modifier.fillMaxWidth().height(36.dp), verticalAlignment = Alignment.CenterVertically) {
                             Text(flagName(f), style = GgTheme.typography.bodySm, color = colors.ink, modifier = Modifier.weight(1f))
                             if (f.active) {

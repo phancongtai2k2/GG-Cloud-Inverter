@@ -21,7 +21,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -247,7 +246,6 @@ private fun DeviceCard(device: DeviceIdentity) {
         }
         Column {
             rows.forEachIndexed { i, (label, value) ->
-                if (i > 0) HorizontalDivider(thickness = 1.dp, color = colors.cardBorder)
                 Row(
                     Modifier.fillMaxWidth().padding(vertical = GgSpacing.space2).heightIn(min = 44.dp),
                     verticalAlignment = Alignment.CenterVertically,

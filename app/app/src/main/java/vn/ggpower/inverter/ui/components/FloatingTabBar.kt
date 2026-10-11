@@ -5,7 +5,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -35,6 +34,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import vn.ggpower.inverter.R
 import vn.ggpower.inverter.ui.theme.GgPowerTheme
 import vn.ggpower.inverter.ui.theme.GgRadius
@@ -56,8 +56,9 @@ val FloatingTabBarContentPadding: Dp
     @Composable get() = 108.dp + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
 
 /**
- * Thanh thẻ nổi dạng viên thuốc (html/Projects.dc.html, Main.dc.html): cách mép 20 dp, cao 68 dp,
- * đệm 6 dp, mỗi thẻ cao 56 dp; thẻ đang chọn nền `primarySoft`, chữ `primary`.
+ * Thanh thẻ nổi dạng viên thuốc (gg-inverter-design: Projects.dc.html, Main.dc.html): cách mép 20 dp, cao 68 dp,
+ * đệm 6 dp, khe 4 dp, viền 1 dp `cardBorder`, bóng overlay. Thẻ đang chọn rộng gấp 2,2 lần, nền `primarySoft`, icon +
+ * chữ 13/18 600 màu `primary`; các thẻ khác chỉ có icon màu `inkMuted` (nhãn đọc bằng trình đọc màn hình).
  */
 @Composable
 fun FloatingTabBar(items: List<TabItem>, modifier: Modifier = Modifier) {
@@ -79,7 +80,7 @@ fun FloatingTabBar(items: List<TabItem>, modifier: Modifier = Modifier) {
             .selectableGroup(),
         horizontalArrangement = Arrangement.spacedBy(GgSpacing.space1),
     ) {
-        items.forEach { item -> TabCell(item, Modifier.weight(1f)) }
+        items.forEach { item -> TabCell(item, Modifier.weight(if (item.selected) 2.2f else 1f)) }
     }
 }
 
@@ -87,14 +88,16 @@ fun FloatingTabBar(items: List<TabItem>, modifier: Modifier = Modifier) {
 private fun TabCell(item: TabItem, modifier: Modifier) {
     val colors = GgTheme.colors
     val tint = if (item.selected) colors.primary else colors.inkMuted
-    Column(
+    Row(
         modifier = modifier
             .height(56.dp)
             .clip(RoundedCornerShape(GgRadius.radiusPill))
             .then(if (item.selected) Modifier.background(colors.primarySoft) else Modifier)
-            .selectable(selected = item.selected, role = Role.Tab, onClick = item.onClick),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterVertically),
+            .selectable(selected = item.selected, role = Role.Tab, onClick = item.onClick)
+            .then(if (item.selected) Modifier else Modifier.semantics { contentDescription = item.label })
+            .padding(horizontal = GgSpacing.space3),
+        horizontalArrangement = Arrangement.spacedBy(GgSpacing.space2, Alignment.CenterHorizontally),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
             painter = painterResource(item.icon),
@@ -102,13 +105,15 @@ private fun TabCell(item: TabItem, modifier: Modifier) {
             tint = tint,
             modifier = Modifier.size(22.dp),
         )
-        Text(
-            text = item.label,
-            style = GgTheme.typography.tabLabel,
-            color = tint,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
+        if (item.selected) {
+            Text(
+                text = item.label,
+                style = GgTheme.typography.label.copy(lineHeight = 18.sp),
+                color = tint,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
     }
 }
 

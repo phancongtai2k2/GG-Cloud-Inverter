@@ -21,7 +21,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -180,7 +179,6 @@ private fun Content(
         SectionHeader(stringResource(R.string.alert_steps_section))
         GgCard(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp)) {
             d.steps.forEachIndexed { i, step ->
-                if (i > 0) HorizontalDivider(thickness = 1.dp, color = colors.cardBorder)
                 Row(Modifier.padding(vertical = 10.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     Box(Modifier.size(24.dp).clip(CircleShape).background(colors.primarySoft), contentAlignment = Alignment.Center) {
                         Text("${i + 1}", style = GgTheme.typography.label.copy(fontSize = 12.sp, fontWeight = FontWeight.Bold), color = colors.primary)
@@ -254,7 +252,6 @@ private fun HeadCard(d: AlertDetail, now: LocalDateTime) {
         }
         Column {
             facts.forEachIndexed { i, (k, v) ->
-                HorizontalDivider(thickness = 1.dp, color = colors.cardBorder)
                 Row(Modifier.fillMaxWidth().padding(vertical = 9.dp), horizontalArrangement = Arrangement.spacedBy(GgSpacing.space3)) {
                     Text(k, style = GgTheme.typography.bodySm.copy(lineHeight = 18.sp), color = colors.inkMuted)
                     Text(

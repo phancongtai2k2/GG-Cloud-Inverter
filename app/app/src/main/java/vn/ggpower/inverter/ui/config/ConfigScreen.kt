@@ -24,7 +24,6 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -548,9 +547,9 @@ private fun BatteryCard(backupSoc: Int, s: DeviceSettings, controls: ConfigContr
             RegisterText(stringResource(R.string.reg_e00f))
         }
         if (s.available) {
-            ValueRow(R.string.config_stop_charge_soc, stringResource(R.string.reg_e01d), GgFormat.withUnit(s.stopChargeSocPercent.toLong(), percent), divider = true)
-            ValueRow(R.string.config_low_soc_alarm, stringResource(R.string.reg_e01e), GgFormat.withUnit(s.lowSocAlarmPercent.toLong(), percent), divider = true)
-            ValueRow(R.string.config_switch_to_grid_soc, stringResource(R.string.reg_e01f), GgFormat.withUnit(s.switchToGridSocPercent.toLong(), percent), divider = true)
+            ValueRow(R.string.config_stop_charge_soc, stringResource(R.string.reg_e01d), GgFormat.withUnit(s.stopChargeSocPercent.toLong(), percent))
+            ValueRow(R.string.config_low_soc_alarm, stringResource(R.string.reg_e01e), GgFormat.withUnit(s.lowSocAlarmPercent.toLong(), percent))
+            ValueRow(R.string.config_switch_to_grid_soc, stringResource(R.string.reg_e01f), GgFormat.withUnit(s.switchToGridSocPercent.toLong(), percent))
         }
     }
 }
@@ -567,11 +566,10 @@ private fun DistributorChargeCard(s: DeviceSettings) {
             R.string.config_max_charge_current, stringResource(R.string.reg_e20a), GgFormat.withUnit(s.maxChargeCurrentA.toLong(), amp),
             caption = s.bmsChargeLimitA?.let { stringResource(R.string.config_bms_limit, GgFormat.withUnit(it.toLong(), amp)) },
         )
-        ValueRow(R.string.config_grid_charge_current, stringResource(R.string.reg_e205), GgFormat.withUnit(s.gridChargeCurrentA.toLong(), amp), divider = true)
+        ValueRow(R.string.config_grid_charge_current, stringResource(R.string.reg_e205), GgFormat.withUnit(s.gridChargeCurrentA.toLong(), amp))
         ValueRow(
             R.string.config_charge_limit_mode, stringResource(R.string.reg_e025),
             if (s.chargeLimitMode == 1) stringResource(R.string.config_charge_limit_bms, 1) else s.chargeLimitMode.toString(),
-            divider = true,
         )
     }
 }
@@ -584,15 +582,14 @@ private fun GridSection(s: DeviceSettings, showTechnician: Boolean) {
         SectionTitle(R.string.config_section_grid) { LevelBadge(Level.Distributor) }
         GgCard(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)) {
             ValueRow(R.string.config_grid_work_mode, stringResource(R.string.reg_e037, s.gridWorkMode), gridModeName(s.gridWorkMode))
-            ValueRow(R.string.config_zero_export, stringResource(R.string.reg_e42c), GgFormat.withUnit(s.zeroExportW.toLong(), stringResource(R.string.unit_watt)), divider = true)
-            ValueRow(R.string.config_max_line_power, stringResource(R.string.reg_e21d), GgFormat.withUnit(s.maxLinePowerW.toLong(), stringResource(R.string.unit_watt)), divider = true)
+            ValueRow(R.string.config_zero_export, stringResource(R.string.reg_e42c), GgFormat.withUnit(s.zeroExportW.toLong(), stringResource(R.string.unit_watt)))
+            ValueRow(R.string.config_max_line_power, stringResource(R.string.reg_e21d), GgFormat.withUnit(s.maxLinePowerW.toLong(), stringResource(R.string.unit_watt)))
             if (showTechnician) {
-                HorizontalDivider(thickness = 1.dp, color = GgTheme.colors.cardBorder)
                 Row(Modifier.fillMaxWidth().padding(top = GgSpacing.space2), horizontalArrangement = Arrangement.End) {
                     LevelBadge(Level.Technician)
                 }
                 ValueRow(R.string.config_output_voltage, stringResource(R.string.reg_e208), GgFormat.withUnit(s.outputVoltageV.toLong(), stringResource(R.string.unit_volt)))
-                ValueRow(R.string.config_output_frequency, stringResource(R.string.reg_e209), GgFormat.withUnit(s.outputFrequencyHz.toLong(), stringResource(R.string.unit_hertz)), divider = true)
+                ValueRow(R.string.config_output_frequency, stringResource(R.string.reg_e209), GgFormat.withUnit(s.outputFrequencyHz.toLong(), stringResource(R.string.unit_hertz)))
             }
         }
         Text(stringResource(R.string.config_grid_note), style = GgTheme.typography.caption.copy(fontWeight = FontWeight.Normal), color = GgTheme.colors.inkMuted)
@@ -620,13 +617,13 @@ private fun ProtectionCard(s: DeviceSettings, showTechnician: Boolean) {
     val p = s.protection
     Column(verticalArrangement = Arrangement.spacedBy(GgSpacing.space2)) {
         GgCard(contentPadding = PaddingValues(horizontal = 16.dp)) {
-            ToggleRow(R.string.config_auto_restart_overload, R.string.reg_e20d, p.autoRestartOverload, divider = false)
+            ToggleRow(R.string.config_auto_restart_overload, R.string.reg_e20d, p.autoRestartOverload)
             ToggleRow(R.string.config_auto_restart_overtemp, R.string.reg_e20e, p.autoRestartOverTemp)
             ToggleRow(R.string.config_stop_on_bms_loss, R.string.reg_e214, p.stopOnBmsLoss)
             ToggleRow(R.string.config_alarm, R.string.reg_e210, p.alarmEnabled)
             ToggleRow(R.string.config_power_saving, R.string.reg_e20c, p.powerSaving)
             if (showTechnician) {
-                SettingRow(R.string.config_power_onoff, stringResource(R.string.reg_df00), divider = true, minHeight = 56) {
+                SettingRow(R.string.config_power_onoff, stringResource(R.string.reg_df00), minHeight = 56) {
                     LevelBadge(Level.Technician)
                 }
             }
@@ -636,9 +633,9 @@ private fun ProtectionCard(s: DeviceSettings, showTechnician: Boolean) {
 }
 
 @Composable
-private fun ToggleRow(@StringRes label: Int, @StringRes register: Int, checked: Boolean, divider: Boolean = true) {
+private fun ToggleRow(@StringRes label: Int, @StringRes register: Int, checked: Boolean) {
     val name = stringResource(label)
-    SettingRow(label, stringResource(register), divider = divider, minHeight = 56) {
+    SettingRow(label, stringResource(register), minHeight = 56) {
         GgToggle(checked = checked, onCheckedChange = {}, enabled = false, contentDescription = name)
     }
 }
@@ -663,9 +660,9 @@ private fun DeviceSection(s: DeviceSettings) {
                 else -> s.parallelMode.toString()
             }
             ValueRow(R.string.config_bms_comm, stringResource(R.string.reg_e215), comm)
-            ValueRow(R.string.config_bms_protocol, stringResource(R.string.reg_e21b), s.bmsProtocol, divider = true)
-            ValueRow(R.string.config_modbus_address, stringResource(R.string.reg_e200), s.modbusAddress.toString(), divider = true)
-            ValueRow(R.string.config_parallel_mode, stringResource(R.string.reg_e201), parallel, divider = true)
+            ValueRow(R.string.config_bms_protocol, stringResource(R.string.reg_e21b), s.bmsProtocol)
+            ValueRow(R.string.config_modbus_address, stringResource(R.string.reg_e200), s.modbusAddress.toString())
+            ValueRow(R.string.config_parallel_mode, stringResource(R.string.reg_e201), parallel)
         }
     }
 }
@@ -677,7 +674,6 @@ private fun HistoryCard(history: List<ConfigChange>) {
     val colors = GgTheme.colors
     GgCard(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)) {
         history.forEachIndexed { i, entry ->
-            if (i > 0) HorizontalDivider(thickness = 1.dp, color = colors.cardBorder)
             Row(Modifier.fillMaxWidth().padding(vertical = GgSpacing.space3), horizontalArrangement = Arrangement.spacedBy(GgSpacing.space3)) {
                 Icon(
                     painterResource(R.drawable.ic_history), contentDescription = null, tint = colors.inkMuted,
@@ -727,19 +723,17 @@ private fun RegisterText(text: String) {
 
 /**
  * Dòng tham số (Config.dc.html): nội dung cao tối thiểu 52 dp (56 dp với công tắc) cộng đệm dọc 8; tên 14/20 500, mã thanh ghi bên
- * dưới, chú thích 12/16 `warning` nếu có; phần phải là [trailing]. [divider]: viền trên 1 dp `cardBorder`.
+ * dưới, chú thích 12/16 `warning` nếu có; phần phải là [trailing].
  */
 @Composable
 private fun SettingRow(
     @StringRes label: Int,
     register: String,
-    divider: Boolean = false,
     caption: String? = null,
     minHeight: Int = 52,
     trailing: @Composable () -> Unit,
 ) {
     val colors = GgTheme.colors
-    if (divider) HorizontalDivider(thickness = 1.dp, color = colors.cardBorder)
     Row(
         // Như CSS content-box của prototype: min-height tính cho phần nội dung, cộng thêm đệm 8 dp trên/dưới.
         Modifier.fillMaxWidth().padding(vertical = GgSpacing.space2).heightIn(min = minHeight.dp),
@@ -766,10 +760,9 @@ private fun ValueRow(
     @StringRes label: Int,
     register: String,
     value: String,
-    divider: Boolean = false,
     caption: String? = null,
 ) {
-    SettingRow(label, register, divider, caption) {
+    SettingRow(label, register, caption = caption) {
         Text(
             value,
             style = rowTitle().copy(fontWeight = FontWeight.SemiBold, fontFeatureSettings = "tnum"),

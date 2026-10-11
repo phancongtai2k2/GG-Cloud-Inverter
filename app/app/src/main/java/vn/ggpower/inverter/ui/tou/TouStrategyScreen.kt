@@ -26,7 +26,6 @@ import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -315,7 +314,6 @@ private fun SlotsCard(state: TouStrategyUiState.Content, actions: TouStrategyAct
             Column(verticalArrangement = Arrangement.spacedBy(GgSpacing.space2)) {
                 order.forEachIndexed { i, index ->
                     Column {
-                        if (i > 0) HorizontalDivider(thickness = 1.dp, color = colors.cardBorder)
                         SlotRow(strategy.slots[index], strategy.numberOf(index), enabled = state.interactive) { actions.onOpenSlot(index) }
                     }
                 }
@@ -379,7 +377,6 @@ private fun DaysSection(state: TouStrategyUiState.Content, actions: TouStrategyA
     val labels = weekdayLabels()
     val small = GgTheme.typography.caption.copy(fontWeight = FontWeight.Normal, lineHeight = 18.sp)
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        HorizontalDivider(thickness = 1.dp, color = colors.cardBorder)
         Text(
             stringResource(R.string.tou_apply_days),
             style = GgTheme.typography.body.copy(fontSize = 13.sp, lineHeight = 18.sp, fontWeight = FontWeight.SemiBold),
@@ -409,7 +406,6 @@ private fun DaysSection(state: TouStrategyUiState.Content, actions: TouStrategyA
 private fun SaveBar(hasChanges: Boolean, enabled: Boolean, writing: Boolean, onSave: () -> Unit) {
     val colors = GgTheme.colors
     Column(Modifier.fillMaxWidth().background(colors.surfaceRaised).navigationBarsPadding()) {
-        HorizontalDivider(thickness = 1.dp, color = colors.line)
         Row(
             Modifier.fillMaxWidth().height(79.dp).padding(horizontal = GgSpacing.space5),
             verticalAlignment = Alignment.CenterVertically,

@@ -17,7 +17,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -142,7 +141,6 @@ private fun DeviceCard(onClick: () -> Unit, content: @Composable ColumnScope.() 
     GgCard(onClick = onClick, onClickLabel = stringResource(R.string.device_open_data), verticalSpacing = GgSpacing.space4) {
         content()
         Column {
-            HorizontalDivider(thickness = 1.dp, color = colors.cardBorder)
             Row(
                 Modifier.fillMaxWidth().padding(top = GgSpacing.space3),
                 verticalAlignment = Alignment.CenterVertically,
