@@ -143,4 +143,47 @@ CPU tính theo % một lõi. ¹ Bỏ lần quét đầy đủ lúc khởi độn
 - Ghi live state lên Redis (C2) ở 5.000 thiết bị: Redis ~4 % một lõi.
 - Chưa rõ: job tổng hợp chậm hơn ở chế độ 2 instance (8–11 s so với 4,6 s), dù không phần nào của Redis chạm vào job này;
   giữa các lần chạy trong Docker Desktop dao động lớn (6,9 s ở lần 1). Vẫn dưới chu kỳ 30 s; **cần đo lại trên máy chủ
-  thật** trước khi dựa vào con số này cho quy mô > 5.000 thiết bị.
+  thật** trước khi dựa vào con số này cho quy mô > 5.000 thiết bị. → Đã đo, xem mục dưới.
+
+## B7 đo trên máy chủ thật — bản sao cô lập (12/10/2026)
+
+Máy chủ dev (8 lõi Xeon E5-2690 v4, 16 GB, Linux, Docker 26). Stack thử chạy **cạnh** bản đang phục vụ, tách hẳn:
+project compose riêng, mạng riêng, Postgres / Mosquitto / Redis / SeaweedFS riêng, không cổng nào mở ra ngoài; dùng đúng
+image và Caddyfile của bản đang chạy. Không dùng broker thật vì thiết bị giả sẽ lọt sang các dịch vụ khác đang nghe
+`solar/#`. Cấu hình như B7: instance 1 `api,ingest,jobs`, instance 2 `api`; "app" đọc `/overview` qua Caddy mỗi 200 ms.
+
+| Kịch bản (6 phút) | nhận/s | bỏ | mẫu/thiết bị (đo / kỳ vọng) | tổng hợp TB / max | CPU inst. 1 | CPU inst. 2 | CPU PG | CPU Redis | app gọi / lỗi | app p50 / p99 / max |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 5.000 thiết bị, dừng instance 2 (giây 125 → 189) | 1.264 | 0 | 66–67 / 66,2 | 5,4 / 6,2 s | 42 % | 9 % | 24 % | 2 % | 1.820 / **0** | 5 / 15 / 326 ms |
+| 1.000 thiết bị, dừng instance 1 — ingest (giây 125 → 189) | 250 | 0 | 66–67 / 66,2 | 0,9 / 4,5 s | 18 % | 4 % | 10 % | 1 % | 1.820 / **0** | 5 / 10 / 294 ms |
+| 1.000 thiết bị, thay lần lượt instance 2 rồi 1 (14 s) | 250 | 0 | 66–67 / 66,8 | 1,4 / 3,2 s | 14 % | 4 % | 16 % | 1 % | 1.806 / **0** | 5 / 13 / 1.267 ms |
+
+- **Job tổng hợp ở 5.000 thiết bị, 2 instance: 5,4 s trung bình, 6,2 s lớn nhất** (11 lần chạy) — trả lời câu "chưa rõ" ở
+  mục trên: con số 8–11 s là do Docker Desktop, không phải do chế độ 2 instance.
+- **Dừng instance ingest 64 giây không mất mẫu nào**: phiên MQTT bền giữ bản tin, cả 1.000 thiết bị đủ 66–67 mẫu; trong
+  lúc đó app vẫn đọc được (instance 2), thấy giá trị cuối và cập nhật lại ngay khi instance 1 lên.
+- Khi một instance biến mất, Caddy mất ~3 giây gọi chậm (~290 ms thay vì 5 ms) rồi trở lại bình thường; không lần gọi
+  nào lỗi.
+
+### Kênh realtime qua hai instance, và lỗi dừng instance khi có app đang nối
+
+Ba WebSocket giữ mở như app làm (lấy ticket, tự nối lại 1, 2, 4… giây): một qua Caddy, hai nối thẳng từng instance với
+**ticket do instance kia cấp**. 1.000 thiết bị đang gửi.
+
+- Ticket cấp ở instance này dùng được ở instance kia; frame tới đều mỗi chu kỳ 5 s của thiết bị trên cả hai instance.
+  Tuổi frame lúc tới máy khách (qua Internet): p50 ~25–55 ms, p95 < 100 ms; qua instance 2 (nhận qua Redis) chậm hơn ~3 ms.
+- **Lỗi tìm thấy**: chỉ cần một WebSocket đang mở, `docker stop` instance mất **30 giây rồi bị kill (exit 137)**: socket
+  giữ Kestrel tới hết `ShutdownTimeout`, trùng `stop_grace_period`, nên `DrainOnShutdownAsync` không kịp chạy. Hậu quả
+  đo được: thay instance 1 mất 37 s thay vì 7 s, và **mất 14 mẫu** (14 thiết bị, mỗi máy một mẫu đúng giây bị kill —
+  bản tin đã ack với broker nhưng chưa ghi). Các kịch bản ở bảng trên không lộ lỗi này vì "app" ở đó chỉ gọi HTTP.
+- **Sửa** (`RealtimeEndpoints`, một dòng): token của socket nối thêm `ApplicationStopping`, instance dừng là thả socket
+  ngay. Test `AnOpenSocketEndsWhenItsInstanceStops`. Đo lại cùng kịch bản với image đã sửa:
+
+| Có app đang nối WebSocket | dừng instance | exit | thay instance 1 | app nối lại (qua Caddy) | khoảng trống frame lớn nhất | mẫu mất |
+|---|---:|---:|---:|---:|---:|---:|
+| Trước sửa | 30,2 s | 137 | 37 s | 1,1 s sau khi bị kill | 8,2 s | 14 |
+| Sau sửa | 0,3 s | 0 (`shutdown: wrote 15 queued rows`) | 7,1 s | 1,3 s | 5,4 s | **0** |
+
+  Sau sửa, qua một lần dừng instance 2, một lần thay lần lượt cả hai và một lần dừng/chạy lại instance 1 khi có socket
+  nối thẳng vào nó: 1.000 thiết bị đủ 101–103 mẫu (kỳ vọng 102,0), không thiết bị nào có khoảng trống > 6 s; app gọi
+  2.625 lần, 0 lỗi, chậm nhất 1,07 s.

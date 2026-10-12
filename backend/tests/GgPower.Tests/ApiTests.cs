@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using Npgsql;
 
 namespace GgPower.Tests;
@@ -1428,5 +1429,27 @@ public class RealtimeTests(AppFixture app)
         await Assert.ThrowsAnyAsync<Exception>(() => client.ConnectAsync(new Uri(app.Server.BaseAddress, "/ws/v1/realtime?ticket=" + ticket), CancellationToken.None));
         await Assert.ThrowsAnyAsync<Exception>(() => client.ConnectAsync(new Uri(app.Server.BaseAddress, "/ws/v1/realtime?ticket=bogus"), CancellationToken.None));
         Assert.Equal(HttpStatusCode.Unauthorized, (await app.Post("/api/v1/realtime/ticket", null)).Status);
+    }
+
+    // An instance that stops (deploy, restart) lets go of its sockets at once. An open socket used to hold the web
+    // server until the host's shutdown limit; the instance was then killed before it had written its ingest queue.
+    [Fact]
+    public async Task AnOpenSocketEndsWhenItsInstanceStops()
+    {
+        var user = await app.NewUser();
+        await using var host = new ExtraHost([], 700000);
+        var ticket = (string)(await host.Post("/api/v1/realtime/ticket", null, user.Access)).Body!["ticket"]!;
+        using var ws = await host.Server.CreateWebSocketClient().ConnectAsync(new Uri(host.Server.BaseAddress, "/ws/v1/realtime?ticket=" + ticket), CancellationToken.None);
+
+        host.Services.GetRequiredService<IHostApplicationLifetime>().StopApplication();
+
+        // Still open after 5 s: ReceiveAsync is cancelled and the test fails.
+        using var limit = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        try
+        {
+            var res = await ws.ReceiveAsync(new byte[1024], limit.Token);
+            Assert.Equal(WebSocketMessageType.Close, res.MessageType);
+        }
+        catch (Exception e) when (e is WebSocketException or IOException) { /* dropped without a close frame: the app reconnects */ }
     }
 }

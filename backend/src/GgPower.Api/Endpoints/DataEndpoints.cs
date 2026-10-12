@@ -159,14 +159,17 @@ public static class RealtimeEndpoints
 
         // Protocol: client sends {"subscribe":["<project id>", ...]}; the server answers with a snapshot of
         // each device at once and then pushes every change. {"ping":1} is answered with {"type":"pong"}.
-        app.Map("/ws/v1/realtime", async (HttpContext ctx, ITicketStore tickets, RealtimeHub hub, ILiveStore live, Db db, TimeProvider clock, ILoggerFactory lf) =>
+        app.Map("/ws/v1/realtime", async (HttpContext ctx, ITicketStore tickets, RealtimeHub hub, ILiveStore live, Db db, TimeProvider clock, ILoggerFactory lf, IHostApplicationLifetime lifetime) =>
         {
             if (!ctx.WebSockets.IsWebSocketRequest) { ctx.Response.StatusCode = 400; return; }
             if (await tickets.RedeemAsync(ctx.Request.Query["ticket"]) is not { } who) { ctx.Response.StatusCode = 401; return; }
 
             using var ws = await ctx.WebSockets.AcceptWebSocketAsync();
             using var sub = hub.Connect();
-            using var cts = CancellationTokenSource.CreateLinkedTokenSource(ctx.RequestAborted);
+            // An open socket would otherwise hold the web server's shutdown until the host's time limit: the instance
+            // is then killed before the ingest queue is written. Dropping the socket lets the app reconnect to the
+            // other instance at once.
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(ctx.RequestAborted, lifetime.ApplicationStopping);
             var ct = cts.Token;
 
             var sender = Task.Run(async () =>
