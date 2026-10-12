@@ -50,3 +50,23 @@ Lưu ý:
 - Xem ai đang giữ: metric `ggpower_jobs_leader{job}`, hoặc SQL
   `SELECT objid, pid, application_name, client_addr FROM pg_locks JOIN pg_stat_activity USING (pid) WHERE locktype = 'advisory' AND classid = 18247;`
 - Lệnh đang chạy khi instance bị dừng: trước đây đóng ngay lúc khởi động lại, nay đóng sau 5 phút (`ACK_TIMEOUT`).
+
+## Trạng thái dùng chung qua Redis (bước B3–B5)
+
+Một instance: giữ mặc định `Shared__Provider=memory`. Nhiều instance: mọi instance đặt
+
+```
+GGP_Shared__Provider=redis
+GGP_Shared__Redis=redis:6379          # chuỗi cấu hình StackExchange.Redis
+GGP_Shared__KeyPrefix=ggp:            # đổi nếu nhiều môi trường dùng chung một Redis
+```
+
+Đi qua Redis: vé WebSocket (`ticket:*`, 30 s, dùng một lần), khoá lệnh theo thiết bị (`cmdlock:*`, tự hết sau 5 phút),
+giãn cách lệnh (`cmdlast:*`), phiên bản cache thống kê (`cachever:*`), và pub/sub `rt` (frame realtime), `ack`,
+`cfg` (ack và cấu hình đọc lại của lệnh). Redis mất → `/healthz/ready` báo `redis`; instance vẫn chạy, các việc trên
+lỗi cho tới khi Redis về.
+
+Lưu ý:
+- Ở chế độ redis, instance nhận dữ liệu publish **mọi** frame thiết bị (không biết instance khác có ai xem): ~2 KB ×
+  0,25 frame/s × số thiết bị (10.000 thiết bị ≈ 5 MB/s qua Redis).
+- REST live (overview, gửi lệnh) trên instance không nhận MQTT cần live state chung — bước C2, làm trước B7.

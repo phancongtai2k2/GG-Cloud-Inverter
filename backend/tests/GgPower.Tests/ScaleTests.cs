@@ -118,8 +118,13 @@ public class ScaleTests(AppFixture app)
             await pipeline.HandleAsync($"solar/ggp/inverter/{serial}/up/telemetry",
                 JsonSerializer.SerializeToUtf8Bytes(AppFixture.Telemetry(serial, ts: from + i * 5)), CancellationToken.None);
 
+        Assert.Equal((20, 0L), (pipeline.QueueLength, pipeline.Rejected));
         await writer.StartAsync(CancellationToken.None);
+        // Stop once the writer holds the rows in its batch (it writes them after a 1 s window). On .NET 10 the service body
+        // starts on the thread pool, and a stop that comes before it starts would skip it altogether.
+        for (var i = 0; i < 100 && pipeline.QueueLength > 0; i++) await Task.Delay(10);
         await writer.StopAsync(CancellationToken.None);
+        Assert.Equal(20L, writer.Written);
 
         await using var c = await sp.GetRequiredService<Db>().OpenAsync();
         Assert.Equal(20, await c.ExecuteScalarAsync<int>("SELECT count(*) FROM telemetry_raw WHERE serial = @serial AND ts >= to_timestamp(@from)", new { serial, from }));

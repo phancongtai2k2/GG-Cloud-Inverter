@@ -43,6 +43,9 @@ public sealed class CommandService(
 
     public void OnAck(CommandAck ack) => coord.Deliver(ack);
 
+    // Through the coordinator, so a command waiting on another instance sees the read-back too.
+    public void OnConfigState(string serial, JsonElement state) => coord.DeliverConfig(serial, state, clock.GetUtcNow());
+
     // ---------- reading ----------
 
     public sealed class TouRow
@@ -408,9 +411,9 @@ public sealed class CommandService(
         JsonElement? latest = null;
         while (true)
         {
-            if (d.ConfigStateAt is { } at && at >= sentAt)
+            if (coord.LatestConfig(d.Serial) is { } reported && reported.At >= sentAt)
             {
-                latest = d.ConfigState;
+                latest = reported.State;
                 if (ConfigMapping.Matches(expected, latest)) return latest;
             }
             if (clock.GetUtcNow() >= until) return latest;

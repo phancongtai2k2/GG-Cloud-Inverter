@@ -10,6 +10,7 @@ using GgPower.Infrastructure;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Npgsql;
@@ -140,11 +141,22 @@ public sealed class FakeDevices : IMqttPublisher
 }
 
 /// <summary>Runs the real application against the test database (recreated empty on every run).</summary>
-public sealed class AppFixture : WebApplicationFactory<Program>
+public class AppFixture : WebApplicationFactory<Program>
 {
     public readonly CapturingOtpSender Otp = new();
     public readonly FakeDevices Devices = new();
     private int _counter;
+    private readonly Dictionary<string, string?> _settings = [];
+
+    /// <summary>
+    /// Another host on the database the main fixture prepared (it does not wipe it), with its own settings, such as the
+    /// instances of a multi-instance test. <paramref name="firstNumber"/> keeps its serials and users apart.
+    /// </summary>
+    protected AppFixture(Dictionary<string, string?> settings, int firstNumber)
+    {
+        _settings = settings;
+        _counter = firstNumber;
+    }
 
     public AppFixture()
     {
@@ -177,6 +189,7 @@ public sealed class AppFixture : WebApplicationFactory<Program>
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
+        if (_settings.Count > 0) builder.ConfigureAppConfiguration((_, c) => c.AddInMemoryCollection(_settings));
         builder.ConfigureTestServices(s =>
         {
             s.RemoveAll<IOtpSender>();

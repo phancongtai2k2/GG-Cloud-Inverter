@@ -4,6 +4,7 @@ using System.Threading.RateLimiting;
 using GgPower.Api;
 using GgPower.Api.Endpoints;
 using GgPower.Infrastructure;
+using Microsoft.Extensions.Options;
 using OpenTelemetry.Metrics;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -43,32 +44,35 @@ builder.Services.AddSingleton<IPushSender, LoggingPushSender>();
 builder.Services.AddSingleton<AuthService>();
 builder.Services.AddSingleton<LiveStateCache>();
 builder.Services.AddSingleton<RealtimeHub>();
-// State the API instances share (plans B3, B4): "memory" for a single instance, "redis" when several run.
-var shared = builder.Configuration.GetSection("Shared").Get<SharedOptions>() ?? new SharedOptions();
-switch (shared.Provider)
+// State the API instances share (plans B3–B5): "memory" for a single instance, "redis" when several run. Chosen when
+// first resolved (not while building), so a test host can switch it with its own settings.
+builder.Services.Configure<SharedOptions>(builder.Configuration.GetSection("Shared"));
+static bool UseRedis(IServiceProvider sp) => sp.GetRequiredService<IOptions<SharedOptions>>().Value.Provider switch
 {
-    case "memory":
-        builder.Services.AddSingleton<ITicketStore, MemoryTicketStore>();
-        builder.Services.AddSingleton<ICommandCoordinator, MemoryCommandCoordinator>();
-        builder.Services.AddSingleton<ICacheVersions, MemoryCacheVersions>();
-        break;
-    case "redis":
-        builder.Services.AddSingleton<StackExchange.Redis.IConnectionMultiplexer>(_ =>
-        {
-            // Starts even while Redis is down (keeps retrying); /healthz/ready reports it meanwhile.
-            var o = StackExchange.Redis.ConfigurationOptions.Parse(shared.Redis);
-            o.AbortOnConnectFail = false;
-            return StackExchange.Redis.ConnectionMultiplexer.Connect(o);
-        });
-        builder.Services.AddSingleton(new RedisKeys(shared.KeyPrefix));
-        builder.Services.AddSingleton<ITicketStore, RedisTicketStore>();
-        builder.Services.AddSingleton<ICommandCoordinator, RedisCommandCoordinator>();
-        builder.Services.AddSingleton<ICacheVersions, RedisCacheVersions>();
-        break;
-    default:
-        throw new InvalidOperationException($"Shared:Provider '{shared.Provider}' is not supported (memory, redis)");
+    "memory" => false,
+    "redis" => true,
+    var other => throw new InvalidOperationException($"Shared:Provider '{other}' is not supported (memory, redis)"),
+};
+static void AddShared<TService, TMemory, TRedis>(IServiceCollection s)
+    where TService : class where TMemory : class, TService where TRedis : class, TService
+{
+    s.AddSingleton<TMemory>();
+    s.AddSingleton<TRedis>();
+    s.AddSingleton<TService>(sp => UseRedis(sp) ? sp.GetRequiredService<TRedis>() : sp.GetRequiredService<TMemory>());
 }
-builder.Services.AddSingleton<IRealtimeBus, LocalRealtimeBus>();
+builder.Services.AddSingleton<StackExchange.Redis.IConnectionMultiplexer>(sp =>
+{
+    // Starts even while Redis is down (keeps retrying); /healthz/ready reports it meanwhile.
+    var o = StackExchange.Redis.ConfigurationOptions.Parse(sp.GetRequiredService<IOptions<SharedOptions>>().Value.Redis);
+    o.AbortOnConnectFail = false;
+    return StackExchange.Redis.ConnectionMultiplexer.Connect(o);
+});
+builder.Services.AddSingleton(sp => new RedisKeys(sp.GetRequiredService<IOptions<SharedOptions>>().Value.KeyPrefix));
+AddShared<ITicketStore, MemoryTicketStore, RedisTicketStore>(builder.Services);
+AddShared<ICommandCoordinator, MemoryCommandCoordinator, RedisCommandCoordinator>(builder.Services);
+AddShared<ICacheVersions, MemoryCacheVersions, RedisCacheVersions>(builder.Services);
+AddShared<IRealtimeBus, LocalRealtimeBus, RedisRealtimeBus>(builder.Services);
+builder.Services.AddHostedService<RedisSubscriptions>();
 builder.Services.AddSingleton<BackfillTracker>();
 builder.Services.AddSingleton<RollupTracker>();
 // One instance per periodic job (plan B1); disposed after the hosted services stop, which frees its locks.

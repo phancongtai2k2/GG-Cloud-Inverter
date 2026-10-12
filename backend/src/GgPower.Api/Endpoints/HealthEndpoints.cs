@@ -18,7 +18,7 @@ public static class HealthEndpoints
 
         // Can take traffic: database answers within 2 s, Redis too when the instances share state through it, MQTT
         // connected when this instance receives device data, ingest queue not close to full. 503 lists what is wrong.
-        app.MapGet("/healthz/ready", async (Db db, MqttLink mqtt, IngestPipeline ingest, IServiceProvider services) =>
+        app.MapGet("/healthz/ready", async (Db db, MqttLink mqtt, IngestPipeline ingest, Microsoft.Extensions.Options.IOptions<SharedOptions> shared, IServiceProvider services) =>
         {
             var problems = new List<string>();
             try
@@ -28,9 +28,9 @@ public static class HealthEndpoints
                 await c.ExecuteScalarAsync<int>(new CommandDefinition("SELECT 1", cancellationToken: timeout.Token));
             }
             catch (Exception) { problems.Add("database"); }
-            if (services.GetService<StackExchange.Redis.IConnectionMultiplexer>() is { } redis)
+            if (shared.Value.Provider == "redis")
             {
-                try { await redis.GetDatabase().PingAsync().WaitAsync(TimeSpan.FromSeconds(2)); }
+                try { await services.GetRequiredService<StackExchange.Redis.IConnectionMultiplexer>().GetDatabase().PingAsync().WaitAsync(TimeSpan.FromSeconds(2)); }
                 catch (Exception) { problems.Add("redis"); }
             }
             problems.AddRange(Problems(mqtt.Required, mqtt.IsConnected, ingest.QueueLength, ingest.QueueCapacity));

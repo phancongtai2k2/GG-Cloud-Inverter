@@ -1,5 +1,9 @@
 using System.Collections.Concurrent;
+using System.Text;
+using System.Text.Json;
 using GgPower.Domain;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 
 namespace GgPower.Infrastructure;
@@ -48,12 +52,17 @@ public sealed class RedisTicketStore(IConnectionMultiplexer redis, RedisKeys key
     }
 }
 
-public sealed class RedisCommandCoordinator(IConnectionMultiplexer redis, RedisKeys keys) : ICommandCoordinator
+public sealed class RedisCommandCoordinator(IConnectionMultiplexer redis, RedisKeys keys, ILogger<RedisCommandCoordinator> log) : ICommandCoordinator, IRedisSubscriber
 {
     // Deletes the lock only when it still belongs to this command (it may have expired and been taken since).
     private const string UnlockScript = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
 
+    private sealed record ConfigMessage(string Serial, DateTimeOffset At, JsonElement State);
+
     private readonly ConcurrentDictionary<string, TaskCompletionSource<CommandAck>> _acks = new();
+    // Devices this instance runs a command for, and the settings they reported meanwhile.
+    private readonly ConcurrentDictionary<string, Guid> _local = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, (JsonElement State, DateTimeOffset At)> _configs = new(StringComparer.OrdinalIgnoreCase);
 
     public async Task<TimeSpan?> RetryAfterAsync(string serial, TimeSpan minInterval)
     {
@@ -72,16 +81,22 @@ public sealed class RedisCommandCoordinator(IConnectionMultiplexer redis, RedisK
         var key = keys.CommandLock(serial);
         for (var attempt = 0; ; attempt++)
         {
-            if (await db.StringSetAsync(key, id.ToString("N"), ttl, When.NotExists)) return null;
+            if (await db.StringSetAsync(key, id.ToString("N"), ttl, When.NotExists))
+            {
+                _local[serial] = id;
+                return null;
+            }
             if (Guid.TryParse((string?)await db.StringGetAsync(key), out var holder)) return holder;
             if (attempt == 1) return Guid.Empty;   // freed and taken again twice in a row: report it as busy
         }
     }
 
-    public Task UnlockAsync(string serial, Guid id) =>
-        redis.GetDatabase().ScriptEvaluateAsync(UnlockScript, [keys.CommandLock(serial)], [id.ToString("N")]);
+    public async Task UnlockAsync(string serial, Guid id)
+    {
+        if (_local.TryRemove(new KeyValuePair<string, Guid>(serial, id))) _configs.TryRemove(serial, out _);
+        await redis.GetDatabase().ScriptEvaluateAsync(UnlockScript, [keys.CommandLock(serial)], [id.ToString("N")]);
+    }
 
-    // Acknowledgements still go to the waiter on this instance; B5 carries them between instances.
     public AckWait Expect(string cmdId)
     {
         var tcs = new TaskCompletionSource<CommandAck>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -89,9 +104,108 @@ public sealed class RedisCommandCoordinator(IConnectionMultiplexer redis, RedisK
         return new AckWait(tcs.Task, () => _acks.TryRemove(cmdId, out _));
     }
 
-    public void Deliver(CommandAck ack)
+    // The instance that receives device data publishes; every instance (this one too) hands it to its own waiter.
+    public void Deliver(CommandAck ack) => Publish(keys.Channel("ack"), JsonSerializer.SerializeToUtf8Bytes(ack));
+
+    public void DeliverConfig(string serial, JsonElement state, DateTimeOffset at) =>
+        Publish(keys.Channel("cfg"), JsonSerializer.SerializeToUtf8Bytes(new ConfigMessage(serial, at, state)));
+
+    public (JsonElement State, DateTimeOffset At)? LatestConfig(string serial) => _configs.TryGetValue(serial, out var c) ? c : null;
+
+    public async Task SubscribeAsync()
     {
-        if (_acks.TryRemove(ack.CmdId, out var tcs)) tcs.TrySetResult(ack);
+        var sub = redis.GetSubscriber();
+        (await sub.SubscribeAsync(keys.Channel("ack"))).OnMessage(m =>
+        {
+            if (JsonSerializer.Deserialize<CommandAck>((byte[])m.Message!) is { } ack && _acks.TryRemove(ack.CmdId, out var tcs)) tcs.TrySetResult(ack);
+        });
+        (await sub.SubscribeAsync(keys.Channel("cfg"))).OnMessage(m =>
+        {
+            if (JsonSerializer.Deserialize<ConfigMessage>((byte[])m.Message!) is { } c && _local.ContainsKey(c.Serial)) _configs[c.Serial] = (c.State, c.At);
+        });
+    }
+
+    private void Publish(RedisChannel channel, byte[] message)
+    {
+        try { redis.GetSubscriber().Publish(channel, message, CommandFlags.FireAndForget); }
+        catch (Exception ex) { log.LogWarning("could not publish to {Channel}: {Message}", channel, ex.Message); }
+    }
+}
+
+/// <summary>
+/// Plan B5: device frames go through one Redis channel; every instance pushes them to its own WebSocket clients. The
+/// sender gets its own frames back the same way, so each client receives a frame once.
+/// </summary>
+public sealed class RedisRealtimeBus(IConnectionMultiplexer redis, RedisKeys keys, RealtimeHub hub, ILogger<RedisRealtimeBus> log) : IRealtimeBus, IRedisSubscriber
+{
+    public void Publish(string serial, byte[] message)
+    {
+        // "<serial>\n<frame>": serials never contain a line break.
+        var packet = new byte[serial.Length + 1 + message.Length];
+        Encoding.ASCII.GetBytes(serial, packet);
+        packet[serial.Length] = (byte)'\n';
+        message.CopyTo(packet, serial.Length + 1);
+        try { redis.GetSubscriber().Publish(keys.Channel("rt"), packet, CommandFlags.FireAndForget); }
+        catch (Exception ex) { log.LogDebug("could not publish a frame of {Serial}: {Message}", serial, ex.Message); }
+    }
+
+    // Other instances' clients are not known here.
+    public bool MayHaveListeners(string serial) => true;
+
+    public async Task SubscribeAsync()
+    {
+        (await redis.GetSubscriber().SubscribeAsync(keys.Channel("rt"))).OnMessage(m =>
+        {
+            var packet = (byte[])m.Message!;
+            var cut = Array.IndexOf(packet, (byte)'\n');
+            if (cut <= 0) return;
+            var serial = Encoding.ASCII.GetString(packet, 0, cut);
+            if (hub.HasListeners(serial)) hub.Publish(serial, packet[(cut + 1)..]);
+        });
+    }
+}
+
+/// <summary>A Redis-backed service that listens on channels.</summary>
+public interface IRedisSubscriber
+{
+    Task SubscribeAsync();
+}
+
+/// <summary>
+/// Subscribes the Redis listeners when the host starts, before it takes traffic; if Redis is down then, keeps trying in
+/// the background (StackExchange.Redis restores subscriptions by itself after later reconnects).
+/// </summary>
+public sealed class RedisSubscriptions(IServiceProvider services, Microsoft.Extensions.Options.IOptions<SharedOptions> options, ILogger<RedisSubscriptions> log) : BackgroundService
+{
+    private readonly TaskCompletionSource _first = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    public override async Task StartAsync(CancellationToken ct)
+    {
+        await base.StartAsync(ct);
+        await Task.WhenAny(_first.Task, Task.Delay(TimeSpan.FromSeconds(5), ct));
+    }
+
+    protected override async Task ExecuteAsync(CancellationToken stop)
+    {
+        if (options.Value.Provider != "redis") { _first.TrySetResult(); return; }
+        IRedisSubscriber[] subscribers =
+        [
+            (IRedisSubscriber)services.GetService(typeof(RedisCommandCoordinator))!,
+            (IRedisSubscriber)services.GetService(typeof(RedisRealtimeBus))!,
+        ];
+        foreach (var s in subscribers)
+        {
+            while (!stop.IsCancellationRequested)
+            {
+                try { await s.SubscribeAsync(); break; }
+                catch (Exception ex)
+                {
+                    log.LogWarning("Redis subscription of {Service} failed, retrying: {Message}", s.GetType().Name, ex.Message);
+                    await Task.Delay(TimeSpan.FromSeconds(2), stop).ContinueWith(_ => { }, CancellationToken.None);
+                }
+            }
+        }
+        _first.TrySetResult();
     }
 }
 

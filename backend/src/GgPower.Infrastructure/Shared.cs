@@ -40,6 +40,15 @@ public interface ICommandCoordinator
 
     /// <summary>An acknowledgement arrived from a device.</summary>
     void Deliver(CommandAck ack);
+
+    /// <summary>The device reported its settings (it does after every write).</summary>
+    void DeliverConfig(string serial, System.Text.Json.JsonElement state, DateTimeOffset at);
+
+    /// <summary>
+    /// The last settings reported by a device that this instance runs a command for (null otherwise): the command
+    /// compares them with what it wrote.
+    /// </summary>
+    (System.Text.Json.JsonElement State, DateTimeOffset At)? LatestConfig(string serial);
 }
 
 /// <summary>A pending acknowledgement. Dispose it when done waiting.</summary>
@@ -94,6 +103,7 @@ public sealed class MemoryCommandCoordinator(TimeProvider clock) : ICommandCoord
     private readonly ConcurrentDictionary<string, TaskCompletionSource<CommandAck>> _acks = new();
     private readonly ConcurrentDictionary<string, Guid> _running = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, DateTimeOffset> _lastCommand = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, (System.Text.Json.JsonElement State, DateTimeOffset At)> _configs = new(StringComparer.OrdinalIgnoreCase);
 
     public Task<TimeSpan?> RetryAfterAsync(string serial, TimeSpan minInterval)
     {
@@ -113,7 +123,7 @@ public sealed class MemoryCommandCoordinator(TimeProvider clock) : ICommandCoord
 
     public Task UnlockAsync(string serial, Guid id)
     {
-        _running.TryRemove(new KeyValuePair<string, Guid>(serial, id));
+        if (_running.TryRemove(new KeyValuePair<string, Guid>(serial, id))) _configs.TryRemove(serial, out _);
         return Task.CompletedTask;
     }
 
@@ -128,6 +138,14 @@ public sealed class MemoryCommandCoordinator(TimeProvider clock) : ICommandCoord
     {
         if (_acks.TryRemove(ack.CmdId, out var tcs)) tcs.TrySetResult(ack);
     }
+
+    public void DeliverConfig(string serial, System.Text.Json.JsonElement state, DateTimeOffset at)
+    {
+        if (_running.ContainsKey(serial)) _configs[serial] = (state, at);
+    }
+
+    public (System.Text.Json.JsonElement State, DateTimeOffset At)? LatestConfig(string serial) =>
+        _configs.TryGetValue(serial, out var c) ? c : null;
 }
 
 public sealed class MemoryCacheVersions : ICacheVersions

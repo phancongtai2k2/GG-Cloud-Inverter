@@ -55,8 +55,8 @@ public sealed class RedisSharedTests : IAsyncLifetime
     [Fact]
     public async Task OneCommandPerDeviceAcrossInstances()
     {
-        var onA = new RedisCommandCoordinator(_a, _keys);
-        var onB = new RedisCommandCoordinator(_b, _keys);
+        var onA = new RedisCommandCoordinator(_a, _keys, Microsoft.Extensions.Logging.Abstractions.NullLogger<RedisCommandCoordinator>.Instance);
+        var onB = new RedisCommandCoordinator(_b, _keys, Microsoft.Extensions.Logging.Abstractions.NullLogger<RedisCommandCoordinator>.Instance);
         Guid first = Guid.NewGuid(), second = Guid.NewGuid();
 
         Assert.Null(await onA.TryLockAsync("dev-1", first, TimeSpan.FromMinutes(1)));
@@ -77,8 +77,8 @@ public sealed class RedisSharedTests : IAsyncLifetime
     [Fact]
     public async Task TheMinimumIntervalHoldsAcrossInstances()
     {
-        var onA = new RedisCommandCoordinator(_a, _keys);
-        var onB = new RedisCommandCoordinator(_b, _keys);
+        var onA = new RedisCommandCoordinator(_a, _keys, Microsoft.Extensions.Logging.Abstractions.NullLogger<RedisCommandCoordinator>.Instance);
+        var onB = new RedisCommandCoordinator(_b, _keys, Microsoft.Extensions.Logging.Abstractions.NullLogger<RedisCommandCoordinator>.Instance);
         Assert.Null(await onB.RetryAfterAsync("dev-1", TimeSpan.FromSeconds(5)));
         await onA.StartIntervalAsync("dev-1", TimeSpan.FromSeconds(5));
         Assert.InRange(await onB.RetryAfterAsync("dev-1", TimeSpan.FromSeconds(5)) ?? TimeSpan.Zero, TimeSpan.FromSeconds(4), TimeSpan.FromSeconds(5));

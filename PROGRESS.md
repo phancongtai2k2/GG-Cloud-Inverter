@@ -23,6 +23,7 @@ Cập nhật: 11/10/2026 · Nhánh: `feature/contract-and-theme` (16 commit trê
 | 11/10 | Datalogger: API trả rssi / ip / firmware ngay; serial đọc `logger_sn`, kiểu kết nối đọc `conn_type` khi firmware gửi (chưa có: serial null, kết nối "wifi"). Vạch giới hạn SOC: xả = `battery_reserve_soc` (SOC dự phòng), sạc đọc `charge_stop_soc` khi firmware gửi (chưa có: null) |
 | 11/10 | Nâng cấp 4.4: metrics dùng OpenTelemetry + Prometheus (D1); broker giữ bản tin cho backend ≈ 10 phút ở 5.000 thiết bị, `max_queued_messages` ≈ 800.000 (D2) |
 | 12/10 | Nâng cấp 4.4 giai đoạn B: Redis = container `redis:7` trong compose (D3); file đính kèm lên MinIO tự host, giữ lưu ổ đĩa cho dev (D4) |
+| 12/10 | B5: instance API thứ 2 lấy dữ liệu live theo kế hoạch — frame realtime, ack lệnh, config đọc lại đi qua Redis pub/sub (không cho mọi instance nghe MQTT). Hệ quả: REST live và gửi lệnh trên instance không nhận MQTT cần live state chung → **làm C2 (live state lên Redis) trước B7** |
 
 ## 3. Đã xong
 
@@ -74,8 +75,10 @@ Còn lại nhỏ: màn Dữ liệu inverter/pin vẫn truyền chuỗi `reg_*` v
 | B1 | Leader cho job định kỳ | **Xong**: `JobLeader` (advisory lock trên kết nối riêng): rollup, báo cáo ngày (+ bảng `daily_reports_sent`), cảnh báo offline, lệnh (TOU 00:00, đóng lệnh bỏ dở sau 5 phút thay vì lúc khởi động); metric `ggpower_jobs_leader` | fc18abc |
 | B2 | Tạo cảnh báo an toàn khi chạy song song | **Xong**: migration 006 gộp cảnh báo mở trùng + unique `(serial, code) WHERE ended_at IS NULL`; RaiseAsync trong transaction có khoá theo thiết bị + mã; test 20 lần song song → 1 cảnh báo | 67b65f8 |
 | B3 | Interface cho trạng thái dùng chung | **Xong**: `ITicketStore`, `ICommandCoordinator` (khoá lệnh, giãn cách, chờ ack), `ICacheVersions`, `IRealtimeBus`, `IFileStore`; bản trong RAM / ổ đĩa, chọn bằng `Shared:Provider` (hiện chỉ `memory`) | 2f926f1 |
-| B4 | Bản Redis cho vé, khoá lệnh, giãn cách, phiên bản cache | **Xong**: `Shared:Provider=redis` (GETDEL vé, SET NX PX khoá + mở khoá đúng chủ, INCR phiên bản cache); ready kiểm Redis; test 2 kết nối = 2 instance | (commit kế tiếp ghi) |
-| B5–B7 | realtime / ack qua pub/sub, object storage, 2 instance | Chưa làm | |
+| B4 | Bản Redis cho vé, khoá lệnh, giãn cách, phiên bản cache | **Xong**: `Shared:Provider=redis` (GETDEL vé, SET NX PX khoá + mở khoá đúng chủ, INCR phiên bản cache); ready kiểm Redis; test 2 kết nối = 2 instance | e9abcb5 |
+| B5 | Frame realtime, ack lệnh, config đọc lại qua Redis pub/sub | **Xong**: kênh `rt`, `ack`, `cfg`; lệnh đọc lại cấu hình qua `ICommandCoordinator` (không còn đọc live state); test 2 host: WebSocket ở B nhận frame đưa vào A, lệnh gửi ở B xác nhận qua A, hai host không cùng ra lệnh một thiết bị | (commit kế tiếp ghi) |
+| C2 (đưa lên) | Live state lên Redis — cần trước B7 (quyết định B5) | Chưa làm | |
+| B6–B7 | Object storage, 2 instance | Chưa làm | |
 | C1–C6 | Tách vai trò, live state lên Redis, EMQX + nhiều worker, TimescaleDB, xác thực MQTT, vận hành (D5–D8) | Chưa làm | |
 
 ## 5. Môi trường trên máy này
