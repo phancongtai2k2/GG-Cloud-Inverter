@@ -43,6 +43,13 @@ builder.Services.AddSingleton<IPushSender, LoggingPushSender>();
 builder.Services.AddSingleton<AuthService>();
 builder.Services.AddSingleton<LiveStateCache>();
 builder.Services.AddSingleton<RealtimeHub>();
+// State the API instances share (plan B3). "memory" is right for a single instance; "redis" comes with B4.
+var sharedProvider = builder.Configuration["Shared:Provider"] ?? "memory";
+if (sharedProvider != "memory") throw new InvalidOperationException($"Shared:Provider '{sharedProvider}' is not supported (memory)");
+builder.Services.AddSingleton<ITicketStore, MemoryTicketStore>();
+builder.Services.AddSingleton<ICommandCoordinator, MemoryCommandCoordinator>();
+builder.Services.AddSingleton<ICacheVersions, MemoryCacheVersions>();
+builder.Services.AddSingleton<IRealtimeBus, LocalRealtimeBus>();
 builder.Services.AddSingleton<BackfillTracker>();
 builder.Services.AddSingleton<RollupTracker>();
 // One instance per periodic job (plan B1); disposed after the hosted services stop, which frees its locks.
@@ -67,9 +74,8 @@ builder.Services.AddHostedService(sp => sp.GetRequiredService<NotificationServic
 builder.Services.AddHostedService<LiveMonitor>();
 builder.Services.AddSingleton<AccessService>();
 builder.Services.AddSingleton<AuditLog>();
-builder.Services.AddSingleton<FileStore>();
+builder.Services.AddSingleton<IFileStore, LocalFileStore>();
 builder.Services.AddSingleton<StatsService>();
-builder.Services.AddSingleton<RealtimeTickets>();
 builder.Services.AddMemoryCache(o => o.SizeLimit = null);
 // Metrics for Prometheus at /metrics (plan A3): application meter + ASP.NET Core HTTP metrics. Not routed by Caddy.
 builder.Services.AddOpenTelemetry().WithMetrics(m => m

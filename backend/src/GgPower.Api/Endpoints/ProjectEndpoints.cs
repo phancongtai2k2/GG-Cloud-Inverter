@@ -122,19 +122,19 @@ public static class ProjectEndpoints
 
         // Removes a project and frees its devices so they can be added again (by this or another account).
         // Measurements stay with the device serial; tickets keep their history without the project link.
-        g.MapDelete("/{projectId:guid}", async (Guid projectId, HttpContext ctx, AccessService access, Db db, FileStore files, AuditLog audit, CancellationToken ct) =>
+        g.MapDelete("/{projectId:guid}", async (Guid projectId, HttpContext ctx, AccessService access, Db db, IFileStore files, AuditLog audit, CancellationToken ct) =>
         {
             if (await access.ProjectAsync(ctx.User, projectId, ct) is not { } a) return Api.NotFound();
             if (a.Project.OwnerId != ctx.User.UserId()) return Api.Error(403, "ROLE_NOT_PERMITTED");
             await using var c = await db.OpenAsync(ct);
             await c.ExecuteAsync("DELETE FROM projects WHERE id = @projectId", new { projectId });
-            files.Delete("projects", a.Project.PhotoFile);
+            await files.DeleteAsync("projects", a.Project.PhotoFile, ct);
             access.Invalidate(ctx.User.UserId(), projectId);
             await audit.WriteAsync(ctx.User.UserId(), "project_deleted", projectId.ToString(), new { serials = a.Serials }, ctx.ClientIp(), ct);
             return Results.NoContent();
         });
 
-        g.MapPut("/{projectId:guid}/photo", async (Guid projectId, HttpContext ctx, AccessService access, Db db, FileStore files, CancellationToken ct) =>
+        g.MapPut("/{projectId:guid}/photo", async (Guid projectId, HttpContext ctx, AccessService access, Db db, IFileStore files, CancellationToken ct) =>
         {
             if (await access.ProjectAsync(ctx.User, projectId, ct) is not { } a) return Api.NotFound();
             var data = await FileStore.ReadLimitedAsync(ctx.Request.Body, 5 * 1024 * 1024, ct);
@@ -143,16 +143,15 @@ public static class ProjectEndpoints
             var name = await files.SaveAsync("projects", data, type, ct);
             await using var c = await db.OpenAsync(ct);
             await c.ExecuteAsync("UPDATE projects SET photo_file = @name WHERE id = @projectId", new { name, projectId });
-            files.Delete("projects", a.Project.PhotoFile);
+            await files.DeleteAsync("projects", a.Project.PhotoFile, ct);
             access.Invalidate(ctx.User.UserId(), projectId);
             return Results.NoContent();
         }).WithMetadata(new Microsoft.AspNetCore.Mvc.RequestSizeLimitAttribute(5 * 1024 * 1024 + 1024));
 
-        g.MapGet("/{projectId:guid}/photo", async (Guid projectId, HttpContext ctx, AccessService access, FileStore files, CancellationToken ct) =>
+        g.MapGet("/{projectId:guid}/photo", async (Guid projectId, HttpContext ctx, AccessService access, IFileStore files, CancellationToken ct) =>
         {
-            if (await access.ProjectAsync(ctx.User, projectId, ct) is not { } a || files.PathOf("projects", a.Project.PhotoFile) is not { } path) return Api.NotFound();
-            var n = a.Project.PhotoFile!;
-            return Results.File(path, n.EndsWith(".png") ? "image/png" : n.EndsWith(".webp") ? "image/webp" : "image/jpeg");
+            if (await access.ProjectAsync(ctx.User, projectId, ct) is not { } a || await files.OpenAsync("projects", a.Project.PhotoFile, ct) is not { } file) return Api.NotFound();
+            return Results.File(file, FileStore.ImageTypeOf(a.Project.PhotoFile!));
         });
     }
 

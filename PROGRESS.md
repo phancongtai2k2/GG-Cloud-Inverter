@@ -72,8 +72,9 @@ Còn lại nhỏ: màn Dữ liệu inverter/pin vẫn truyền chuỗi `reg_*` v
 | A7 | Đo lại, chốt giai đoạn A | **Xong**: 10.000 tb không mất dữ liệu (sửa ghi trạng thái thiết bị một câu lệnh), tổng hợp 7 s / 30 s; trần ước ~20.000 tb | 7e8060a |
 | B0 | Chốt Redis, nơi lưu file (D3, D4) | **Xong**: `redis:7` trong compose; MinIO tự host | — |
 | B1 | Leader cho job định kỳ | **Xong**: `JobLeader` (advisory lock trên kết nối riêng): rollup, báo cáo ngày (+ bảng `daily_reports_sent`), cảnh báo offline, lệnh (TOU 00:00, đóng lệnh bỏ dở sau 5 phút thay vì lúc khởi động); metric `ggpower_jobs_leader` | fc18abc |
-| B2 | Tạo cảnh báo an toàn khi chạy song song | **Xong**: migration 006 gộp cảnh báo mở trùng + unique `(serial, code) WHERE ended_at IS NULL`; RaiseAsync trong transaction có khoá theo thiết bị + mã; test 20 lần song song → 1 cảnh báo | (commit kế tiếp ghi) |
-| B3–B7 | interface + Redis, realtime / ack qua pub/sub, object storage, 2 instance | Chưa làm | |
+| B2 | Tạo cảnh báo an toàn khi chạy song song | **Xong**: migration 006 gộp cảnh báo mở trùng + unique `(serial, code) WHERE ended_at IS NULL`; RaiseAsync trong transaction có khoá theo thiết bị + mã; test 20 lần song song → 1 cảnh báo | 67b65f8 |
+| B3 | Interface cho trạng thái dùng chung | **Xong**: `ITicketStore`, `ICommandCoordinator` (khoá lệnh, giãn cách, chờ ack), `ICacheVersions`, `IRealtimeBus`, `IFileStore`; bản trong RAM / ổ đĩa, chọn bằng `Shared:Provider` (hiện chỉ `memory`) | (commit kế tiếp ghi) |
+| B4–B7 | Redis, realtime / ack qua pub/sub, object storage, 2 instance | Chưa làm | |
 | C1–C6 | Tách vai trò, live state lên Redis, EMQX + nhiều worker, TimescaleDB, xác thực MQTT, vận hành (D5–D8) | Chưa làm | |
 
 ## 5. Môi trường trên máy này

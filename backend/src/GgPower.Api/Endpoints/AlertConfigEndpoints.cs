@@ -76,7 +76,7 @@ public static class AlertEndpoints
             });
         });
 
-        g.MapPut("/{alertId:guid}/resolved", async (Guid projectId, Guid alertId, ResolveRequest body, HttpContext ctx, AccessService access, Db db, LiveStateCache live, RealtimeHub hub, CancellationToken ct) =>
+        g.MapPut("/{alertId:guid}/resolved", async (Guid projectId, Guid alertId, ResolveRequest body, HttpContext ctx, AccessService access, Db db, LiveStateCache live, IRealtimeBus bus, CancellationToken ct) =>
         {
             if (await access.ProjectAsync(ctx.User, projectId, ct) is not { } a) return Api.NotFound();
             if (body.Resolved is not { } resolved) return Api.Invalid();
@@ -88,7 +88,7 @@ public static class AlertEndpoints
             if (live.Get(serial) is { } d)
             {
                 await IngestPipeline.RecountAsync(c, d);
-                hub.Publish(serial, LiveJson.Bytes(new { type = "alerts_changed", serial }));
+                bus.Publish(serial, LiveJson.Bytes(new { type = "alerts_changed", serial }));
             }
             return Results.NoContent();
         });

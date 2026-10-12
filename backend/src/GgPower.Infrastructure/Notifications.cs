@@ -95,7 +95,7 @@ public sealed class NotificationService(Db db, IPushSender push, JobLeader leade
 /// Notices devices that went silent without a last-will message: pushes the "offline" state to
 /// connected apps, and keeps one open "connection lost" alert per device while it lasts.
 /// </summary>
-public sealed class LiveMonitor(Db db, LiveStateCache live, RealtimeHub hub, JobLeader leader, Microsoft.Extensions.Options.IOptions<IngestOptions> options, TimeProvider clock, ILogger<LiveMonitor> log) : BackgroundService
+public sealed class LiveMonitor(Db db, LiveStateCache live, IRealtimeBus bus, JobLeader leader, Microsoft.Extensions.Options.IOptions<IngestOptions> options, TimeProvider clock, ILogger<LiveMonitor> log) : BackgroundService
 {
     public const string OfflineCode = "OFFLINE";
     private static readonly TimeSpan AlertAfter = TimeSpan.FromMinutes(5);
@@ -133,7 +133,7 @@ public sealed class LiveMonitor(Db db, LiveStateCache live, RealtimeHub hub, Job
                 {
                     var up = d.IsReachable(now);
                     if (reachable.TryGetValue(d.Serial, out var was) && was != up)
-                        hub.Publish(d.Serial, LiveJson.Bytes(LiveJson.Snapshot(d, now)));
+                        bus.Publish(d.Serial, LiveJson.Bytes(LiveJson.Snapshot(d, now)));
                     reachable[d.Serial] = up;
 
                     if (!lead) continue;
@@ -159,6 +159,6 @@ public sealed class LiveMonitor(Db db, LiveStateCache live, RealtimeHub hub, Job
         else
             await c.ExecuteAsync("UPDATE alerts SET ended_at = @now WHERE serial = @serial AND code = @code AND ended_at IS NULL", new { now, serial = d.Serial, code = OfflineCode });
         await IngestPipeline.RecountAsync(c, d);
-        hub.Publish(d.Serial, LiveJson.Bytes(new { type = "alerts_changed", serial = d.Serial }));
+        bus.Publish(d.Serial, LiveJson.Bytes(new { type = "alerts_changed", serial = d.Serial }));
     }
 }

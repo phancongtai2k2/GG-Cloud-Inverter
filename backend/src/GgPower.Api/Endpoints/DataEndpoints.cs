@@ -141,25 +141,9 @@ public static class DataEndpoints
 }
 
 /// <summary>One-time tickets that authenticate a WebSocket, so the access token never appears in a URL.</summary>
-public sealed class RealtimeTickets(TimeProvider clock)
+public static class RealtimeTickets
 {
-    private readonly ConcurrentDictionary<string, (Guid UserId, string Role, DateTimeOffset Expires)> _tickets = new();
     public static readonly TimeSpan Lifetime = TimeSpan.FromSeconds(30);
-
-    public string Issue(Guid userId, string role)
-    {
-        var now = clock.GetUtcNow();
-        foreach (var kv in _tickets) if (kv.Value.Expires < now) _tickets.TryRemove(kv.Key, out _);
-        var ticket = Secrets.NewToken();
-        _tickets[ticket] = (userId, role, now + Lifetime);
-        return ticket;
-    }
-
-    public (Guid UserId, string Role)? Redeem(string? ticket)
-    {
-        if (string.IsNullOrEmpty(ticket) || !_tickets.TryRemove(ticket, out var t) || t.Expires < clock.GetUtcNow()) return null;
-        return (t.UserId, t.Role);
-    }
 }
 
 public static class RealtimeEndpoints
@@ -168,16 +152,16 @@ public static class RealtimeEndpoints
 
     public static void Map(WebApplication app, RouteGroupBuilder api)
     {
-        api.MapPost("/realtime/ticket", (HttpContext ctx, RealtimeTickets tickets) =>
-            Results.Json(new { ticket = tickets.Issue(ctx.User.UserId(), ctx.User.Role()), expires_in = (int)RealtimeTickets.Lifetime.TotalSeconds }))
+        api.MapPost("/realtime/ticket", async (HttpContext ctx, ITicketStore tickets) =>
+            Results.Json(new { ticket = await tickets.IssueAsync(ctx.User.UserId(), ctx.User.Role(), RealtimeTickets.Lifetime), expires_in = (int)RealtimeTickets.Lifetime.TotalSeconds }))
             .RequireAuthorization();
 
         // Protocol: client sends {"subscribe":["<project id>", ...]}; the server answers with a snapshot of
         // each device at once and then pushes every change. {"ping":1} is answered with {"type":"pong"}.
-        app.Map("/ws/v1/realtime", async (HttpContext ctx, RealtimeTickets tickets, RealtimeHub hub, LiveStateCache live, Db db, TimeProvider clock, ILoggerFactory lf) =>
+        app.Map("/ws/v1/realtime", async (HttpContext ctx, ITicketStore tickets, RealtimeHub hub, LiveStateCache live, Db db, TimeProvider clock, ILoggerFactory lf) =>
         {
             if (!ctx.WebSockets.IsWebSocketRequest) { ctx.Response.StatusCode = 400; return; }
-            if (tickets.Redeem(ctx.Request.Query["ticket"]) is not { } who) { ctx.Response.StatusCode = 401; return; }
+            if (await tickets.RedeemAsync(ctx.Request.Query["ticket"]) is not { } who) { ctx.Response.StatusCode = 401; return; }
 
             using var ws = await ctx.WebSockets.AcceptWebSocketAsync();
             using var sub = hub.Connect();

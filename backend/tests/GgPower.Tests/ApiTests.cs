@@ -798,7 +798,7 @@ public class FieldSignalTests(AppFixture app)
         var project = await app.NewProject(owner, serial);
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         var liveBefore = (string)(await app.Get($"/api/v1/projects/{project}/telemetry", owner.Access)).Body!["telemetry"]!["ts"]!;
-        var versionBefore = app.Service<BackfillTracker>().Version(serial);
+        var versionBefore = await app.Service<ICacheVersions>().VersionAsync(serial);
 
         // ten samples of 3 kW, two minutes apart, from an hour ago
         var start = now - 3600;
@@ -831,11 +831,11 @@ public class FieldSignalTests(AppFixture app)
         {
             await app.Service<RollupService>().RunOnceAsync(DateTimeOffset.UtcNow, CancellationToken.None);
             pv = await c.ExecuteScalarAsync<double?>("SELECT sum(pv_kwh) FROM rollup_15m WHERE serial = @serial AND bucket < @cutoff", new { serial, cutoff }) ?? 0;
-            if (pv > 0.99 && app.Service<BackfillTracker>().Version(serial) > versionBefore) break;
+            if (pv > 0.99 && await app.Service<ICacheVersions>().VersionAsync(serial) > versionBefore) break;
             await Task.Delay(250);
         }
         Assert.InRange(pv, 0.99, 1.01);
-        Assert.True(app.Service<BackfillTracker>().Version(serial) > versionBefore);
+        Assert.True(await app.Service<ICacheVersions>().VersionAsync(serial) > versionBefore);
         var days = await c.ExecuteScalarAsync<double?>("SELECT sum(pv_kwh) FROM rollup_1d WHERE serial = @serial", new { serial }) ?? 0;
         Assert.True(days > 0.99, $"daily roll-up {days}");
     }

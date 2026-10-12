@@ -107,7 +107,7 @@ public class ScaleTests(AppFixture app)
         var sp = app.Services;
         var serial = await app.NewDevice();
         // A pipeline and writer of their own, so the running ones do not take these samples.
-        var pipeline = new IngestPipeline(sp.GetRequiredService<Db>(), sp.GetRequiredService<LiveStateCache>(), sp.GetRequiredService<RealtimeHub>(),
+        var pipeline = new IngestPipeline(sp.GetRequiredService<Db>(), sp.GetRequiredService<LiveStateCache>(), sp.GetRequiredService<IRealtimeBus>(),
             sp.GetRequiredService<IOptions<IngestOptions>>(), [], sp.GetRequiredService<BackfillTracker>(), sp.GetRequiredService<DeviceEventQueue>(),
             sp.GetRequiredService<TimeProvider>(),
             NullLogger<IngestPipeline>.Instance);

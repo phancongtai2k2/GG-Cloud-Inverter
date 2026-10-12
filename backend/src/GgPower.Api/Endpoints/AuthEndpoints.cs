@@ -151,7 +151,7 @@ public static class ProfileEndpoints
             return Results.NoContent();
         });
 
-        g.MapPut("/avatar", async (HttpContext ctx, Db db, FileStore files, CancellationToken ct) =>
+        g.MapPut("/avatar", async (HttpContext ctx, Db db, IFileStore files, CancellationToken ct) =>
         {
             var data = await FileStore.ReadLimitedAsync(ctx.Request.Body, MaxAvatarBytes, ct);
             if (data is null) return Api.Error(413, "PAYLOAD_TOO_LARGE");
@@ -160,26 +160,26 @@ public static class ProfileEndpoints
             await using var c = await db.OpenAsync(ct);
             var old = await c.ExecuteScalarAsync<string?>("SELECT avatar_file FROM users WHERE id = @id", new { id = ctx.User.UserId() });
             await c.ExecuteAsync("UPDATE users SET avatar_file = @name WHERE id = @id", new { name, id = ctx.User.UserId() });
-            files.Delete("avatars", old);
+            await files.DeleteAsync("avatars", old, ct);
             return Results.Json(new { avatar_url = $"/api/v1/me/avatar?v={name[..8]}" });
         }).WithMetadata(new Microsoft.AspNetCore.Mvc.RequestSizeLimitAttribute(MaxAvatarBytes + 1024));
 
-        g.MapDelete("/avatar", async (HttpContext ctx, Db db, FileStore files, CancellationToken ct) =>
+        g.MapDelete("/avatar", async (HttpContext ctx, Db db, IFileStore files, CancellationToken ct) =>
         {
             await using var c = await db.OpenAsync(ct);
             var old = await c.ExecuteScalarAsync<string?>("SELECT avatar_file FROM users WHERE id = @id", new { id = ctx.User.UserId() });
             await c.ExecuteAsync("UPDATE users SET avatar_file = NULL WHERE id = @id", new { id = ctx.User.UserId() });
-            files.Delete("avatars", old);
+            await files.DeleteAsync("avatars", old, ct);
             return Results.NoContent();
         });
 
-        g.MapGet("/avatar", async (HttpContext ctx, Db db, FileStore files, CancellationToken ct) =>
+        g.MapGet("/avatar", async (HttpContext ctx, Db db, IFileStore files, CancellationToken ct) =>
         {
             await using var c = await db.OpenAsync(ct);
             var name = await c.ExecuteScalarAsync<string?>("SELECT avatar_file FROM users WHERE id = @id", new { id = ctx.User.UserId() });
-            if (files.PathOf("avatars", name) is not { } path) return Api.NotFound();
+            if (await files.OpenAsync("avatars", name, ct) is not { } file) return Api.NotFound();
             ctx.Response.Headers.CacheControl = "private, max-age=31536000, immutable";   // the URL changes with the file
-            return Results.File(path, name!.EndsWith(".png") ? "image/png" : name.EndsWith(".webp") ? "image/webp" : "image/jpeg");
+            return Results.File(file, FileStore.ImageTypeOf(name!));
         });
 
         // Account deletion is a request handled by staff; the account is locked out at once.

@@ -72,7 +72,6 @@ public sealed class BackfillTracker
     private readonly object _gate = new();
     private DateTimeOffset? _from;
     private readonly HashSet<string> _serials = new(StringComparer.OrdinalIgnoreCase);
-    private readonly ConcurrentDictionary<string, int> _versions = new(StringComparer.OrdinalIgnoreCase);
     private long _samples;
 
     /// <summary>Stored samples accepted since start-up.</summary>
@@ -99,13 +98,6 @@ public sealed class BackfillTracker
             return (from, serials);
         }
     }
-
-    public void Bump(IEnumerable<string> serials)
-    {
-        foreach (var s in serials) _versions.AddOrUpdate(s, 1, (_, v) => v + 1);
-    }
-
-    public int Version(string? serial) => serial is not null && _versions.TryGetValue(serial, out var v) ? v : 0;
 }
 
 /// <summary>The one place that opens an alert, so a repeated fault never produces a second one.</summary>
@@ -178,7 +170,7 @@ public interface IDeviceEventSink
 /// once, and queues rows for the batch writer. Independent of the MQTT client so tests can feed it.
 /// </summary>
 public sealed class IngestPipeline(
-    Db db, LiveStateCache live, RealtimeHub hub, IOptions<IngestOptions> options, IEnumerable<IDeviceEventSink> sinks,
+    Db db, LiveStateCache live, IRealtimeBus bus, IOptions<IngestOptions> options, IEnumerable<IDeviceEventSink> sinks,
     BackfillTracker backfill, DeviceEventQueue events, TimeProvider clock, ILogger<IngestPipeline> log)
 {
     private readonly TimeSpan _alertReopen = TimeSpan.FromMinutes(Math.Max(0, options.Value.AlertReopenMinutes));
@@ -287,7 +279,7 @@ public sealed class IngestPipeline(
                     lock (d.Gate) { d.ConfigState = state; d.ConfigStateAt = now; Touch(d, now); }
                     // Commands wait on the in-memory state; the database copy (read at start-up) may follow a moment later.
                     foreach (var s in _sinks) s.OnConfigState(d.Serial, state);
-                    hub.Publish(d.Serial, LiveJson.Bytes(new { type = "config_changed", serial = d.Serial }));
+                    bus.Publish(d.Serial, LiveJson.Bytes(new { type = "config_changed", serial = d.Serial }));
                     var stateJson = state.GetRawText();
                     await events.EnqueueAsync("config/state", c => ExecAsync(
                         "UPDATE devices SET config_state = @v::jsonb, config_state_at = @now WHERE serial = @serial",
@@ -332,7 +324,7 @@ public sealed class IngestPipeline(
 
     private void PushSnapshot(DeviceLive d, DateTimeOffset now)
     {
-        if (hub.HasListeners(d.Serial)) hub.Publish(d.Serial, LiveJson.Bytes(LiveJson.Snapshot(d, now)));
+        if (bus.MayHaveListeners(d.Serial)) bus.Publish(d.Serial, LiveJson.Bytes(LiveJson.Snapshot(d, now)));
     }
 
     private async Task OnStatusAsync(DeviceLive d, DeviceStatus st, JsonElement raw, DateTimeOffset now, CancellationToken ct)
@@ -359,7 +351,7 @@ public sealed class IngestPipeline(
                 d.Dirty = true;
             }
         }
-        hub.Publish(d.Serial, LiveJson.Bytes(LiveJson.Snapshot(d, now)));
+        bus.Publish(d.Serial, LiveJson.Bytes(LiveJson.Snapshot(d, now)));
         var args = new
         {
             online = st.Online, raw = raw.GetRawText(), model = st.Model, fw = st.InverterFw, logger = st.LoggerFw, comm = st.InverterComm,
@@ -393,7 +385,7 @@ public sealed class IngestPipeline(
             await RecountAsync(c, d);
         }
         lock (d.Gate) Touch(d, now);
-        hub.Publish(d.Serial, LiveJson.Bytes(new { type = "alerts_changed", serial = d.Serial }));
+        bus.Publish(d.Serial, LiveJson.Bytes(new { type = "alerts_changed", serial = d.Serial }));
         PushSnapshot(d, now);
         foreach (var s in _sinks)
         {
@@ -661,7 +653,7 @@ public sealed class BatchWriter(Db db, IngestPipeline pipeline, LiveStateCache l
 /// <see cref="JobLeader.Rollup"/> leader runs it; that leader should also ingest, since incremental runs work from the
 /// devices its own batch writer marked.
 /// </summary>
-public sealed class RollupService(Db db, PartitionMaintenance partitions, BackfillTracker backfill, RollupTracker rollups, LiveStateCache live, JobLeader leader, IOptions<IngestOptions> options, TimeProvider clock, ILogger<RollupService> log) : BackgroundService
+public sealed class RollupService(Db db, PartitionMaintenance partitions, BackfillTracker backfill, ICacheVersions cacheVersions, RollupTracker rollups, LiveStateCache live, JobLeader leader, IOptions<IngestOptions> options, TimeProvider clock, ILogger<RollupService> log) : BackgroundService
 {
     // "/*serials*/" becomes a filter when only some devices are recalculated.
     private static string For(string sql, string column, bool filtered) => sql.Replace("/*serials*/", filtered ? $"AND {column} = ANY(@serials)" : "");
@@ -800,7 +792,7 @@ public sealed class RollupService(Db db, PartitionMaintenance partitions, Backfi
         try
         {
             await RunAsync(c, Floor15(req.From), now, new DateTimeOffset(req.From.UtcDateTime.Date.AddDays(-2), TimeSpan.Zero), req.Serials);
-            backfill.Bump(req.Serials);
+            await cacheVersions.BumpAsync(req.Serials);
             log.LogInformation("recalculated statistics from {From:u} for {Count} device(s) after late samples", req.From, req.Serials.Length);
         }
         catch

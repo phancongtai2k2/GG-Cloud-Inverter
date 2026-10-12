@@ -116,7 +116,7 @@ public static class ServiceEndpoints
         });
 
         // One file per request, raw body. The type is decided from the content, not from the client's header.
-        auth.MapPost("/tickets/{ticketId:guid}/attachments", async (Guid ticketId, HttpContext ctx, Db db, FileStore files, CancellationToken ct) =>
+        auth.MapPost("/tickets/{ticketId:guid}/attachments", async (Guid ticketId, HttpContext ctx, Db db, IFileStore files, CancellationToken ct) =>
         {
             await using var c = await db.OpenAsync(ct);
             if (!await c.ExecuteScalarAsync<bool>("SELECT EXISTS (SELECT 1 FROM tickets WHERE id = @ticketId AND user_id = @u)", new { ticketId, u = ctx.User.UserId() }))
@@ -135,15 +135,15 @@ public static class ServiceEndpoints
             return Results.Json(new { id, content_type = type, size_bytes = data.Length }, statusCode: 201);
         }).WithMetadata(new Microsoft.AspNetCore.Mvc.RequestSizeLimitAttribute(MaxVideoBytes + 1024));
 
-        auth.MapGet("/tickets/{ticketId:guid}/attachments/{attachmentId:guid}", async (Guid ticketId, Guid attachmentId, HttpContext ctx, Db db, FileStore files, CancellationToken ct) =>
+        auth.MapGet("/tickets/{ticketId:guid}/attachments/{attachmentId:guid}", async (Guid ticketId, Guid attachmentId, HttpContext ctx, Db db, IFileStore files, CancellationToken ct) =>
         {
             await using var c = await db.OpenAsync(ct);
             var r = await c.QuerySingleOrDefaultAsync(
                 "SELECT a.stored_name, a.content_type FROM ticket_attachments a JOIN tickets t ON t.id = a.ticket_id WHERE a.id = @attachmentId AND t.id = @ticketId AND t.user_id = @u",
                 new { attachmentId, ticketId, u = ctx.User.UserId() });
-            if (r is null || files.PathOf("tickets", (string)r.stored_name) is not { } path) return Api.NotFound();
+            if (r is null || await files.OpenAsync("tickets", (string)r.stored_name, ct) is not { } file) return Api.NotFound();
             ctx.Response.Headers["Content-Disposition"] = "attachment";
-            return Results.File(path, (string)r.content_type);
+            return Results.File(file, (string)r.content_type);
         });
 
         // ---------- support staff: answer and close tickets ----------

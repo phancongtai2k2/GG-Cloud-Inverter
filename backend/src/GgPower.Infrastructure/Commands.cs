@@ -31,23 +31,17 @@ public sealed record SubmitResult(int Status, string? ErrorCode, object? Extra, 
 /// is "applied" only after that read-back; otherwise the previous settings are restored.
 /// </summary>
 public sealed class CommandService(
-    Db db, LiveStateCache live, IServiceProvider services, JobLeader leader, IOptions<CommandOptions> options, IOptions<IngestOptions> ingest,
+    Db db, LiveStateCache live, IServiceProvider services, JobLeader leader, ICommandCoordinator coord, IOptions<CommandOptions> options, IOptions<IngestOptions> ingest,
     TimeProvider clock, ILogger<CommandService> log) : BackgroundService, IDeviceEventSink
 {
     private readonly CommandOptions _o = options.Value;
-    private readonly ConcurrentDictionary<string, TaskCompletionSource<CommandAck>> _acks = new();
-    private readonly ConcurrentDictionary<string, Guid> _running = new(StringComparer.OrdinalIgnoreCase);
-    private readonly ConcurrentDictionary<string, DateTimeOffset> _lastCommand = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, DateTimeOffset> _reloadTried = new(StringComparer.OrdinalIgnoreCase);
     private static readonly JsonSerializerOptions Json = LiveJson.Options;
 
     // Resolved lazily: the MQTT link depends on the ingest pipeline, which depends on this sink.
     private IMqttPublisher Mqtt => (IMqttPublisher)services.GetService(typeof(IMqttPublisher))!;
 
-    public void OnAck(CommandAck ack)
-    {
-        if (_acks.TryRemove(ack.CmdId, out var tcs)) tcs.TrySetResult(ack);
-    }
+    public void OnAck(CommandAck ack) => coord.Deliver(ack);
 
     // ---------- reading ----------
 
@@ -167,16 +161,14 @@ public sealed class CommandService(
         var local = TimeZoneInfo.ConvertTime(now, Zone(timeZone));
         // 00:00–00:01 belongs to the backend's own schedule reload.
         if (local is { Hour: 0, Minute: 0 }) return SubmitResult.Fail(409, "COMMAND_IN_PROGRESS");
-        if (_lastCommand.TryGetValue(d.Serial, out var last) && (now - last).TotalSeconds < _o.MinIntervalSeconds)
-        {
-            var wait = (int)Math.Ceiling(_o.MinIntervalSeconds - (now - last).TotalSeconds);
-            return SubmitResult.Fail(429, "RATE_LIMITED", new { retry_after_seconds = wait });
-        }
+        var minInterval = TimeSpan.FromSeconds(_o.MinIntervalSeconds);
+        if (await coord.RetryAfterAsync(d.Serial, minInterval) is { } wait)
+            return SubmitResult.Fail(429, "RATE_LIMITED", new { retry_after_seconds = (int)Math.Ceiling(wait.TotalSeconds) });
 
         var id = Guid.NewGuid();
-        if (!_running.TryAdd(d.Serial, id))
-            return SubmitResult.Fail(409, "COMMAND_IN_PROGRESS", new { command_id = _running.GetValueOrDefault(d.Serial) });
-        _lastCommand[d.Serial] = now;
+        if (await coord.TryLockAsync(d.Serial, id, AbandonedAfter) is { } holder)
+            return SubmitResult.Fail(409, "COMMAND_IN_PROGRESS", new { command_id = holder });
+        await coord.StartIntervalAsync(d.Serial, minInterval);
         GgMetrics.CommandsSubmitted.Add(1, new KeyValuePair<string, object?>("group", group));
 
         try
@@ -191,7 +183,7 @@ public sealed class CommandService(
         }
         catch
         {
-            _running.TryRemove(new KeyValuePair<string, Guid>(d.Serial, id));
+            await coord.UnlockAsync(d.Serial, id);
             throw;
         }
 
@@ -352,7 +344,7 @@ public sealed class CommandService(
         }
         finally
         {
-            _running.TryRemove(new KeyValuePair<string, Guid>(d.Serial, id));
+            await coord.UnlockAsync(d.Serial, id);
         }
     }
 
@@ -388,21 +380,19 @@ public sealed class CommandService(
         var now = clock.GetUtcNow();
         var budget = TimeSpan.FromSeconds(Math.Min(_o.AckTimeoutSeconds, Math.Max(1, (deadline - now).TotalSeconds)));
         var cmdId = Guid.NewGuid().ToString("N");
-        var tcs = new TaskCompletionSource<CommandAck>(TaskCreationOptions.RunContinuationsAsynchronously);
-        _acks[cmdId] = tcs;
+        using var ack = coord.Expect(cmdId);
         try
         {
             var payload = new JsonObject { ["cmd_id"] = cmdId, ["action"] = cmd.Action, ["ts"] = now.ToUnixTimeSeconds(), ["params"] = cmd.Params.DeepClone() };
             await Mqtt.PublishAsync(UpTopic.Down(d.Tenant, d.Serial), payload.ToJsonString(), CancellationToken.None);
-            var done = await Task.WhenAny(tcs.Task, Task.Delay(budget));
-            return done == tcs.Task ? tcs.Task.Result : null;
+            var done = await Task.WhenAny(ack.Task, Task.Delay(budget));
+            return done == ack.Task ? ack.Task.Result : null;
         }
         catch (Exception ex)
         {
             log.LogWarning("publishing {Action} to {Serial} failed: {Message}", cmd.Action, d.Serial, ex.Message);
             return null;
         }
-        finally { _acks.TryRemove(cmdId, out _); }
     }
 
     /// <summary>
@@ -578,7 +568,7 @@ public sealed class CommandService(
 
             var today = TouRules.ForDay(ParseStrategies((string)r.strategies), local.DayOfWeek);
             var id = Guid.NewGuid();
-            if (!_running.TryAdd(serial, id)) continue;
+            if (await coord.TryLockAsync(serial, id, AbandonedAfter) is not null) continue;
             try
             {
                 var (plan, expected) = ConfigMapping.PlanSchedule(d.ConfigState, today);
@@ -615,7 +605,7 @@ public sealed class CommandService(
                     await FinishAsync(id, "failed", changes, new { device_state = "unknown" }, new { code = "ACK_TIMEOUT" });
                 }
             }
-            finally { _running.TryRemove(new KeyValuePair<string, Guid>(serial, id)); }
+            finally { await coord.UnlockAsync(serial, id); }
         }
     }
 }
