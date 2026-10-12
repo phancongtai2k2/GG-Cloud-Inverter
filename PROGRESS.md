@@ -28,6 +28,7 @@ Cập nhật: 12/10/2026 · Nhánh: `feature/contract-and-theme` (38 commit trê
 | 12/10 | Giai đoạn C tạm dừng sau B7 (và C2): đo lại 2 instance trên máy chủ thật trước khi quyết định |
 | 12/10 | Trợ lý chat AI: tool calling ở backend (module `Api/Chat/`), app chỉ gọi API của backend, không giữ khoá AI. Dữ liệu "lưu ở VN" hiểu là **chỉ lưu trữ ở VN** (hội thoại, log ở PostgreSQL trên máy chủ); gọi model nước ngoài, chỉ gửi phần dữ liệu cần cho câu hỏi. Model mặc định Claude (`claude-opus-5-5`, đổi bằng `Chat:Model`). Kiến trúc đầy đủ: `kien-truc-chatbot.md` của dự án |
 | 12/10 | Chat MVP: 6 công cụ chỉ đọc của dự án đang chọn (thông tin dự án, trạng thái hiện tại, thiết bị, thống kê, cảnh báo, thời tiết Open-Meteo); luật năng lượng tạm trả lời theo hiểu biết của model kèm lời nhắc kiểm tra văn bản hiện hành, RAG kho văn bản làm ở bước sau. Hội thoại không bao giờ bị cắt / sửa (đủ 30 câu thì mở hội thoại mới) |
+| 12/10 | Trợ lý chat: **tạm dừng phần model** (người dùng chọn) đến khi tính xong phương án nhà cung cấp / chi phí; tổng kết và việc tiếp theo ở `backend/docs/CHATBOT.md` |
 
 ## 3. Đã xong
 
@@ -86,7 +87,8 @@ Còn lại nhỏ: màn Dữ liệu inverter/pin vẫn truyền chuỗi `reg_*` v
 | B7 | 2 instance, deploy cuốn chiếu | **Xong**: `Roles` (api, ingest, jobs; instance không ingest gửi lệnh qua tài khoản MQTT riêng `backend-api`); compose `api2` (profile multi), Caddy cân bằng tải + `/healthz/ready`; quy trình cuốn chiếu trong DEPLOY.md; đo 5.000 tb, dừng instance 2 giữa chừng → app 0 lỗi; sửa frame realtime chỉ dựng cho thiết bị đang được xem | 88524e6 |
 | C1–C6 | Tách vai trò, live state lên Redis, EMQX + nhiều worker, TimescaleDB, xác thực MQTT, vận hành (D5–D8) | **Tạm dừng** (12/10, người dùng chọn): đo lại B7 trên máy chủ thật rồi mới quyết định | |
 
-### 4.6 Trợ lý chat AI (bước 1, backend): **xong** (xem `contract/CHANGES.md` mục 2026-10-12)
+### 4.6 Trợ lý chat AI (bước 1, backend): **xong**, commit e1115a1, nhánh `feature/chat-assistant` (xem `contract/CHANGES.md` mục 2026-10-12)
+**Tổng kết và hướng tiếp theo: [`backend/docs/CHATBOT.md`](backend/docs/CHATBOT.md).** Phần model tạm dừng (12/10, người dùng chọn): chưa có key, chưa gọi Claude thật.
 `POST/GET/DELETE /projects/{projectId}/chat/...`; Claude qua SDK `Anthropic` (Messages API, server-side fallback); hội
 thoại lưu nguyên khối (kể cả thinking + chữ ký) trong `chat_messages` để gửi lại y nguyên; giới hạn 30 câu / hội thoại,
 50 câu / người / 24 giờ, 8 lượt gọi model / câu. Tắt khi chưa có `ANTHROPIC_API_KEY` (DEPLOY.md mục "Trợ lý chat").
