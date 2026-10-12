@@ -73,8 +73,9 @@ Còn lại nhỏ: màn Dữ liệu inverter/pin vẫn truyền chuỗi `reg_*` v
 | B0 | Chốt Redis, nơi lưu file (D3, D4) | **Xong**: `redis:7` trong compose; MinIO tự host | — |
 | B1 | Leader cho job định kỳ | **Xong**: `JobLeader` (advisory lock trên kết nối riêng): rollup, báo cáo ngày (+ bảng `daily_reports_sent`), cảnh báo offline, lệnh (TOU 00:00, đóng lệnh bỏ dở sau 5 phút thay vì lúc khởi động); metric `ggpower_jobs_leader` | fc18abc |
 | B2 | Tạo cảnh báo an toàn khi chạy song song | **Xong**: migration 006 gộp cảnh báo mở trùng + unique `(serial, code) WHERE ended_at IS NULL`; RaiseAsync trong transaction có khoá theo thiết bị + mã; test 20 lần song song → 1 cảnh báo | 67b65f8 |
-| B3 | Interface cho trạng thái dùng chung | **Xong**: `ITicketStore`, `ICommandCoordinator` (khoá lệnh, giãn cách, chờ ack), `ICacheVersions`, `IRealtimeBus`, `IFileStore`; bản trong RAM / ổ đĩa, chọn bằng `Shared:Provider` (hiện chỉ `memory`) | (commit kế tiếp ghi) |
-| B4–B7 | Redis, realtime / ack qua pub/sub, object storage, 2 instance | Chưa làm | |
+| B3 | Interface cho trạng thái dùng chung | **Xong**: `ITicketStore`, `ICommandCoordinator` (khoá lệnh, giãn cách, chờ ack), `ICacheVersions`, `IRealtimeBus`, `IFileStore`; bản trong RAM / ổ đĩa, chọn bằng `Shared:Provider` (hiện chỉ `memory`) | 2f926f1 |
+| B4 | Bản Redis cho vé, khoá lệnh, giãn cách, phiên bản cache | **Xong**: `Shared:Provider=redis` (GETDEL vé, SET NX PX khoá + mở khoá đúng chủ, INCR phiên bản cache); ready kiểm Redis; test 2 kết nối = 2 instance | (commit kế tiếp ghi) |
+| B5–B7 | realtime / ack qua pub/sub, object storage, 2 instance | Chưa làm | |
 | C1–C6 | Tách vai trò, live state lên Redis, EMQX + nhiều worker, TimescaleDB, xác thực MQTT, vận hành (D5–D8) | Chưa làm | |
 
 ## 5. Môi trường trên máy này
@@ -82,6 +83,7 @@ Còn lại nhỏ: màn Dữ liệu inverter/pin vẫn truyền chuỗi `reg_*` v
 - **Backend test**: máy chỉ có .NET 10 → chạy với roll-forward; PostgreSQL trong Docker:
   ```
   docker start ggpower-pg-test        # lần đầu: docker run -d --name ggpower-pg-test -e POSTGRES_USER=ggpower -e POSTGRES_PASSWORD=devtest -e POSTGRES_DB=ggpower_test -p 5433:5432 postgres:17-alpine
+  docker start ggpower-redis-test     # từ B4; lần đầu: docker run -d --name ggpower-redis-test -p 6380:6379 redis:7-alpine
   cd backend
   DOTNET_ROLL_FORWARD=Major GGP_ConnectionStrings__Main="Host=localhost;Port=5433;Database=ggpower_test;Username=ggpower;Password=devtest" dotnet test tests/GgPower.Tests
   ```

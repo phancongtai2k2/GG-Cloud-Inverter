@@ -43,12 +43,31 @@ builder.Services.AddSingleton<IPushSender, LoggingPushSender>();
 builder.Services.AddSingleton<AuthService>();
 builder.Services.AddSingleton<LiveStateCache>();
 builder.Services.AddSingleton<RealtimeHub>();
-// State the API instances share (plan B3). "memory" is right for a single instance; "redis" comes with B4.
-var sharedProvider = builder.Configuration["Shared:Provider"] ?? "memory";
-if (sharedProvider != "memory") throw new InvalidOperationException($"Shared:Provider '{sharedProvider}' is not supported (memory)");
-builder.Services.AddSingleton<ITicketStore, MemoryTicketStore>();
-builder.Services.AddSingleton<ICommandCoordinator, MemoryCommandCoordinator>();
-builder.Services.AddSingleton<ICacheVersions, MemoryCacheVersions>();
+// State the API instances share (plans B3, B4): "memory" for a single instance, "redis" when several run.
+var shared = builder.Configuration.GetSection("Shared").Get<SharedOptions>() ?? new SharedOptions();
+switch (shared.Provider)
+{
+    case "memory":
+        builder.Services.AddSingleton<ITicketStore, MemoryTicketStore>();
+        builder.Services.AddSingleton<ICommandCoordinator, MemoryCommandCoordinator>();
+        builder.Services.AddSingleton<ICacheVersions, MemoryCacheVersions>();
+        break;
+    case "redis":
+        builder.Services.AddSingleton<StackExchange.Redis.IConnectionMultiplexer>(_ =>
+        {
+            // Starts even while Redis is down (keeps retrying); /healthz/ready reports it meanwhile.
+            var o = StackExchange.Redis.ConfigurationOptions.Parse(shared.Redis);
+            o.AbortOnConnectFail = false;
+            return StackExchange.Redis.ConnectionMultiplexer.Connect(o);
+        });
+        builder.Services.AddSingleton(new RedisKeys(shared.KeyPrefix));
+        builder.Services.AddSingleton<ITicketStore, RedisTicketStore>();
+        builder.Services.AddSingleton<ICommandCoordinator, RedisCommandCoordinator>();
+        builder.Services.AddSingleton<ICacheVersions, RedisCacheVersions>();
+        break;
+    default:
+        throw new InvalidOperationException($"Shared:Provider '{shared.Provider}' is not supported (memory, redis)");
+}
 builder.Services.AddSingleton<IRealtimeBus, LocalRealtimeBus>();
 builder.Services.AddSingleton<BackfillTracker>();
 builder.Services.AddSingleton<RollupTracker>();
