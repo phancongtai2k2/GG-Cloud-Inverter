@@ -25,6 +25,7 @@ Cập nhật: 11/10/2026 · Nhánh: `feature/contract-and-theme` (16 commit trê
 | 12/10 | Nâng cấp 4.4 giai đoạn B: Redis = container `redis:7` trong compose (D3); file đính kèm lên MinIO tự host, giữ lưu ổ đĩa cho dev (D4) |
 | 12/10 | B5: instance API thứ 2 lấy dữ liệu live theo kế hoạch — frame realtime, ack lệnh, config đọc lại đi qua Redis pub/sub (không cho mọi instance nghe MQTT). Hệ quả: REST live và gửi lệnh trên instance không nhận MQTT cần live state chung → **làm C2 (live state lên Redis) trước B7** |
 | 12/10 | D4 cập nhật: image MinIO không còn phát hành (Docker Hub, quay.io) → lưu file trên **SeaweedFS** (S3 tự host, Apache 2.0); code dùng chuẩn S3 nên đổi nhà cung cấp chỉ là cấu hình |
+| 12/10 | Giai đoạn C tạm dừng sau B7 (và C2): đo lại 2 instance trên máy chủ thật trước khi quyết định |
 
 ## 3. Đã xong
 
@@ -80,8 +81,8 @@ Còn lại nhỏ: màn Dữ liệu inverter/pin vẫn truyền chuỗi `reg_*` v
 | B5 | Frame realtime, ack lệnh, config đọc lại qua Redis pub/sub | **Xong**: kênh `rt`, `ack`, `cfg`; lệnh đọc lại cấu hình qua `ICommandCoordinator` (không còn đọc live state); test 2 host: WebSocket ở B nhận frame đưa vào A, lệnh gửi ở B xác nhận qua A, hai host không cùng ra lệnh một thiết bị | f8ac022 |
 | C2 (đưa lên) | Live state lên Redis — cần trước B7 (quyết định B5) | **Xong**: `ILiveStore`; instance nhận dữ liệu ghi hash `dev:{serial}` (s / c / f, gộp mỗi 250 ms, ghi đủ mỗi 5 phút); instance khác đọc Redis (cache 500 ms); bản sao chỉ nạp từ DB không bao giờ ghi đè (`Fed`); gỡ cảnh báo ở instance nào cũng đếm lại ở nơi nhận dữ liệu; test /overview ở B từ dữ liệu vào A | 89c2882 |
 | B6 | File đính kèm lên S3 (SeaweedFS, D4 cập nhật) | **Xong**: `S3FileStore` (`Storage:Provider=s3`), giữ `LocalFileStore`; compose profile `multi` có `redis`, `files`; `storage-to-s3.sh`; test ticket có ảnh tạo ở A xem ở B | 9b2731b |
-| B7 | 2 instance, deploy cuốn chiếu | **Xong**: `Roles` (api, ingest, jobs; instance không ingest gửi lệnh qua tài khoản MQTT riêng `backend-api`); compose `api2` (profile multi), Caddy cân bằng tải + `/healthz/ready`; quy trình cuốn chiếu trong DEPLOY.md; đo 5.000 tb, dừng instance 2 giữa chừng → app 0 lỗi; sửa frame realtime chỉ dựng cho thiết bị đang được xem | (commit kế tiếp ghi) |
-| C1–C6 | Tách vai trò, live state lên Redis, EMQX + nhiều worker, TimescaleDB, xác thực MQTT, vận hành (D5–D8) | Chưa làm | |
+| B7 | 2 instance, deploy cuốn chiếu | **Xong**: `Roles` (api, ingest, jobs; instance không ingest gửi lệnh qua tài khoản MQTT riêng `backend-api`); compose `api2` (profile multi), Caddy cân bằng tải + `/healthz/ready`; quy trình cuốn chiếu trong DEPLOY.md; đo 5.000 tb, dừng instance 2 giữa chừng → app 0 lỗi; sửa frame realtime chỉ dựng cho thiết bị đang được xem | 88524e6 |
+| C1–C6 | Tách vai trò, live state lên Redis, EMQX + nhiều worker, TimescaleDB, xác thực MQTT, vận hành (D5–D8) | **Tạm dừng** (12/10, người dùng chọn): đo lại B7 trên máy chủ thật rồi mới quyết định | |
 
 ## 5. Môi trường trên máy này
 
