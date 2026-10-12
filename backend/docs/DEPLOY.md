@@ -70,3 +70,28 @@ Lưu ý:
 - Ở chế độ redis, instance nhận dữ liệu publish **mọi** frame thiết bị (không biết instance khác có ai xem): ~2 KB ×
   0,25 frame/s × số thiết bị (10.000 thiết bị ≈ 5 MB/s qua Redis).
 - REST live (overview, gửi lệnh) trên instance không nhận MQTT cần live state chung — bước C2, làm trước B7.
+
+## File đính kèm trên S3 / SeaweedFS (bước B6)
+
+Một instance: giữ mặc định `Storage__Provider=local` (thư mục `./data/storage`). Nhiều instance cần nơi lưu chung:
+server S3 tự host **SeaweedFS** (quyết định D4, cập nhật 12/10: image MinIO không còn phát hành; code dùng chuẩn S3 nên
+đổi sang AWS S3 / R2… chỉ là đổi cấu hình).
+
+1. `.env`: đặt `S3_SECRET_KEY` (chuỗi ngẫu nhiên dài), giữ `S3_ACCESS_KEY`, `S3_BUCKET`.
+2. `docker compose --profile multi up -d files` — dữ liệu ở `./data/files`; chỉ trong mạng Docker, không mở cổng ra ngoài;
+   yêu cầu không có chữ ký bị từ chối.
+3. Chép file cũ: `./storage-to-s3.sh` (aws-cli `s3 sync`, chạy lại được; in số file hai bên để so).
+4. Cho API dùng S3:
+   ```
+   GGP_Storage__Provider: s3
+   GGP_Storage__S3__ServiceUrl: http://files:8333
+   GGP_Storage__S3__Bucket: ${S3_BUCKET:-ggpower}
+   GGP_Storage__S3__AccessKey: ${S3_ACCESS_KEY:-ggpower}
+   GGP_Storage__S3__SecretKey: ${S3_SECRET_KEY}
+   ```
+   rồi `docker compose up -d api`. Chạy lại `./storage-to-s3.sh` một lần nữa để chép file tải lên trong lúc chuyển.
+5. Giữ `./data/storage` đến khi kiểm tra ảnh đại diện / ảnh dự án / file ticket mở được; sao lưu `./data/files` cùng với
+   database (bổ sung vào `backup.sh` khi chuyển hẳn).
+
+Quay lại: `GGP_Storage__Provider=local` (file tải lên sau khi chuyển chỉ có trong bucket — chép ngược bằng
+`aws s3 sync s3://ggpower /storage` nếu cần).

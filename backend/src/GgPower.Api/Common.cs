@@ -190,9 +190,9 @@ public static class FileStore
 }
 
 /// <summary>Files in a local folder (Storage:Root). The default, and the right choice for a single instance.</summary>
-public sealed class LocalFileStore(IConfiguration config) : IFileStore
+public sealed class LocalFileStore(Microsoft.Extensions.Options.IOptions<StorageOptions> options) : IFileStore
 {
-    private readonly string _root = Path.GetFullPath(config["Storage:Root"] ?? "storage");
+    private readonly string _root = Path.GetFullPath(options.Value.Root);
 
     public async Task<string> SaveAsync(string area, byte[] data, string contentType, CancellationToken ct)
     {
@@ -221,4 +221,96 @@ public sealed class LocalFileStore(IConfiguration config) : IFileStore
         var path = Path.Combine(_root, area, name);
         return File.Exists(path) ? path : null;
     }
+}
+
+public sealed class StorageOptions
+{
+    /// <summary>local (Storage:Root folder) or s3 (any S3-compatible server: SeaweedFS, AWS S3…).</summary>
+    public string Provider { get; set; } = "local";
+    public string Root { get; set; } = "storage";
+    public S3StorageOptions S3 { get; set; } = new();
+}
+
+public sealed class S3StorageOptions
+{
+    /// <summary>Endpoint of a self-hosted server, e.g. http://seaweedfs:8333; empty for AWS itself.</summary>
+    public string ServiceUrl { get; set; } = "";
+    public string Region { get; set; } = "us-east-1";
+    public string Bucket { get; set; } = "ggpower";
+    public string AccessKey { get; set; } = "";
+    public string SecretKey { get; set; } = "";
+}
+
+/// <summary>
+/// Files in an S3 bucket, readable from every instance (plan B6). Objects are "&lt;area&gt;/&lt;name&gt;", the same layout
+/// as the local folder, so moving existing files is a plain copy.
+/// </summary>
+public sealed class S3FileStore : IFileStore, IDisposable
+{
+    private readonly Amazon.S3.AmazonS3Client _s3;
+    private readonly string _bucket;
+    private readonly SemaphoreSlim _bucketGate = new(1, 1);
+    private bool _bucketReady;
+
+    public S3FileStore(Microsoft.Extensions.Options.IOptions<StorageOptions> options)
+    {
+        var o = options.Value.S3;
+        var config = new Amazon.S3.AmazonS3Config
+        {
+            ForcePathStyle = true,   // self-hosted servers have no per-bucket host names
+            // The SDK otherwise adds checksums in an aws-chunked body, which S3-compatible servers may store as is.
+            RequestChecksumCalculation = Amazon.Runtime.RequestChecksumCalculation.WHEN_REQUIRED,
+            ResponseChecksumValidation = Amazon.Runtime.ResponseChecksumValidation.WHEN_REQUIRED,
+        };
+        if (o.ServiceUrl.Length > 0) config.ServiceURL = o.ServiceUrl;
+        else config.RegionEndpoint = Amazon.RegionEndpoint.GetBySystemName(o.Region);
+        if (o.ServiceUrl.Length > 0) config.AuthenticationRegion = o.Region;
+        _s3 = new Amazon.S3.AmazonS3Client(new Amazon.Runtime.BasicAWSCredentials(o.AccessKey, o.SecretKey), config);
+        _bucket = o.Bucket;
+    }
+
+    public async Task<string> SaveAsync(string area, byte[] data, string contentType, CancellationToken ct)
+    {
+        await EnsureBucketAsync(ct);
+        var name = FileStore.NewName(contentType);
+        using var body = new MemoryStream(data, writable: false);
+        await _s3.PutObjectAsync(new Amazon.S3.Model.PutObjectRequest
+        {
+            BucketName = _bucket, Key = $"{area}/{name}", InputStream = body, ContentType = contentType, AutoCloseStream = false, UseChunkEncoding = false,
+        }, ct);
+        return name;
+    }
+
+    public async Task<Stream?> OpenAsync(string area, string? name, CancellationToken ct)
+    {
+        if (!FileStore.IsValidName(name)) return null;
+        try
+        {
+            var res = await _s3.GetObjectAsync(_bucket, $"{area}/{name}", ct);
+            return res.ResponseStream;
+        }
+        catch (Amazon.S3.AmazonS3Exception ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound) { return null; }
+    }
+
+    public async Task DeleteAsync(string area, string? name, CancellationToken ct)
+    {
+        if (!FileStore.IsValidName(name)) return;
+        await _s3.DeleteObjectAsync(_bucket, $"{area}/{name}", ct);
+    }
+
+    private async Task EnsureBucketAsync(CancellationToken ct)
+    {
+        if (_bucketReady) return;
+        await _bucketGate.WaitAsync(ct);
+        try
+        {
+            if (_bucketReady) return;
+            if (!await Amazon.S3.Util.AmazonS3Util.DoesS3BucketExistV2Async(_s3, _bucket))
+                await _s3.PutBucketAsync(new Amazon.S3.Model.PutBucketRequest { BucketName = _bucket }, ct);
+            _bucketReady = true;
+        }
+        finally { _bucketGate.Release(); }
+    }
+
+    public void Dispose() => _s3.Dispose();
 }

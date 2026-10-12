@@ -97,7 +97,16 @@ builder.Services.AddHostedService(sp => sp.GetRequiredService<NotificationServic
 builder.Services.AddHostedService<LiveMonitor>();
 builder.Services.AddSingleton<AccessService>();
 builder.Services.AddSingleton<AuditLog>();
-builder.Services.AddSingleton<IFileStore, LocalFileStore>();
+// Uploaded files: a local folder for one instance, S3 (SeaweedFS) when several run (plan B6).
+builder.Services.Configure<StorageOptions>(builder.Configuration.GetSection("Storage"));
+builder.Services.AddSingleton<LocalFileStore>();
+builder.Services.AddSingleton<S3FileStore>();
+builder.Services.AddSingleton<IFileStore>(sp => sp.GetRequiredService<IOptions<StorageOptions>>().Value.Provider switch
+{
+    "local" => sp.GetRequiredService<LocalFileStore>(),
+    "s3" => sp.GetRequiredService<S3FileStore>(),
+    var other => throw new InvalidOperationException($"Storage:Provider '{other}' is not supported (local, s3)"),
+});
 builder.Services.AddSingleton<StatsService>();
 builder.Services.AddMemoryCache(o => o.SizeLimit = null);
 // Metrics for Prometheus at /metrics (plan A3): application meter + ASP.NET Core HTTP metrics. Not routed by Caddy.

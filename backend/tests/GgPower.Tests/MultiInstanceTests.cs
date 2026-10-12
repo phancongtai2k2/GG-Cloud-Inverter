@@ -14,6 +14,9 @@ namespace GgPower.Tests;
 /// </summary>
 public sealed class RedisInstances : IAsyncLifetime
 {
+    /// <summary>S3-compatible test server: docker start ggpower-s3-test (SeaweedFS, see PROGRESS.md section 5).</summary>
+    public static string S3Address => Environment.GetEnvironmentVariable("GGP_TEST_S3") ?? "http://localhost:8334";
+
     public AppFixture A { get; private set; } = null!;
     public AppFixture B { get; private set; } = null!;
 
@@ -24,6 +27,12 @@ public sealed class RedisInstances : IAsyncLifetime
             ["Shared:Provider"] = "redis",
             ["Shared:Redis"] = RedisSharedTests.Address,
             ["Shared:KeyPrefix"] = $"ggp-test-{Guid.NewGuid():N}:",
+            // B6: files in an S3 bucket (SeaweedFS test container), one bucket per run.
+            ["Storage:Provider"] = "s3",
+            ["Storage:S3:ServiceUrl"] = S3Address,
+            ["Storage:S3:Bucket"] = $"ggp-test-{Guid.NewGuid():N}",
+            ["Storage:S3:AccessKey"] = Environment.GetEnvironmentVariable("GGP_TEST_S3_KEY") ?? "test",
+            ["Storage:S3:SecretKey"] = Environment.GetEnvironmentVariable("GGP_TEST_S3_SECRET") ?? "test",
         };
         A = new ExtraHost(settings, 500000);
         B = new ExtraHost(settings, 600000);
@@ -46,7 +55,7 @@ public sealed class RedisInstances : IAsyncLifetime
 public sealed class ExtraHost(Dictionary<string, string?> settings, int firstNumber) : AppFixture(settings, firstNumber);
 
 [Collection("app")]
-public class MultiInstanceTests(AppFixture app, RedisInstances hosts) : IClassFixture<RedisInstances>
+public partial class MultiInstanceTests(AppFixture app, RedisInstances hosts) : IClassFixture<RedisInstances>
 {
     private AppFixture A => hosts.A;
     private AppFixture B => hosts.B;
@@ -122,5 +131,45 @@ public class MultiInstanceTests(AppFixture app, RedisInstances hosts) : IClassFi
         Assert.Equal(HttpStatusCode.Conflict, onB.Status);
         Assert.Equal("COMMAND_IN_PROGRESS", (string)onB.Body!["code"]!);
         Assert.Equal((string)onA.Body!["command_id"]!, (string)onB.Body!["command_id"]!);
+    }
+}
+
+public partial class MultiInstanceTests
+{
+    // B6: a ticket picture uploaded through instance A can be opened through instance B.
+    [Fact]
+    public async Task AFileUploadedOnOneInstanceIsServedByAnother()
+    {
+        var user = await app.NewUser();
+        var id = (string)(await A.Post("/api/v1/tickets", new { type = "other", title = "T", description = "D" }, user.Access)).Body!["id"]!;
+        var png = new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A }.Concat(Enumerable.Range(0, 200).Select(i => (byte)i)).ToArray();
+        var (s, body, _) = await A.Send(HttpMethod.Post, $"/api/v1/tickets/{id}/attachments", png, user.Access);
+        Assert.Equal(HttpStatusCode.Created, s);
+
+        var res = await B.Get($"/api/v1/tickets/{id}/attachments/{(string)body!["id"]!}", user.Access);
+        Assert.Equal(HttpStatusCode.OK, res.Status);
+        Assert.Equal("image/png", res.Raw.Content.Headers.ContentType!.MediaType);
+        Assert.Equal(png, await res.Raw.Content.ReadAsByteArrayAsync());
+    }
+
+    [Fact]
+    public async Task TheS3StoreSavesOpensAndDeletes()
+    {
+        var store = A.Services.GetRequiredService<GgPower.Api.IFileStore>();
+        Assert.IsType<GgPower.Api.S3FileStore>(store);
+        var data = Encoding.UTF8.GetBytes("RIFF....WEBP fake picture");
+        var name = await store.SaveAsync("projects", data, "image/webp", CancellationToken.None);
+        Assert.EndsWith(".webp", name);
+
+        await using (var read = await store.OpenAsync("projects", name, CancellationToken.None))
+        {
+            using var ms = new MemoryStream();
+            await read!.CopyToAsync(ms);
+            Assert.Equal(data, ms.ToArray());
+        }
+        Assert.Null(await store.OpenAsync("projects", "../" + name, CancellationToken.None));   // not a name the store made
+        Assert.Null(await store.OpenAsync("avatars", name, CancellationToken.None));            // other area
+        await store.DeleteAsync("projects", name, CancellationToken.None);
+        Assert.Null(await store.OpenAsync("projects", name, CancellationToken.None));
     }
 }

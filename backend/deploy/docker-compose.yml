@@ -58,6 +58,36 @@ services:
       - ./data/storage:/data/storage
     networks: [internal]
 
+  # ----- Several API instances (plan B, profile "multi": docker compose --profile multi up -d). Not started otherwise. -----
+
+  # Shared state of the API instances (tickets, command locks, realtime frames): Shared__Provider=redis.
+  redis:
+    image: redis:7-alpine
+    profiles: [multi]
+    restart: unless-stopped
+    command: ["redis-server", "--save", "", "--appendonly", "no"]   # nothing in it needs to survive a restart
+    networks: [internal]
+
+  # Uploaded files readable from every instance (S3, SeaweedFS): Storage__Provider=s3. Data in ./data/files.
+  files:
+    image: chrislusf/seaweedfs:3.80
+    profiles: [multi]
+    restart: unless-stopped
+    environment:
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-ggpower}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-}
+    # One identity from .env; anonymous requests are refused.
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >-
+        [ -n "$$S3_SECRET_KEY" ] || { echo "S3_SECRET_KEY is not set in .env" >&2; exit 1; };
+        printf '{"identities":[{"name":"ggpower","credentials":[{"accessKey":"%s","secretKey":"%s"}],"actions":["Admin","Read","Write","List","Tagging"]}]}'
+        "$$S3_ACCESS_KEY" "$$S3_SECRET_KEY" > /tmp/s3.json
+        && exec weed server -s3 -dir=/data -s3.config=/tmp/s3.json
+    volumes:
+      - ./data/files:/data
+    networks: [internal]
+
   web:
     image: caddy:2-alpine
     restart: unless-stopped

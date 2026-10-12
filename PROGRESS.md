@@ -24,6 +24,7 @@ Cập nhật: 11/10/2026 · Nhánh: `feature/contract-and-theme` (16 commit trê
 | 11/10 | Nâng cấp 4.4: metrics dùng OpenTelemetry + Prometheus (D1); broker giữ bản tin cho backend ≈ 10 phút ở 5.000 thiết bị, `max_queued_messages` ≈ 800.000 (D2) |
 | 12/10 | Nâng cấp 4.4 giai đoạn B: Redis = container `redis:7` trong compose (D3); file đính kèm lên MinIO tự host, giữ lưu ổ đĩa cho dev (D4) |
 | 12/10 | B5: instance API thứ 2 lấy dữ liệu live theo kế hoạch — frame realtime, ack lệnh, config đọc lại đi qua Redis pub/sub (không cho mọi instance nghe MQTT). Hệ quả: REST live và gửi lệnh trên instance không nhận MQTT cần live state chung → **làm C2 (live state lên Redis) trước B7** |
+| 12/10 | D4 cập nhật: image MinIO không còn phát hành (Docker Hub, quay.io) → lưu file trên **SeaweedFS** (S3 tự host, Apache 2.0); code dùng chuẩn S3 nên đổi nhà cung cấp chỉ là cấu hình |
 
 ## 3. Đã xong
 
@@ -76,9 +77,10 @@ Còn lại nhỏ: màn Dữ liệu inverter/pin vẫn truyền chuỗi `reg_*` v
 | B2 | Tạo cảnh báo an toàn khi chạy song song | **Xong**: migration 006 gộp cảnh báo mở trùng + unique `(serial, code) WHERE ended_at IS NULL`; RaiseAsync trong transaction có khoá theo thiết bị + mã; test 20 lần song song → 1 cảnh báo | 67b65f8 |
 | B3 | Interface cho trạng thái dùng chung | **Xong**: `ITicketStore`, `ICommandCoordinator` (khoá lệnh, giãn cách, chờ ack), `ICacheVersions`, `IRealtimeBus`, `IFileStore`; bản trong RAM / ổ đĩa, chọn bằng `Shared:Provider` (hiện chỉ `memory`) | 2f926f1 |
 | B4 | Bản Redis cho vé, khoá lệnh, giãn cách, phiên bản cache | **Xong**: `Shared:Provider=redis` (GETDEL vé, SET NX PX khoá + mở khoá đúng chủ, INCR phiên bản cache); ready kiểm Redis; test 2 kết nối = 2 instance | e9abcb5 |
-| B5 | Frame realtime, ack lệnh, config đọc lại qua Redis pub/sub | **Xong**: kênh `rt`, `ack`, `cfg`; lệnh đọc lại cấu hình qua `ICommandCoordinator` (không còn đọc live state); test 2 host: WebSocket ở B nhận frame đưa vào A, lệnh gửi ở B xác nhận qua A, hai host không cùng ra lệnh một thiết bị | (commit kế tiếp ghi) |
+| B5 | Frame realtime, ack lệnh, config đọc lại qua Redis pub/sub | **Xong**: kênh `rt`, `ack`, `cfg`; lệnh đọc lại cấu hình qua `ICommandCoordinator` (không còn đọc live state); test 2 host: WebSocket ở B nhận frame đưa vào A, lệnh gửi ở B xác nhận qua A, hai host không cùng ra lệnh một thiết bị | f8ac022 |
 | C2 (đưa lên) | Live state lên Redis — cần trước B7 (quyết định B5) | Chưa làm | |
-| B6–B7 | Object storage, 2 instance | Chưa làm | |
+| B6 | File đính kèm lên S3 (SeaweedFS, D4 cập nhật) | **Xong**: `S3FileStore` (`Storage:Provider=s3`), giữ `LocalFileStore`; compose profile `multi` có `redis`, `files`; `storage-to-s3.sh`; test ticket có ảnh tạo ở A xem ở B | (commit kế tiếp ghi) |
+| B7 | 2 instance, deploy cuốn chiếu (sau C2) | Chưa làm | |
 | C1–C6 | Tách vai trò, live state lên Redis, EMQX + nhiều worker, TimescaleDB, xác thực MQTT, vận hành (D5–D8) | Chưa làm | |
 
 ## 5. Môi trường trên máy này
@@ -87,6 +89,7 @@ Còn lại nhỏ: màn Dữ liệu inverter/pin vẫn truyền chuỗi `reg_*` v
   ```
   docker start ggpower-pg-test        # lần đầu: docker run -d --name ggpower-pg-test -e POSTGRES_USER=ggpower -e POSTGRES_PASSWORD=devtest -e POSTGRES_DB=ggpower_test -p 5433:5432 postgres:17-alpine
   docker start ggpower-redis-test     # từ B4; lần đầu: docker run -d --name ggpower-redis-test -p 6380:6379 redis:7-alpine
+  docker start ggpower-s3-test        # từ B6 (SeaweedFS); lần đầu (Git Bash: MSYS_NO_PATHCONV=1): docker run -d --name ggpower-s3-test -p 8334:8333 chrislusf/seaweedfs:3.80 server -s3 -dir=/data
   cd backend
   DOTNET_ROLL_FORWARD=Major GGP_ConnectionStrings__Main="Host=localhost;Port=5433;Database=ggpower_test;Username=ggpower;Password=devtest" dotnet test tests/GgPower.Tests
   ```
