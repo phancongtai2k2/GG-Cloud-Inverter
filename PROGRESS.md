@@ -95,6 +95,10 @@ Còn lại nhỏ: màn Dữ liệu inverter/pin vẫn truyền chuỗi `reg_*` v
 
 ## 5. Môi trường trên máy này
 
+Máy mới (dev khác): cần Docker Desktop, .NET SDK 9 (hoặc 10 kèm `DOTNET_ROLL_FORWARD=Major` như dưới), Git; app cần
+Android SDK + JDK 17 (xem `app/README.md`); sinh lại file Word kế hoạch cần Node + `npm i docx@9.5.1`; đọc docx cần `pandoc`.
+Các lệnh `docker run` "lần đầu" dưới đây tạo đủ container; cổng 5433 / 6380 / 8334 / 1884 không được trùng.
+
 - **Backend test**: máy chỉ có .NET 10 → chạy với roll-forward; PostgreSQL trong Docker:
   ```
   docker start ggpower-pg-test        # lần đầu: docker run -d --name ggpower-pg-test -e POSTGRES_USER=ggpower -e POSTGRES_PASSWORD=devtest -e POSTGRES_DB=ggpower_test -p 5433:5432 postgres:17-alpine
@@ -107,7 +111,12 @@ Còn lại nhỏ: màn Dữ liệu inverter/pin vẫn truyền chuỗi `reg_*` v
   Các test nhiều instance (`MultiInstanceTests`, `RedisSharedTests`) cần cả `ggpower-redis-test` và `ggpower-s3-test`.
 - **Thử tải**: một instance `backend/tools/loadtest/run-backend.ps1` + `run.ps1`; hai instance sau Caddy
   `docker compose -f backend/tools/loadtest/docker-compose.multi.yml up -d --build` + `run-multi.ps1` (cần thêm container
-  `ggpower-mqtt-load`, cổng 1884). Xong thì `docker compose -f … down`.
+  `ggpower-mqtt-load`, cổng 1884). Xong thì `docker compose -f … down`. Lần đầu:
+  ```
+  docker exec ggpower-pg-test psql -U ggpower -d ggpower_test -c "CREATE DATABASE ggpower_load;"
+  docker run -d --name ggpower-mqtt-load -p 1884:1883 -v "<đường dẫn tuyệt đối>/backend/tools/loadtest/mosquitto.conf:/mosquitto/config/mosquitto.conf" eclipse-mosquitto:2
+  ```
+  Chạy backend một lần (`run-backend.ps1`) để tạo bảng trong `ggpower_load` trước khi `run.ps1` seed dữ liệu.
 - **Git**: đăng nhập GitHub qua Git Credential Manager bằng tài khoản `chienbv2`; push: `git push platform feature/contract-and-theme`.
 - **App**: `ANDROID_HOME=%LOCALAPPDATA%\Android\Sdk`; cổng kiểm tra đầy đủ:
   `./gradlew assembleDebug testMockDebugUnitTest testLiveDebugUnitTest :chart:testDebugUnitTest lint`
