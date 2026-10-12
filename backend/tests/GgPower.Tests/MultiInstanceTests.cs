@@ -89,8 +89,8 @@ public partial class MultiInstanceTests(AppFixture app, RedisInstances hosts) : 
         Assert.Equal(serial, (string)frame["serial"]!);
     }
 
-    // B5: a command sent through instance B is acknowledged and read back at instance A (where the device's MQTT data
-    // arrives); B still reports it applied. Instance B also has the device's live state, as C2 will give every instance.
+    // B5, C2: a command sent through instance B, which receives no device data (it reads the shared live state), is
+    // acknowledged and read back at instance A, where the device's data arrives; B reports it applied.
     [Fact]
     public async Task ACommandSentOnOneInstanceIsConfirmedThroughAnother()
     {
@@ -98,9 +98,6 @@ public partial class MultiInstanceTests(AppFixture app, RedisInstances hosts) : 
         var serial = await A.NewDevice();
         await A.NewProject(owner, serial);
         await app.Allow(serial);
-        await B.Feed(serial, "status", new { sn = serial, state = "online", model = "Test Inverter", fw_ver = "V1", logger_fw = "1.0.16", inverter_comm = "ok" });
-        await B.Feed(serial, "config/state", A.Devices.State[serial].ToJsonString());
-        await B.Feed(serial, "telemetry", AppFixture.Telemetry(serial));
         // The device answers B's commands through A.
         B.Devices.State[serial] = A.Devices.State[serial];
         B.Devices.Services = A.Services;
@@ -119,9 +116,6 @@ public partial class MultiInstanceTests(AppFixture app, RedisInstances hosts) : 
         var serial = await A.NewDevice(FakeDevices.Behaviour.Silent);
         await A.NewProject(owner, serial);
         await app.Allow(serial);
-        await B.Feed(serial, "status", new { sn = serial, state = "online", model = "Test Inverter", fw_ver = "V1", logger_fw = "1.0.16", inverter_comm = "ok" });
-        await B.Feed(serial, "config/state", A.Devices.State[serial].ToJsonString());
-        await B.Feed(serial, "telemetry", AppFixture.Telemetry(serial));
 
         var version = await A.Version(owner, serial);
         var body = new { group = "operating_mode", based_on_version = version, mode = "self_consumption" };
@@ -171,5 +165,32 @@ public partial class MultiInstanceTests
         Assert.Null(await store.OpenAsync("avatars", name, CancellationToken.None));            // other area
         await store.DeleteAsync("projects", name, CancellationToken.None);
         Assert.Null(await store.OpenAsync("projects", name, CancellationToken.None));
+    }
+}
+
+public partial class MultiInstanceTests
+{
+    // C2: an instance that receives no device data answers from the live state the receiving instance shares.
+    [Fact]
+    public async Task AnInstanceWithoutTheDataAnswersFromTheSharedState()
+    {
+        var owner = await app.NewUser();
+        var serial = await A.NewDevice();
+        var project = await A.NewProject(owner, serial);
+        await A.Feed(serial, "telemetry", AppFixture.Telemetry(serial, pv: 2500, load: 700));
+
+        JsonNode? body = null;
+        for (var i = 0; i < 40; i++)
+        {
+            body = (await B.Get($"/api/v1/projects/{project}/overview", owner.Access)).Body;
+            if ((double?)body?["energy"]?["pv_kw"] == 2.5) break;
+            await Task.Delay(100);
+        }
+        Assert.Equal(("online", "Test Inverter", 2.5, 0.7),
+            ((string)body!["status"]!, (string)body["model"]!, (double)body["energy"]!["pv_kw"]!, (double)body["energy"]!["load_kw"]!));
+        // Settings come along (the config screen of B shows the device's version).
+        Assert.Equal(await A.Version(owner, serial), await B.Version(owner, serial));
+        // B never received the device's data itself.
+        Assert.False(B.Services.GetRequiredService<LiveStateCache>().Get(serial)?.Fed ?? false);
     }
 }

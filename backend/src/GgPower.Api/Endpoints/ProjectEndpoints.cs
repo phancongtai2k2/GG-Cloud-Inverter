@@ -22,13 +22,17 @@ public static class ProjectEndpoints
     {
         var g = api.MapGroup("/projects").RequireAuthorization();
 
-        g.MapGet("", async (HttpContext ctx, AccessService access, LiveStateCache live, StatsService stats, TimeProvider clock, CancellationToken ct) =>
+        g.MapGet("", async (HttpContext ctx, AccessService access, ILiveStore live, StatsService stats, TimeProvider clock, CancellationToken ct) =>
         {
             var now = clock.GetUtcNow();
             var list = new List<object>();
-            foreach (var (p, serials) in await access.ProjectsOfAsync(ctx.User.UserId(), ct))
+            var projects = (await access.ProjectsOfAsync(ctx.User.UserId(), ct)).ToList();
+            // One round trip for all projects when the live state is shared (C2).
+            var states = await live.GetManyAsync(projects.Select(x => x.Item2.Length > 0 ? x.Item2[0] : "").ToArray(), ct);
+            var index = 0;
+            foreach (var (p, serials) in projects)
             {
-                var d = serials.Length > 0 ? live.Get(serials[0]) : null;
+                var d = states[index++];
                 var reachable = d?.IsReachable(now) == true;
                 var t = reachable ? d!.Telemetry : null;
                 list.Add(new

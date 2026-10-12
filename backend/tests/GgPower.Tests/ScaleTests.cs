@@ -109,7 +109,7 @@ public class ScaleTests(AppFixture app)
         // A pipeline and writer of their own, so the running ones do not take these samples.
         var pipeline = new IngestPipeline(sp.GetRequiredService<Db>(), sp.GetRequiredService<LiveStateCache>(), sp.GetRequiredService<IRealtimeBus>(),
             sp.GetRequiredService<IOptions<IngestOptions>>(), [], sp.GetRequiredService<BackfillTracker>(), sp.GetRequiredService<DeviceEventQueue>(),
-            sp.GetRequiredService<TimeProvider>(),
+            sp.GetRequiredService<ILiveStore>(), sp.GetRequiredService<TimeProvider>(),
             NullLogger<IngestPipeline>.Instance);
         var writer = new BatchWriter(sp.GetRequiredService<Db>(), pipeline, sp.GetRequiredService<LiveStateCache>(), sp.GetRequiredService<BackfillTracker>(),
             new RollupTracker(), NullLogger<BatchWriter>.Instance);

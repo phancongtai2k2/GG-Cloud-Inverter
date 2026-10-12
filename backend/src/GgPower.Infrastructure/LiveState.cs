@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Channels;
 using GgPower.Domain;
 
@@ -23,9 +24,10 @@ public sealed class DeviceLive
     public string? LoggerConn { get; set; }
     public TelemetrySample? Telemetry { get; set; }
     public BatterySample? Battery { get; set; }
-    public JsonElement? ConfigState { get; set; }
-    public DateTimeOffset? ConfigStateAt { get; set; }
-    public JsonElement? Firmware { get; set; }
+    // Config state and firmware are large and rarely change: the shared copy keeps them apart (C2, <see cref="ILiveStore"/>).
+    [JsonIgnore] public JsonElement? ConfigState { get; set; }
+    [JsonIgnore] public DateTimeOffset? ConfigStateAt { get; set; }
+    [JsonIgnore] public JsonElement? Firmware { get; set; }
     public double? BatteryCapacityKwh { get; set; }
     public double? RatedPowerKw { get; set; }
     public double BattFromPvKwh { get; set; }
@@ -37,7 +39,9 @@ public sealed class DeviceLive
     public int Unresolved { get; set; }
     /// <summary>Faults the inverter reports as present right now (open alerts raised by the device), oldest first.</summary>
     public ActiveError[] ActiveErrors { get; set; } = [];
-    public bool Dirty { get; set; }
+    [JsonIgnore] public bool Dirty { get; set; }
+    /// <summary>This instance received data of the device since it started, so its copy is current (not just loaded from the database).</summary>
+    [JsonIgnore] public bool Fed { get; set; }
     public readonly object Gate = new();
 
     /// <summary>A device is treated as offline when nothing arrived for this long, even without a last-will message.</summary>
@@ -49,13 +53,13 @@ public sealed class DeviceLive
     /// Whether a battery is connected, exactly as the inverter last reported it (battery message first,
     /// then telemetry). Null when the datalogger does not report it: the backend never guesses.
     /// </summary>
-    public bool? BatteryPresent => Battery?.Present ?? Telemetry?.BatteryPresent;
+    [JsonIgnore] public bool? BatteryPresent => Battery?.Present ?? Telemetry?.BatteryPresent;
 
     /// <summary>
     /// The inverter has no working link to the battery's BMS (no battery, or the link reported as fault / disabled), so the
     /// backup SOC cannot be applied. "unknown" or not reported does not block.
     /// </summary>
-    public bool BmsDisconnected => BatteryPresent == false || Battery?.BmsComm is "fault" or "disabled";
+    [JsonIgnore] public bool BmsDisconnected => BatteryPresent == false || Battery?.BmsComm is "fault" or "disabled";
 
     /// <summary>online | warning | error | offline (the app's ProjectStatus).</summary>
     public string StatusName(DateTimeOffset now) =>

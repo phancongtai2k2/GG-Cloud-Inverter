@@ -69,7 +69,9 @@ lỗi cho tới khi Redis về.
 Lưu ý:
 - Ở chế độ redis, instance nhận dữ liệu publish **mọi** frame thiết bị (không biết instance khác có ai xem): ~2 KB ×
   0,25 frame/s × số thiết bị (10.000 thiết bị ≈ 5 MB/s qua Redis).
-- REST live (overview, gửi lệnh) trên instance không nhận MQTT cần live state chung — bước C2, làm trước B7.
+- Live state chung (C2): instance nhận MQTT ghi hash `dev:{serial}` (khoảng 3 KB / thiết bị, giữ 30 ngày; 10.000 thiết bị
+  ≈ 30 MB RAM Redis, ghi ≈ 2.500 lần/s); instance khác đọc từ đó, chậm tối đa ~0,75 s. Redis khởi động lại: đầy lại trong
+  vài giây (trạng thái) tới 5 phút (cấu hình, firmware); trong lúc đó instance khác dùng bản nạp từ DB.
 
 ## File đính kèm trên S3 / SeaweedFS (bước B6)
 

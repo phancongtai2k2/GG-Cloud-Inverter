@@ -171,7 +171,7 @@ public interface IDeviceEventSink
 /// </summary>
 public sealed class IngestPipeline(
     Db db, LiveStateCache live, IRealtimeBus bus, IOptions<IngestOptions> options, IEnumerable<IDeviceEventSink> sinks,
-    BackfillTracker backfill, DeviceEventQueue events, TimeProvider clock, ILogger<IngestPipeline> log)
+    BackfillTracker backfill, DeviceEventQueue events, ILiveStore store, TimeProvider clock, ILogger<IngestPipeline> log)
 {
     private readonly TimeSpan _alertReopen = TimeSpan.FromMinutes(Math.Max(0, options.Value.AlertReopenMinutes));
     private readonly IDeviceEventSink[] _sinks = sinks.ToArray();
@@ -215,6 +215,8 @@ public sealed class IngestPipeline(
             var j = doc.RootElement;
             var d = live.GetOrAdd(t.Serial, t.Tenant, out var created);
             if (created) await EnsureDeviceRowAsync(t.Serial, t.Tenant, ct);
+            // From now on this instance holds the current state of the device (C2).
+            d.Fed = true;
 
             switch (t.Kind)
             {
@@ -308,6 +310,12 @@ public sealed class IngestPipeline(
                     Rejected++;
                     break;
             }
+            store.Changed(d, t.Kind switch
+            {
+                "config/state" => LiveParts.State | LiveParts.Config,
+                "firmware" => LiveParts.State | LiveParts.Firmware,
+                _ => LiveParts.State,
+            });
         }
     }
 
@@ -385,6 +393,7 @@ public sealed class IngestPipeline(
             await RecountAsync(c, d);
         }
         lock (d.Gate) Touch(d, now);
+        store.Changed(d, LiveParts.State);
         bus.Publish(d.Serial, LiveJson.Bytes(new { type = "alerts_changed", serial = d.Serial }));
         PushSnapshot(d, now);
         foreach (var s in _sinks)
@@ -653,7 +662,7 @@ public sealed class BatchWriter(Db db, IngestPipeline pipeline, LiveStateCache l
 /// <see cref="JobLeader.Rollup"/> leader runs it; that leader should also ingest, since incremental runs work from the
 /// devices its own batch writer marked.
 /// </summary>
-public sealed class RollupService(Db db, PartitionMaintenance partitions, BackfillTracker backfill, ICacheVersions cacheVersions, RollupTracker rollups, LiveStateCache live, JobLeader leader, IOptions<IngestOptions> options, TimeProvider clock, ILogger<RollupService> log) : BackgroundService
+public sealed class RollupService(Db db, PartitionMaintenance partitions, BackfillTracker backfill, ICacheVersions cacheVersions, RollupTracker rollups, LiveStateCache live, ILiveStore store, JobLeader leader, IOptions<IngestOptions> options, TimeProvider clock, ILogger<RollupService> log) : BackgroundService
 {
     // "/*serials*/" becomes a filter when only some devices are recalculated.
     private static string For(string sql, string column, bool filtered) => sql.Replace("/*serials*/", filtered ? $"AND {column} = ANY(@serials)" : "");
@@ -878,6 +887,7 @@ public sealed class RollupService(Db db, PartitionMaintenance partitions, Backfi
         {
             if (live.Get(r.Serial) is not { } d) continue;
             lock (d.Gate) d.ChargedToday = new ChargedToday(r.Pv, Math.Max(r.Total - r.Pv, 0));
+            store.Changed(d, LiveParts.State);
         }
     }
 

@@ -168,3 +168,43 @@ public sealed class LocalRealtimeBus(RealtimeHub hub) : IRealtimeBus
     public void Publish(string serial, byte[] message) => hub.Publish(serial, message);
     public bool MayHaveListeners(string serial) => hub.HasListeners(serial);
 }
+
+/// <summary>Parts of a device's live state, stored apart in the shared copy since they change at very different rates.</summary>
+[Flags]
+public enum LiveParts { State = 1, Config = 2, Firmware = 4, All = State | Config | Firmware }
+
+/// <summary>
+/// Reading a device's live state wherever its data is received (plan C2), and publishing changes made here. With one
+/// instance it is simply this instance's <see cref="LiveStateCache"/>.
+/// </summary>
+public interface ILiveStore
+{
+    /// <summary>The latest state of the device, or null for a device never seen. Treat it as read-only.</summary>
+    Task<DeviceLive?> GetAsync(string serial, CancellationToken ct = default);
+
+    /// <summary>States of several devices, in the order given (null for unknown ones).</summary>
+    Task<DeviceLive?[]> GetManyAsync(IReadOnlyList<string> serials, CancellationToken ct = default);
+
+    /// <summary>This instance changed the state of a device whose data it receives.</summary>
+    void Changed(DeviceLive d, LiveParts parts);
+
+    /// <summary>Alerts of the device changed in the database: counters are recomputed where the device's data is received.</summary>
+    Task AlertsChangedAsync(string serial, CancellationToken ct);
+}
+
+public sealed class MemoryLiveStore(LiveStateCache live, Db db) : ILiveStore
+{
+    public Task<DeviceLive?> GetAsync(string serial, CancellationToken ct = default) => Task.FromResult(live.Get(serial));
+
+    public Task<DeviceLive?[]> GetManyAsync(IReadOnlyList<string> serials, CancellationToken ct = default) =>
+        Task.FromResult(serials.Select(live.Get).ToArray());
+
+    public void Changed(DeviceLive d, LiveParts parts) { }
+
+    public async Task AlertsChangedAsync(string serial, CancellationToken ct)
+    {
+        if (live.Get(serial) is not { } d) return;
+        await using var c = await db.OpenAsync(ct);
+        await IngestPipeline.RecountAsync(c, d);
+    }
+}

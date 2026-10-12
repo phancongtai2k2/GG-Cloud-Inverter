@@ -95,7 +95,7 @@ public sealed class NotificationService(Db db, IPushSender push, JobLeader leade
 /// Notices devices that went silent without a last-will message: pushes the "offline" state to
 /// connected apps, and keeps one open "connection lost" alert per device while it lasts.
 /// </summary>
-public sealed class LiveMonitor(Db db, LiveStateCache live, IRealtimeBus bus, JobLeader leader, Microsoft.Extensions.Options.IOptions<IngestOptions> options, TimeProvider clock, ILogger<LiveMonitor> log) : BackgroundService
+public sealed class LiveMonitor(Db db, LiveStateCache live, ILiveStore store, IRealtimeBus bus, JobLeader leader, Microsoft.Extensions.Options.IOptions<IngestOptions> options, TimeProvider clock, ILogger<LiveMonitor> log) : BackgroundService
 {
     public const string OfflineCode = "OFFLINE";
     private static readonly TimeSpan AlertAfter = TimeSpan.FromMinutes(5);
@@ -132,7 +132,8 @@ public sealed class LiveMonitor(Db db, LiveStateCache live, IRealtimeBus bus, Jo
                 foreach (var d in live.All)
                 {
                     var up = d.IsReachable(now);
-                    if (reachable.TryGetValue(d.Serial, out var was) && was != up)
+                    // Only copies kept current here: one merely loaded from the database would look silent (C2).
+                    if (d.Fed && reachable.TryGetValue(d.Serial, out var was) && was != up)
                         bus.Publish(d.Serial, LiveJson.Bytes(LiveJson.Snapshot(d, now)));
                     reachable[d.Serial] = up;
 
@@ -159,6 +160,7 @@ public sealed class LiveMonitor(Db db, LiveStateCache live, IRealtimeBus bus, Jo
         else
             await c.ExecuteAsync("UPDATE alerts SET ended_at = @now WHERE serial = @serial AND code = @code AND ended_at IS NULL", new { now, serial = d.Serial, code = OfflineCode });
         await IngestPipeline.RecountAsync(c, d);
+        store.Changed(d, LiveParts.State);
         bus.Publish(d.Serial, LiveJson.Bytes(new { type = "alerts_changed", serial = d.Serial }));
     }
 }

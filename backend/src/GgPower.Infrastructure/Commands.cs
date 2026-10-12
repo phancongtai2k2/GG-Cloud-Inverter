@@ -31,7 +31,7 @@ public sealed record SubmitResult(int Status, string? ErrorCode, object? Extra, 
 /// is "applied" only after that read-back; otherwise the previous settings are restored.
 /// </summary>
 public sealed class CommandService(
-    Db db, LiveStateCache live, IServiceProvider services, JobLeader leader, ICommandCoordinator coord, IOptions<CommandOptions> options, IOptions<IngestOptions> ingest,
+    Db db, ILiveStore live, IServiceProvider services, JobLeader leader, ICommandCoordinator coord, IOptions<CommandOptions> options, IOptions<IngestOptions> ingest,
     TimeProvider clock, ILogger<CommandService> log) : BackgroundService, IDeviceEventSink
 {
     private readonly CommandOptions _o = options.Value;
@@ -562,7 +562,7 @@ public sealed class CommandService(
             var day = DateOnly.FromDateTime(local.DateTime);
             var loadedOn = r.loaded_on is DateTime lo ? DateOnly.FromDateTime(lo) : (DateOnly?)null;
             if (loadedOn == day) continue;
-            if (live.Get(serial) is not { } d || !GatewayOnline(d) || !Mqtt.IsConnected || d.ConfigState is null) continue;
+            if (await live.GetAsync(serial, ct) is not { } d || !GatewayOnline(d) || !Mqtt.IsConnected || d.ConfigState is null) continue;
             if (!await AllowlistedAsync(serial, ct) || !await WriteEnabledAsync(ct)) continue;
 
             // A failed reload is retried at most every five minutes, not on every pass.

@@ -78,8 +78,8 @@ Còn lại nhỏ: màn Dữ liệu inverter/pin vẫn truyền chuỗi `reg_*` v
 | B3 | Interface cho trạng thái dùng chung | **Xong**: `ITicketStore`, `ICommandCoordinator` (khoá lệnh, giãn cách, chờ ack), `ICacheVersions`, `IRealtimeBus`, `IFileStore`; bản trong RAM / ổ đĩa, chọn bằng `Shared:Provider` (hiện chỉ `memory`) | 2f926f1 |
 | B4 | Bản Redis cho vé, khoá lệnh, giãn cách, phiên bản cache | **Xong**: `Shared:Provider=redis` (GETDEL vé, SET NX PX khoá + mở khoá đúng chủ, INCR phiên bản cache); ready kiểm Redis; test 2 kết nối = 2 instance | e9abcb5 |
 | B5 | Frame realtime, ack lệnh, config đọc lại qua Redis pub/sub | **Xong**: kênh `rt`, `ack`, `cfg`; lệnh đọc lại cấu hình qua `ICommandCoordinator` (không còn đọc live state); test 2 host: WebSocket ở B nhận frame đưa vào A, lệnh gửi ở B xác nhận qua A, hai host không cùng ra lệnh một thiết bị | f8ac022 |
-| C2 (đưa lên) | Live state lên Redis — cần trước B7 (quyết định B5) | Chưa làm | |
-| B6 | File đính kèm lên S3 (SeaweedFS, D4 cập nhật) | **Xong**: `S3FileStore` (`Storage:Provider=s3`), giữ `LocalFileStore`; compose profile `multi` có `redis`, `files`; `storage-to-s3.sh`; test ticket có ảnh tạo ở A xem ở B | (commit kế tiếp ghi) |
+| C2 (đưa lên) | Live state lên Redis — cần trước B7 (quyết định B5) | **Xong**: `ILiveStore`; instance nhận dữ liệu ghi hash `dev:{serial}` (s / c / f, gộp mỗi 250 ms, ghi đủ mỗi 5 phút); instance khác đọc Redis (cache 500 ms); bản sao chỉ nạp từ DB không bao giờ ghi đè (`Fed`); gỡ cảnh báo ở instance nào cũng đếm lại ở nơi nhận dữ liệu; test /overview ở B từ dữ liệu vào A | (commit kế tiếp ghi) |
+| B6 | File đính kèm lên S3 (SeaweedFS, D4 cập nhật) | **Xong**: `S3FileStore` (`Storage:Provider=s3`), giữ `LocalFileStore`; compose profile `multi` có `redis`, `files`; `storage-to-s3.sh`; test ticket có ảnh tạo ở A xem ở B | 9b2731b |
 | B7 | 2 instance, deploy cuốn chiếu (sau C2) | Chưa làm | |
 | C1–C6 | Tách vai trò, live state lên Redis, EMQX + nhiều worker, TimescaleDB, xác thực MQTT, vận hành (D5–D8) | Chưa làm | |
 

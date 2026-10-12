@@ -44,7 +44,7 @@ builder.Services.AddSingleton<IPushSender, LoggingPushSender>();
 builder.Services.AddSingleton<AuthService>();
 builder.Services.AddSingleton<LiveStateCache>();
 builder.Services.AddSingleton<RealtimeHub>();
-// State the API instances share (plans B3–B5): "memory" for a single instance, "redis" when several run. Chosen when
+// State the API instances share (plans B3–B5, C2): "memory" for a single instance, "redis" when several run. Chosen when
 // first resolved (not while building), so a test host can switch it with its own settings.
 builder.Services.Configure<SharedOptions>(builder.Configuration.GetSection("Shared"));
 static bool UseRedis(IServiceProvider sp) => sp.GetRequiredService<IOptions<SharedOptions>>().Value.Provider switch
@@ -72,6 +72,8 @@ AddShared<ITicketStore, MemoryTicketStore, RedisTicketStore>(builder.Services);
 AddShared<ICommandCoordinator, MemoryCommandCoordinator, RedisCommandCoordinator>(builder.Services);
 AddShared<ICacheVersions, MemoryCacheVersions, RedisCacheVersions>(builder.Services);
 AddShared<IRealtimeBus, LocalRealtimeBus, RedisRealtimeBus>(builder.Services);
+AddShared<ILiveStore, MemoryLiveStore, RedisLiveStore>(builder.Services);
+builder.Services.AddHostedService<LiveStoreSync>();
 builder.Services.AddHostedService<RedisSubscriptions>();
 builder.Services.AddSingleton<BackfillTracker>();
 builder.Services.AddSingleton<RollupTracker>();

@@ -30,6 +30,7 @@ public sealed class RedisKeys(string prefix)
     public RedisKey CommandLock(string serial) => $"{prefix}cmdlock:{serial.ToUpperInvariant()}";
     public RedisKey CommandInterval(string serial) => $"{prefix}cmdlast:{serial.ToUpperInvariant()}";
     public RedisKey CacheVersion(string serial) => $"{prefix}cachever:{serial.ToUpperInvariant()}";
+    public RedisKey Device(string serial) => $"{prefix}dev:{serial.ToUpperInvariant()}";
     public RedisChannel Channel(string name) => RedisChannel.Literal($"{prefix}{name}");
 }
 
@@ -192,6 +193,7 @@ public sealed class RedisSubscriptions(IServiceProvider services, Microsoft.Exte
         [
             (IRedisSubscriber)services.GetService(typeof(RedisCommandCoordinator))!,
             (IRedisSubscriber)services.GetService(typeof(RedisRealtimeBus))!,
+            (IRedisSubscriber)services.GetService(typeof(RedisLiveStore))!,
         ];
         foreach (var s in subscribers)
         {
