@@ -1,6 +1,6 @@
 # Tiến độ — làm lại giao diện app & nâng cấp backend
 
-Cập nhật: 11/10/2026 · Nhánh: `feature/contract-and-theme` (16 commit trên `main`, chưa push, chưa tạo PR)
+Cập nhật: 12/10/2026 · Nhánh: `feature/contract-and-theme` (38 commit trên `main`) · Đã push lên **`chienbv2/Inverter-Platform---GG-Cloud`** (remote `platform`, cùng `main`); chưa mở PR. Remote `origin` (`phancongtai2k2/GG-Cloud-Inverter`) không đổi.
 
 ## 1. Mục tiêu
 
@@ -60,7 +60,7 @@ Còn lại nhỏ: màn Dữ liệu inverter/pin vẫn truyền chuỗi `reg_*` v
 ### 4.3 Backend — trường mới cho thiết kế: **xong** (3 commit, xem `contract/CHANGES.md` các mục 2026-10-11)
 `/overview`: model, co2_today_kg, battery_charged_today (cả frame `device`, làm mới bởi RollupService); Datalogger ở `/devices` + snapshot; `BatteryLive` giới hạn SOC sạc/xả; `BMS_NOT_CONNECTED` chặn SOC dự phòng. App (live) đã đọc hết. **Còn phía firmware**: `logger_sn`, `conn_type`, `charge_stop_soc` (backend đọc sẵn). Backend test 94/94.
 
-### 4.4 Backend — nâng cấp để mở rộng (đang làm)
+### 4.4 Backend — nâng cấp để mở rộng: **giai đoạn A, B xong (kèm C2); C tạm dừng**
 **Đặc tả và trình tự: `backend/docs/KE_HOACH_NANG_CAP_BACKEND.docx`** (đọc bằng `pandoc -t plain <file>`; sinh lại bằng `backend/tools/docgen/ke-hoach-nang-cap.js`). Làm đúng thứ tự, mỗi bước một commit, quyết định hỏi bằng popup rồi ghi vào mục 2. Cập nhật bảng dưới sau mỗi bước.
 
 | Bước | Nội dung | Trạng thái | Commit |
@@ -84,6 +84,15 @@ Còn lại nhỏ: màn Dữ liệu inverter/pin vẫn truyền chuỗi `reg_*` v
 | B7 | 2 instance, deploy cuốn chiếu | **Xong**: `Roles` (api, ingest, jobs; instance không ingest gửi lệnh qua tài khoản MQTT riêng `backend-api`); compose `api2` (profile multi), Caddy cân bằng tải + `/healthz/ready`; quy trình cuốn chiếu trong DEPLOY.md; đo 5.000 tb, dừng instance 2 giữa chừng → app 0 lỗi; sửa frame realtime chỉ dựng cho thiết bị đang được xem | 88524e6 |
 | C1–C6 | Tách vai trò, live state lên Redis, EMQX + nhiều worker, TimescaleDB, xác thực MQTT, vận hành (D5–D8) | **Tạm dừng** (12/10, người dùng chọn): đo lại B7 trên máy chủ thật rồi mới quyết định | |
 
+### 4.5 Khi quay lại — việc tiếp theo (theo thứ tự đề xuất)
+1. **Mở PR** `feature/contract-and-theme` → `main` trong repo `chienbv2/Inverter-Platform---GG-Cloud` (máy không có `gh`: mở trên web
+   `https://github.com/chienbv2/Inverter-Platform---GG-Cloud/pull/new/feature/contract-and-theme`; Claude viết sẵn tiêu đề / mô tả). Hoặc gộp thẳng vào `main` — hỏi người dùng.
+2. **Đo lại 2 instance trên máy chủ thật** (người vận hành, `backend/docs/DEPLOY.md` mục B6–B7): nhất là thời gian job tổng hợp
+   (Docker Desktop: 8–11 s so với 4,6 s một instance, chưa rõ nguyên nhân). Kết quả quyết định có làm giai đoạn C hay không.
+3. **Nợ kỹ thuật app** (mục 6): xoá `currentLimitState` / `voltageDeviationHigh`, màu Theme "prototype cũ", chuyển `app/docs/design/` vào `archive/`.
+4. **Chờ firmware**: `logger_sn`, `conn_type`, `charge_stop_soc` (backend đọc sẵn, app hiện "chưa có").
+5. Giai đoạn C (C1, C3–C6): chỉ khi người dùng đồng ý; hỏi D5–D8 bằng popup ở từng bước.
+
 ## 5. Môi trường trên máy này
 
 - **Backend test**: máy chỉ có .NET 10 → chạy với roll-forward; PostgreSQL trong Docker:
@@ -95,6 +104,11 @@ Còn lại nhỏ: màn Dữ liệu inverter/pin vẫn truyền chuỗi `reg_*` v
   DOTNET_ROLL_FORWARD=Major GGP_ConnectionStrings__Main="Host=localhost;Port=5433;Database=ggpower_test;Username=ggpower;Password=devtest" dotnet test tests/GgPower.Tests
   ```
   (`run.ps1` cần `%LOCALAPPDATA%\ggpower-dev\secrets.env`, máy này chưa có.) Docker Desktop phải đang chạy.
+  Các test nhiều instance (`MultiInstanceTests`, `RedisSharedTests`) cần cả `ggpower-redis-test` và `ggpower-s3-test`.
+- **Thử tải**: một instance `backend/tools/loadtest/run-backend.ps1` + `run.ps1`; hai instance sau Caddy
+  `docker compose -f backend/tools/loadtest/docker-compose.multi.yml up -d --build` + `run-multi.ps1` (cần thêm container
+  `ggpower-mqtt-load`, cổng 1884). Xong thì `docker compose -f … down`.
+- **Git**: đăng nhập GitHub qua Git Credential Manager bằng tài khoản `chienbv2`; push: `git push platform feature/contract-and-theme`.
 - **App**: `ANDROID_HOME=%LOCALAPPDATA%\Android\Sdk`; cổng kiểm tra đầy đủ:
   `./gradlew assembleDebug testMockDebugUnitTest testLiveDebugUnitTest :chart:testDebugUnitTest lint`
 - **Emulator**: AVD `Medium_Phone` (1080×2400, mật độ 2,625). Bản mock đăng nhập bằng `demo@ggp.vn` / mật khẩu mẫu trong `FakeAuthRepository.SAMPLE_PASSWORD`. Đổi dark: `adb shell cmd uimode night yes|no`.
@@ -106,4 +120,4 @@ Còn lại nhỏ: màn Dữ liệu inverter/pin vẫn truyền chuỗi `reg_*` v
 - Màu Theme còn một số ô "prototype cũ" chưa có trong thiết kế mới (flow, QR…) — xử lý khi làm lại Main/QR nếu thiết kế đổi.
 - Backdrop blur của toast (blur 8) chưa làm — Compose chưa hỗ trợ trên mọi phiên bản Android.
 - `app/docs/design/` (thiết kế v3 cũ) vẫn giữ để diff; khi xong toàn bộ có thể chuyển vào `archive/` và cập nhật `app/AGENTS.md` trỏ sang thiết kế mới.
-- Commit message có `Co-Authored-By: Claude Opus 5.5`. Chưa push nhánh, chưa mở PR.
+- Commit message có `Co-Authored-By: Claude Opus 5.5`. Nhánh đã push lên remote `platform`; chưa mở PR.
