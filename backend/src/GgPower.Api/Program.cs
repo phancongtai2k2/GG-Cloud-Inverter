@@ -4,6 +4,8 @@ using System.Threading.RateLimiting;
 using GgPower.Api;
 using GgPower.Api.Endpoints;
 using GgPower.Infrastructure;
+using Microsoft.Extensions.Options;
+using OpenTelemetry.Metrics;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
@@ -42,7 +44,46 @@ builder.Services.AddSingleton<IPushSender, LoggingPushSender>();
 builder.Services.AddSingleton<AuthService>();
 builder.Services.AddSingleton<LiveStateCache>();
 builder.Services.AddSingleton<RealtimeHub>();
+// State the API instances share (plans B3–B5, C2): "memory" for a single instance, "redis" when several run. Chosen when
+// first resolved (not while building), so a test host can switch it with its own settings.
+builder.Services.Configure<SharedOptions>(builder.Configuration.GetSection("Shared"));
+static bool UseRedis(IServiceProvider sp) => sp.GetRequiredService<IOptions<SharedOptions>>().Value.Provider switch
+{
+    "memory" => false,
+    "redis" => true,
+    var other => throw new InvalidOperationException($"Shared:Provider '{other}' is not supported (memory, redis)"),
+};
+static void AddShared<TService, TMemory, TRedis>(IServiceCollection s)
+    where TService : class where TMemory : class, TService where TRedis : class, TService
+{
+    s.AddSingleton<TMemory>();
+    s.AddSingleton<TRedis>();
+    s.AddSingleton<TService>(sp => UseRedis(sp) ? sp.GetRequiredService<TRedis>() : sp.GetRequiredService<TMemory>());
+}
+builder.Services.AddSingleton<StackExchange.Redis.IConnectionMultiplexer>(sp =>
+{
+    // Starts even while Redis is down (keeps retrying); /healthz/ready reports it meanwhile.
+    var o = StackExchange.Redis.ConfigurationOptions.Parse(sp.GetRequiredService<IOptions<SharedOptions>>().Value.Redis);
+    o.AbortOnConnectFail = false;
+    return StackExchange.Redis.ConnectionMultiplexer.Connect(o);
+});
+builder.Services.AddSingleton(sp => new RedisKeys(sp.GetRequiredService<IOptions<SharedOptions>>().Value.KeyPrefix));
+AddShared<ITicketStore, MemoryTicketStore, RedisTicketStore>(builder.Services);
+AddShared<ICommandCoordinator, MemoryCommandCoordinator, RedisCommandCoordinator>(builder.Services);
+AddShared<ICacheVersions, MemoryCacheVersions, RedisCacheVersions>(builder.Services);
+AddShared<IRealtimeBus, LocalRealtimeBus, RedisRealtimeBus>(builder.Services);
+AddShared<ILiveStore, MemoryLiveStore, RedisLiveStore>(builder.Services);
+builder.Services.AddHostedService<LiveStoreSync>();
+builder.Services.AddHostedService<RedisSubscriptions>();
 builder.Services.AddSingleton<BackfillTracker>();
+builder.Services.AddSingleton<RollupTracker>();
+// What this instance does: api, ingest, jobs (plan B7; default all).
+builder.Services.AddSingleton(sp => new InstanceRoles(sp.GetRequiredService<IConfiguration>()["Roles"]));
+// One instance per periodic job (plan B1); disposed after the hosted services stop, which frees its locks.
+builder.Services.AddSingleton<JobLeader>();
+// Registered before MqttLink: hosted services stop in reverse order, so it still writes what MQTT delivered last.
+builder.Services.AddSingleton<DeviceEventQueue>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<DeviceEventQueue>());
 builder.Services.AddSingleton<IngestPipeline>();
 builder.Services.AddSingleton<BatchWriter>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<BatchWriter>());
@@ -60,10 +101,23 @@ builder.Services.AddHostedService(sp => sp.GetRequiredService<NotificationServic
 builder.Services.AddHostedService<LiveMonitor>();
 builder.Services.AddSingleton<AccessService>();
 builder.Services.AddSingleton<AuditLog>();
-builder.Services.AddSingleton<FileStore>();
+// Uploaded files: a local folder for one instance, S3 (SeaweedFS) when several run (plan B6).
+builder.Services.Configure<StorageOptions>(builder.Configuration.GetSection("Storage"));
+builder.Services.AddSingleton<LocalFileStore>();
+builder.Services.AddSingleton<S3FileStore>();
+builder.Services.AddSingleton<IFileStore>(sp => sp.GetRequiredService<IOptions<StorageOptions>>().Value.Provider switch
+{
+    "local" => sp.GetRequiredService<LocalFileStore>(),
+    "s3" => sp.GetRequiredService<S3FileStore>(),
+    var other => throw new InvalidOperationException($"Storage:Provider '{other}' is not supported (local, s3)"),
+});
 builder.Services.AddSingleton<StatsService>();
-builder.Services.AddSingleton<RealtimeTickets>();
 builder.Services.AddMemoryCache(o => o.SizeLimit = null);
+// Metrics for Prometheus at /metrics (plan A3): application meter + ASP.NET Core HTTP metrics. Not routed by Caddy.
+builder.Services.AddOpenTelemetry().WithMetrics(m => m
+    .AddMeter(GgMetrics.MeterName)
+    .AddAspNetCoreInstrumentation()
+    .AddPrometheusExporter());
 
 builder.Services.ConfigureHttpJsonOptions(o =>
 {
@@ -158,6 +212,8 @@ builder.Services.Configure<ForwardedHeadersOptions>(o =>
 });
 
 var app = builder.Build();
+// The realtime frame computes "CO₂ avoided today" with the same factor as the statistics endpoints.
+LiveJson.Co2KgPerKwh = app.Services.GetRequiredService<Microsoft.Extensions.Options.IOptions<StatsOptions>>().Value.Co2KgPerKwh;
 
 await app.Services.GetRequiredService<Migrator>().MigrateAsync();
 await app.Services.GetRequiredService<PartitionMaintenance>()
@@ -205,15 +261,26 @@ app.MapGet("/healthz", (MqttLink mqtt, RealtimeHub hub, BatchWriter writer, Inge
     last_batch_ms = Math.Round(writer.LastBatchMs, 1),
 })).DisableRateLimiting();
 
-var api = app.MapGroup("/api/v1");
-AuthEndpoints.Map(api);
-ProfileEndpoints.Map(api);
-ProjectEndpoints.Map(api);
-DataEndpoints.Map(api);
-AlertEndpoints.Map(api);
-ConfigEndpoints.Map(api);
-ServiceEndpoints.Map(api);
-RealtimeEndpoints.Map(app, api);
+HealthEndpoints.Map(app);
+GgMetrics.Observe(app.Services.GetRequiredService<IngestPipeline>(), app.Services.GetRequiredService<BatchWriter>(),
+    app.Services.GetRequiredService<RealtimeHub>(), app.Services.GetRequiredService<LiveStateCache>(), app.Services.GetRequiredService<DeviceEventQueue>(),
+    app.Services.GetRequiredService<JobLeader>(), app.Services.GetRequiredService<TimeProvider>());
+app.MapPrometheusScrapingEndpoint("/metrics").WithMetadata(new Microsoft.AspNetCore.Routing.HttpMethodMetadata(["GET"])).DisableRateLimiting();
+
+var roles = app.Services.GetRequiredService<InstanceRoles>();
+app.Logger.LogInformation("roles: {Roles}", roles);
+if (roles.ServesApi)
+{
+    var api = app.MapGroup("/api/v1");
+    AuthEndpoints.Map(api);
+    ProfileEndpoints.Map(api);
+    ProjectEndpoints.Map(api);
+    DataEndpoints.Map(api);
+    AlertEndpoints.Map(api);
+    ConfigEndpoints.Map(api);
+    ServiceEndpoints.Map(api);
+    RealtimeEndpoints.Map(app, api);
+}
 
 app.Run();
 

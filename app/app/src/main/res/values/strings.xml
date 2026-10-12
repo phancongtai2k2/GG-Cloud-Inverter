@@ -268,10 +268,44 @@
     </plurals>
     <string name="home_insight_higher">Hôm nay sản lượng cao hơn %1$s so với hôm qua.</string>
     <string name="energy_flow_title">Dòng năng lượng</string>
+    <string name="house_grid">Lưới</string>
+    <string name="house_battery">Pin</string>
+    <string name="house_load">Tải</string>
+    <string name="house_grid_buy">Mua điện</string>
+    <string name="house_grid_sell">Bán điện</string>
+    <string name="house_battery_state">%1$s · %2$s</string>
+    <string name="house_co2">Giảm CO₂</string>
+    <string name="nodes_battery">Pin · %1$s</string>
+    <string name="battery_charged_today">Dung lượng sạc hôm nay</string>
+    <string name="cd_home_customize">Tuỳ chỉnh kiểu sơ đồ</string>
+    <string name="home_customize_title">Tuỳ chỉnh màn hình chính</string>
+    <string name="home_customize_view_section">Kiểu sơ đồ dòng năng lượng</string>
+    <string name="home_customize_view_hint">Vuốt ngang để xem và chọn.</string>
+    <string name="home_view_house">Hình nhà</string>
+    <string name="home_view_house_desc">Minh hoạ ngôi nhà, dòng điện chạy theo dây thật</string>
+    <string name="home_view_nodes">Sơ đồ khối</string>
+    <string name="home_view_nodes_desc">Các khối nối với GG SmartBox ở giữa</string>
+    <string name="home_widgets_shown">Thẻ trên màn hình chính</string>
+    <string name="home_widgets_hint">Giữ và kéo biểu tượng ⋮⋮ để đổi vị trí, nhấn dấu trừ để ẩn thẻ.</string>
+    <string name="home_widgets_none_shown">Chưa có thẻ nào. Thêm thẻ ở bên dưới.</string>
+    <string name="home_widgets_hidden">Thẻ có thể thêm</string>
+    <string name="home_widgets_none_hidden">Tất cả thẻ đang được hiển thị.</string>
+    <string name="home_customize_apply">Áp dụng</string>
+    <string name="cd_widget_hide">Ẩn %1$s</string>
+    <string name="cd_widget_drag">Kéo để sắp xếp %1$s</string>
+    <string name="cd_widget_add">Thêm %1$s</string>
+    <string name="cd_widget_move_up">Chuyển lên</string>
+    <string name="cd_widget_move_down">Chuyển xuống</string>
+    <string name="widget_summary">Tổng quan hôm nay</string>
+    <string name="widget_summary_desc">Tiêu thụ, tự dùng, tiết kiệm, CO₂</string>
+    <string name="widget_power">Biểu đồ công suất</string>
+    <string name="widget_power_desc">PV, lưới, pin, tải theo thời gian</string>
+    <string name="widget_yield">Sản lượng PV</string>
+    <string name="widget_yield_desc">PV tự dùng, sạc pin, lên lưới</string>
+    <string name="widget_battery">Biểu đồ pin S16 Pre</string>
+    <string name="widget_battery_desc">Dòng BMS và SOC</string>
+    <string name="cd_house_co2">Giảm phát thải CO₂ %1$s</string>
     <string name="energy_pv">PV</string>
-    <string name="energy_grid">Lưới điện</string>
-    <string name="energy_battery">S16 Pre - %1$s</string>
-    <string name="energy_load">Tải tiêu thụ</string>
     <string name="energy_hub">GG SmartBox</string>
     <string name="battery_charging">Đang sạc</string>
     <string name="battery_discharging">Đang xả</string>
@@ -289,7 +323,6 @@
     <string name="battery_from_pv">Từ PV</string>
     <string name="battery_from_grid">Từ lưới</string>
     <string name="cd_battery_box">Xem nguồn năng lượng trong pin S16 Pre</string>
-    <string name="cd_battery_bar">Năng lượng trong pin: %1$s dung lượng, gồm %2$s từ PV và %3$s từ lưới điện</string>
     <!-- 4 · Màn hình chính, thống kê (mục 4.4–4.7) -->
     <string name="period_group">Khoảng thời gian</string>
     <string name="period_day">Ngày</string>
@@ -395,7 +428,10 @@
     <string name="config_tou_duration">· %1$s</string>
     <string name="config_tou_duration_overnight">· %1$s, qua đêm</string>
     <string name="unit_hour">giờ</string>
+    <string name="unit_day_word">ngày</string>
+    <string name="unit_month_word">tháng</string>
     <string name="unit_minute">phút</string>
+    <string name="cd_reset_zoom">Đặt lại thu phóng</string>
     <string name="config_section_battery">Pin và ngưỡng SOC</string>
     <string name="config_backup_soc">SOC dự phòng (cắt xả)</string>
     <string name="config_backup_estimate">Dự phòng ước tính</string>
@@ -453,28 +489,7 @@
     <string name="unit_volt">V</string>
     <string name="unit_hertz">Hz</string>
     <!-- Mã thanh ghi hiển thị dưới tên tham số (đặc tả §16.3–16.7), không dịch -->
-    <string name="reg_e00f" translatable="false">E00F BatStopSOC</string>
-    <string name="reg_e01d" translatable="false">E01D StopChgSocSet</string>
-    <string name="reg_e01e" translatable="false">E01E BatSocLowAlarm</string>
-    <string name="reg_e01f" translatable="false">E01F BatSocSwToLine</string>
-    <string name="reg_e20a" translatable="false">E20A MaxChgCurr</string>
-    <string name="reg_e205" translatable="false">E205 IbattLineChgLimit</string>
     <string name="reg_e025" translatable="false">E025 BMSChgLCMode</string>
-    <string name="reg_e037" translatable="false">E037 InvToGridEn = %1$d</string>
-    <string name="reg_e42c" translatable="false">E42C ZeroExportPower</string>
-    <string name="reg_e21d" translatable="false">E21D MaxLinePower</string>
-    <string name="reg_e208" translatable="false">E208 OutputVoltSet</string>
-    <string name="reg_e209" translatable="false">E209 OutputFreqSet</string>
-    <string name="reg_e20d" translatable="false">E20D AutoRestartOvLoad</string>
-    <string name="reg_e20e" translatable="false">E20E AutoRestartOvTemper</string>
-    <string name="reg_e214" translatable="false">E214 BmsErrStopEnable</string>
-    <string name="reg_e210" translatable="false">E210 AlarmEnable</string>
-    <string name="reg_e20c" translatable="false">E20C PowerSavingMode</string>
-    <string name="reg_df00">DF00 CmdPowerOnOff · xác nhận 2 bước</string>
-    <string name="reg_e215" translatable="false">E215 BmsCommEnable</string>
-    <string name="reg_e21b" translatable="false">E21B Rs485BmsProtocol</string>
-    <string name="reg_e200" translatable="false">E200 Rs485AddrSet</string>
-    <string name="reg_e201" translatable="false">E201 ParallMode</string>
     <!-- Ghi cấu hình (BO_SUNG_v3.md §1–3, đã duyệt 02/10/2026) -->
     <string name="action_cancel">Huỷ</string>
     <string name="action_confirm">Xác nhận</string>
@@ -482,8 +497,15 @@
     <string name="confirm_title">Xác nhận thay đổi</string>
     <string name="confirm_note">Thay đổi được gửi tới hệ thống và chỉ áp dụng sau khi thiết bị xác nhận.</string>
     <string name="confirm_stale">Cấu hình vừa được thay đổi ở nơi khác. Hãy xem lại trước khi xác nhận.</string>
-    <string name="config_change_mode">Chế độ vận hành</string>
-    <string name="config_change_backup_soc">SOC dự phòng</string>
+    <string name="config_confirm_mode_title">Cách hoạt động của %1$s</string>
+    <string name="config_confirm_mode_gg_ai">EMS cloud tự tối ưu sạc/xả theo giá điện, dự báo bức xạ và thói quen tiêu thụ của gia đình.</string>
+    <string name="config_confirm_mode_self">Điện mặt trời cấp cho tải trong nhà trước, phần dư sạc vào pin, khi pin đầy mới phát lên lưới. Buổi tối pin xả để cấp tải.</string>
+    <string name="config_confirm_mode_tou">Hệ thống sạc và xả pin theo các khung giờ đã cài để giảm chi phí theo biểu giá điện (thấp điểm, bình thường, cao điểm).</string>
+    <string name="config_confirm_mode_grid">Điện mặt trời được ưu tiên phát lên lưới, tải trong nhà và pin dùng phần còn lại. Chỉ nên dùng khi có hợp đồng bán điện.</string>
+    <string name="config_confirm_mode_battery">Điện mặt trời ưu tiên sạc đầy pin trước, sau đó mới cấp cho tải; thiếu thì lấy từ lưới. Phù hợp mùa mưa hoặc trước bão.</string>
+    <string name="config_confirm_soc_title">Sau khi thay đổi</string>
+    <string name="config_confirm_soc">Pin luôn giữ tối thiểu %1$s để cấp điện khi mất lưới.</string>
+    <string name="config_confirm_soc_hours">Pin luôn giữ tối thiểu %1$s để cấp điện khi mất lưới, đủ khoảng ~%2$s giờ cho tải thiết yếu.</string>
     <string name="change_value">%1$s → %2$s</string>
     <string name="write_in_progress">Đang ghi…</string>
     <string name="write_applied">Đã áp dụng.</string>
@@ -525,7 +547,6 @@
     <string name="tou_days_owned">%1$s đang thuộc \"%2$s\"</string>
     <string name="tou_days_owned_note">%1$s. Chọn các ngày này sẽ chuyển chúng sang chiến lược đang sửa.</string>
     <string name="tou_no_days_warning">Chưa chọn ngày nào nên lịch sẽ không chạy. Hãy chọn ít nhất một ngày.</string>
-    <string name="reg_e225" translatable="false">E225 WeekToOnTimeEn</string>
     <string name="tou_add_slot">Thêm khung sạc hoặc xả</string>
     <string name="tou_strategy_note_limit">Tối đa 3 khung sạc và 3 khung xả; các khung không được chồng lấn.</string>
     <string name="tou_strategy_note_tap">Chạm vào một khung để sửa giờ, SOC dừng, công suất và nguồn sạc.</string>
@@ -584,6 +605,15 @@
     <string name="device_soh">SOH</string>
     <string name="device_soc">SoC</string>
     <string name="device_open_data">Theo dõi dữ liệu chi tiết</string>
+    <string name="datalogger_title">Datalogger Wi-Fi</string>
+    <string name="datalogger_signal">Tín hiệu</string>
+    <string name="datalogger_link">Kết nối</string>
+    <string name="signal_strong">Mạnh</string>
+    <string name="signal_medium">Trung bình</string>
+    <string name="signal_weak">Yếu</string>
+    <string name="link_wifi">Wi-Fi</string>
+    <string name="link_ethernet">Ethernet</string>
+    <string name="link_cellular">4G</string>
     <string name="cd_battery_level">Mức pin</string>
     <string name="battery_charging_until_full">Đang sạc · đầy sau ~%1$s giờ</string>
     <string name="battery_discharging_remaining">Đang xả · còn ~%1$s giờ</string>
@@ -795,12 +825,14 @@
     <string name="energy_chip_discharging">Đang xả %1$s</string>
     <string name="energy_available">Dung lượng khả dụng</string>
     <string name="energy_from_grid_full">Từ lưới điện</string>
-    <string name="energy_empty">Còn trống</string>
     <string name="energy_params">Thông số pin</string>
     <string name="energy_charge_current">Dòng sạc</string>
     <string name="energy_discharge_current">Dòng xả</string>
     <string name="energy_cycles">Chu kỳ</string>
-    <string name="energy_figure_cd">Pin %1$s dung lượng %2$s, đang chứa %3$s: %4$s từ PV (%5$s) ở lớp trên và %6$s từ lưới (%7$s) ở lớp dưới; %8$s</string>
+    <string name="energy_figure_cd">Pin %1$s dung lượng %2$s, SOC %3$s (%4$s)%5$s; %6$s</string>
+    <string name="energy_figure_cd_limits">; giới hạn sạc %1$s, giới hạn xả %2$s</string>
+    <string name="energy_charge_limit">Giới hạn sạc</string>
+    <string name="energy_discharge_limit">Giới hạn xả</string>
     <string name="energy_figure_cd_unknown">Pin %1$s: chưa có số liệu nguồn năng lượng</string>
     <string name="energy_cd_charging">pin đang sạc</string>
     <string name="energy_cd_discharging">pin đang xả</string>

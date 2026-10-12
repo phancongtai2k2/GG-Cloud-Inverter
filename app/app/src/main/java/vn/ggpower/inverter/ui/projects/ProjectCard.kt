@@ -88,7 +88,6 @@ fun ProjectCard(project: ProjectSummary, onClick: () -> Unit, modifier: Modifier
             ProjectStatusChip(project.status)
         }
         // Hàng chỉ số nhanh
-        Box(Modifier.fillMaxWidth().height(1.dp).background(colors.cardBorder))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(GgSpacing.space2)) {
             val missing = stringResource(R.string.value_missing)
             Metric(

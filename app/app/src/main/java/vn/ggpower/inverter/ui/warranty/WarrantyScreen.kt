@@ -18,7 +18,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -245,7 +244,7 @@ private fun statusTone(status: WarrantyStatus): StatusTone = when (status) {
     WarrantyStatus.Expired -> StatusTone.Danger
 }
 
-/** Màu thanh: HTML dùng #149C4A / #C98A00 / #C62828; #C98A00 chưa có token nên dùng `warning` (chốt 03/10/2026, OPEN_QUESTIONS). */
+/** Màu thanh (gg-inverter-design Warranty.dc.html): #149C4A / #8A6100 (`warning`) / #C62828. */
 @Composable
 private fun barColor(status: WarrantyStatus): Color = when (status) {
     WarrantyStatus.Active -> GgTheme.colors.ggGreen
@@ -274,12 +273,11 @@ private fun remainingText(remaining: WarrantyRemaining): String = when (remainin
 
 // ---------- Lịch sử bảo hành ----------
 
-/** Thẻ đệm 4/16; mỗi dòng đệm dọc 12, dòng sau có vạch `cardBorder` ở trên. */
+/** Thẻ đệm 4/16; mỗi dòng đệm dọc 12, không kẻ phân cách. */
 @Composable
 private fun HistoryCard(entries: List<WarrantyHistoryEntry>) {
     GgCard(contentPadding = PaddingValues(horizontal = GgSpacing.space4, vertical = GgSpacing.space1)) {
-        entries.forEachIndexed { index, entry ->
-            if (index > 0) HorizontalDivider(thickness = 1.dp, color = GgTheme.colors.cardBorder)
+        entries.forEach { entry ->
             HistoryRow(entry)
         }
     }

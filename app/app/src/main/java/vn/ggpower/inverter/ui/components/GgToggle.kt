@@ -31,7 +31,7 @@ import vn.ggpower.inverter.ui.theme.GgSpacing
 import vn.ggpower.inverter.ui.theme.GgTheme
 
 /**
- * Công tắc 52 × 32 dp (Config.dc.html, Me.dc.html): viền 2 dp; bật nền + viền `primary`, tắt nền `surfaceSunken`
+ * Công tắc 52 × 32 dp (Config.dc.html, Me.dc.html): viền 2 dp; bật nền `primaryFill` viền `primary`, tắt nền `toggleOffTrack`
  * viền `lineStrong`; núm trắng 22 dp có bóng, cách mép 5 dp; chuyển 150 ms. Vùng chạm 48 dp.
  * Bị khoá (ví dụ `CONFIG_READ_ONLY`): mờ 50 %.
  */
@@ -44,7 +44,7 @@ fun GgToggle(
     contentDescription: String? = null,
 ) {
     val colors = GgTheme.colors
-    val track by animateColorAsState(if (checked) colors.primary else colors.surfaceSunken, tween(150), label = "track")
+    val track by animateColorAsState(if (checked) colors.primaryFill else colors.toggleOffTrack, tween(150), label = "track")
     val border by animateColorAsState(if (checked) colors.primary else colors.lineStrong, tween(150), label = "border")
     val thumbX by animateDpAsState(if (checked) 25.dp else 5.dp, tween(150), label = "thumb")
     Box(

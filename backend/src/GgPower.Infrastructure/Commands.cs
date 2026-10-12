@@ -31,23 +31,20 @@ public sealed record SubmitResult(int Status, string? ErrorCode, object? Extra, 
 /// is "applied" only after that read-back; otherwise the previous settings are restored.
 /// </summary>
 public sealed class CommandService(
-    Db db, LiveStateCache live, IServiceProvider services, IOptions<CommandOptions> options, IOptions<IngestOptions> ingest,
+    Db db, ILiveStore live, IServiceProvider services, JobLeader leader, ICommandCoordinator coord, IOptions<CommandOptions> options, IOptions<IngestOptions> ingest,
     TimeProvider clock, ILogger<CommandService> log) : BackgroundService, IDeviceEventSink
 {
     private readonly CommandOptions _o = options.Value;
-    private readonly ConcurrentDictionary<string, TaskCompletionSource<CommandAck>> _acks = new();
-    private readonly ConcurrentDictionary<string, Guid> _running = new(StringComparer.OrdinalIgnoreCase);
-    private readonly ConcurrentDictionary<string, DateTimeOffset> _lastCommand = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, DateTimeOffset> _reloadTried = new(StringComparer.OrdinalIgnoreCase);
     private static readonly JsonSerializerOptions Json = LiveJson.Options;
 
     // Resolved lazily: the MQTT link depends on the ingest pipeline, which depends on this sink.
     private IMqttPublisher Mqtt => (IMqttPublisher)services.GetService(typeof(IMqttPublisher))!;
 
-    public void OnAck(CommandAck ack)
-    {
-        if (_acks.TryRemove(ack.CmdId, out var tcs)) tcs.TrySetResult(ack);
-    }
+    public void OnAck(CommandAck ack) => coord.Deliver(ack);
+
+    // Through the coordinator, so a command waiting on another instance sees the read-back too.
+    public void OnConfigState(string serial, JsonElement state) => coord.DeliverConfig(serial, state, clock.GetUtcNow());
 
     // ---------- reading ----------
 
@@ -131,6 +128,7 @@ public sealed class CommandService(
         if (!await AllowlistedAsync(d.Serial, ct)) return SubmitResult.Fail(409, "DEVICE_READ_ONLY");
         if (!await WriteEnabledAsync(ct)) return SubmitResult.Fail(409, "WRITE_DISABLED_BY_SERVER");
         if (!GatewayOnline(d) || !Mqtt.IsConnected || d.ConfigState is null) return SubmitResult.Fail(409, "GATEWAY_OFFLINE");
+        if (group == WriteGroups.BackupSoc && d.BmsDisconnected) return SubmitResult.Fail(409, "BMS_NOT_CONNECTED");
 
         var tou = await TouAsync(d.Serial, ct);
         var strategies = ParseStrategies(tou.Strategies);
@@ -166,16 +164,15 @@ public sealed class CommandService(
         var local = TimeZoneInfo.ConvertTime(now, Zone(timeZone));
         // 00:00–00:01 belongs to the backend's own schedule reload.
         if (local is { Hour: 0, Minute: 0 }) return SubmitResult.Fail(409, "COMMAND_IN_PROGRESS");
-        if (_lastCommand.TryGetValue(d.Serial, out var last) && (now - last).TotalSeconds < _o.MinIntervalSeconds)
-        {
-            var wait = (int)Math.Ceiling(_o.MinIntervalSeconds - (now - last).TotalSeconds);
-            return SubmitResult.Fail(429, "RATE_LIMITED", new { retry_after_seconds = wait });
-        }
+        var minInterval = TimeSpan.FromSeconds(_o.MinIntervalSeconds);
+        if (await coord.RetryAfterAsync(d.Serial, minInterval) is { } wait)
+            return SubmitResult.Fail(429, "RATE_LIMITED", new { retry_after_seconds = (int)Math.Ceiling(wait.TotalSeconds) });
 
         var id = Guid.NewGuid();
-        if (!_running.TryAdd(d.Serial, id))
-            return SubmitResult.Fail(409, "COMMAND_IN_PROGRESS", new { command_id = _running.GetValueOrDefault(d.Serial) });
-        _lastCommand[d.Serial] = now;
+        if (await coord.TryLockAsync(d.Serial, id, AbandonedAfter) is { } holder)
+            return SubmitResult.Fail(409, "COMMAND_IN_PROGRESS", new { command_id = holder });
+        await coord.StartIntervalAsync(d.Serial, minInterval);
+        GgMetrics.CommandsSubmitted.Add(1, new KeyValuePair<string, object?>("group", group));
 
         try
         {
@@ -189,7 +186,7 @@ public sealed class CommandService(
         }
         catch
         {
-            _running.TryRemove(new KeyValuePair<string, Guid>(d.Serial, id));
+            await coord.UnlockAsync(d.Serial, id);
             throw;
         }
 
@@ -350,7 +347,7 @@ public sealed class CommandService(
         }
         finally
         {
-            _running.TryRemove(new KeyValuePair<string, Guid>(d.Serial, id));
+            await coord.UnlockAsync(d.Serial, id);
         }
     }
 
@@ -386,21 +383,19 @@ public sealed class CommandService(
         var now = clock.GetUtcNow();
         var budget = TimeSpan.FromSeconds(Math.Min(_o.AckTimeoutSeconds, Math.Max(1, (deadline - now).TotalSeconds)));
         var cmdId = Guid.NewGuid().ToString("N");
-        var tcs = new TaskCompletionSource<CommandAck>(TaskCreationOptions.RunContinuationsAsynchronously);
-        _acks[cmdId] = tcs;
+        using var ack = coord.Expect(cmdId);
         try
         {
             var payload = new JsonObject { ["cmd_id"] = cmdId, ["action"] = cmd.Action, ["ts"] = now.ToUnixTimeSeconds(), ["params"] = cmd.Params.DeepClone() };
             await Mqtt.PublishAsync(UpTopic.Down(d.Tenant, d.Serial), payload.ToJsonString(), CancellationToken.None);
-            var done = await Task.WhenAny(tcs.Task, Task.Delay(budget));
-            return done == tcs.Task ? tcs.Task.Result : null;
+            var done = await Task.WhenAny(ack.Task, Task.Delay(budget));
+            return done == ack.Task ? ack.Task.Result : null;
         }
         catch (Exception ex)
         {
             log.LogWarning("publishing {Action} to {Serial} failed: {Message}", cmd.Action, d.Serial, ex.Message);
             return null;
         }
-        finally { _acks.TryRemove(cmdId, out _); }
     }
 
     /// <summary>
@@ -416,9 +411,9 @@ public sealed class CommandService(
         JsonElement? latest = null;
         while (true)
         {
-            if (d.ConfigStateAt is { } at && at >= sentAt)
+            if (coord.LatestConfig(d.Serial) is { } reported && reported.At >= sentAt)
             {
-                latest = d.ConfigState;
+                latest = reported.State;
                 if (ConfigMapping.Matches(expected, latest)) return latest;
             }
             if (clock.GetUtcNow() >= until) return latest;
@@ -449,6 +444,7 @@ public sealed class CommandService(
         await c.ExecuteAsync(
             "UPDATE config_commands SET status = @status, changes = @ch::jsonb, outcome = @o::jsonb, failure = @f::jsonb, updated_at = now() WHERE id = @id",
             new { id, status, ch = JsonSerializer.Serialize(changes, Json), o = JsonSerializer.Serialize(outcome, Json), f = failure is null ? null : JsonSerializer.Serialize(failure, Json) });
+        GgMetrics.CommandsFinished.Add(1, new KeyValuePair<string, object?>("status", status));
     }
 
     // ---------- queries ----------
@@ -501,29 +497,41 @@ public sealed class CommandService(
         return (rows.Take(limit).Select(r => (JsonObject)ToJson(r)).ToList(), next);
     }
 
-    // ---------- background: expiry and the daily schedule reload ----------
+    // ---------- background: abandoned commands and the daily schedule reload ----------
+
+    /// <summary>Far longer than any command runs (expiry plus restoring), so only commands whose instance stopped are left.</summary>
+    public static readonly TimeSpan AbandonedAfter = TimeSpan.FromMinutes(5);
 
     protected override async Task ExecuteAsync(CancellationToken stop)
     {
-        // Commands left unfinished by a restart can no longer be confirmed.
-        try
-        {
-            await using var c = await db.OpenAsync(stop);
-            await c.ExecuteAsync(
-                """
-                UPDATE config_commands SET status = 'failed', outcome = '{"device_state":"unknown"}', failure = '{"code":"ACK_TIMEOUT"}', updated_at = now()
-                WHERE status NOT IN ('applied', 'reverted', 'failed')
-                """);
-        }
-        catch (Exception ex) { log.LogError(ex, "could not close stale commands"); }
-
         while (!stop.IsCancellationRequested)
         {
-            try { await ReloadSchedulesAsync(stop); }
+            try
+            {
+                if (await leader.TryLeadAsync(JobLeader.Commands, stop))
+                {
+                    await CloseAbandonedAsync(stop);
+                    await ReloadSchedulesAsync(stop);
+                }
+            }
             catch (OperationCanceledException) when (stop.IsCancellationRequested) { break; }
             catch (Exception ex) { log.LogError(ex, "schedule reload failed"); }
             await Task.Delay(TimeSpan.FromSeconds(20), stop).ContinueWith(_ => { }, CancellationToken.None);
         }
+    }
+
+    /// <summary>
+    /// Commands left unfinished by an instance that stopped can no longer be confirmed. Swept by age rather than at
+    /// start-up, which would also close the commands other instances are still running.
+    /// </summary>
+    public async Task<int> CloseAbandonedAsync(CancellationToken ct)
+    {
+        await using var c = await db.OpenAsync(ct);
+        return await c.ExecuteAsync(
+            """
+            UPDATE config_commands SET status = 'failed', outcome = '{"device_state":"unknown"}', failure = '{"code":"ACK_TIMEOUT"}', updated_at = now()
+            WHERE status NOT IN ('applied', 'reverted', 'failed') AND updated_at < @before
+            """, new { before = clock.GetUtcNow() - AbandonedAfter });
     }
 
     /// <summary>
@@ -554,7 +562,7 @@ public sealed class CommandService(
             var day = DateOnly.FromDateTime(local.DateTime);
             var loadedOn = r.loaded_on is DateTime lo ? DateOnly.FromDateTime(lo) : (DateOnly?)null;
             if (loadedOn == day) continue;
-            if (live.Get(serial) is not { } d || !GatewayOnline(d) || !Mqtt.IsConnected || d.ConfigState is null) continue;
+            if (await live.GetAsync(serial, ct) is not { } d || !GatewayOnline(d) || !Mqtt.IsConnected || d.ConfigState is null) continue;
             if (!await AllowlistedAsync(serial, ct) || !await WriteEnabledAsync(ct)) continue;
 
             // A failed reload is retried at most every five minutes, not on every pass.
@@ -563,7 +571,7 @@ public sealed class CommandService(
 
             var today = TouRules.ForDay(ParseStrategies((string)r.strategies), local.DayOfWeek);
             var id = Guid.NewGuid();
-            if (!_running.TryAdd(serial, id)) continue;
+            if (await coord.TryLockAsync(serial, id, AbandonedAfter) is not null) continue;
             try
             {
                 var (plan, expected) = ConfigMapping.PlanSchedule(d.ConfigState, today);
@@ -600,7 +608,7 @@ public sealed class CommandService(
                     await FinishAsync(id, "failed", changes, new { device_state = "unknown" }, new { code = "ACK_TIMEOUT" });
                 }
             }
-            finally { _running.TryRemove(new KeyValuePair<string, Guid>(serial, id)); }
+            finally { await coord.UnlockAsync(serial, id); }
         }
     }
 }

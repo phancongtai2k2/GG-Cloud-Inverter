@@ -86,10 +86,12 @@ class FakeHomeRepository @Inject constructor(
             // 18,6 kWh hôm nay, cao hơn 18 % so với hôm qua.
             yieldTodayKwh = 18.6,
             yieldYesterdayKwh = 15.76,
-            energy = EnergySnapshot(pvKw = 4.2, gridKw = 0.0, batteryKw = 1.1, loadKw = 3.1, batterySocPercent = 76),
+            energy = EnergySnapshot(pvKw = 4.2, gridKw = 0.5, batteryKw = 1.6, loadKw = 3.1, batterySocPercent = 76),
             mode = OperatingMode.SelfConsumption,
             backupSocPercent = 20,
             battery = BatteryContent(capacityKwh = 16.0, fromPvKwh = 10.2, fromGridKwh = 1.9),
+            co2TodayKg = 10.4,
+            chargedToday = ChargedToday(fromPvKwh = 10.2, fromGridKwh = 1.9),
         )
 
         // Bảng chỉ số tổng hợp đặc tả 4.8.

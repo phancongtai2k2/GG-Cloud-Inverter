@@ -1,5 +1,9 @@
 package vn.ggpower.inverter.data.remote
 
+import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.JsonPrimitive
+import vn.ggpower.inverter.domain.device.LinkType
+import vn.ggpower.inverter.domain.device.SignalLevel
 import android.content.Context
 import androidx.core.net.toUri
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -27,6 +31,7 @@ import vn.ggpower.inverter.data.battery.BatteryEnergyRepository
 import vn.ggpower.inverter.data.device.DeviceLoadException
 import vn.ggpower.inverter.data.device.DeviceRepository
 import vn.ggpower.inverter.data.home.BatterySample
+import vn.ggpower.inverter.data.home.ChargedToday
 import vn.ggpower.inverter.data.home.DayCurves
 import vn.ggpower.inverter.data.home.EnergyBucket
 import vn.ggpower.inverter.data.home.HomeOverview
@@ -52,6 +57,7 @@ import vn.ggpower.inverter.domain.battery.BatteryEnergy
 import vn.ggpower.inverter.domain.config.OperatingMode
 import vn.ggpower.inverter.domain.device.BatteryState
 import vn.ggpower.inverter.domain.device.BatterySummary
+import vn.ggpower.inverter.domain.device.DataloggerSummary
 import vn.ggpower.inverter.domain.device.DeviceUnit
 import vn.ggpower.inverter.domain.device.InverterSummary
 import vn.ggpower.inverter.domain.home.BatteryContent
@@ -319,6 +325,9 @@ class LiveHomeRepository @Inject constructor(private val api: ApiClient, private
                             batterySocPercent = t.num("soc_percent")?.roundToInt() ?: 0,
                         ),
                         battery = m.obj("battery_content")?.let(::content) ?: base.battery,
+                        // Thiếu trường (backend cũ) thì giữ số của bản tổng quan; null tường minh thì xoá.
+                        co2TodayKg = if ("co2_today_kg" in m) m.num("co2_today_kg") else base.co2TodayKg,
+                        chargedToday = if ("battery_charged_today" in m) m.obj("battery_charged_today")?.let(::charged) else base.chargedToday,
                     )
                     emit(current!!)
                 }
@@ -350,8 +359,14 @@ class LiveHomeRepository @Inject constructor(private val api: ApiClient, private
             mode = mode(o.str("mode")),
             backupSocPercent = o.int("backup_soc_percent") ?: 0,
             battery = o.obj("battery")?.let(::content) ?: NO_BATTERY,
+            co2TodayKg = o.num("co2_today_kg"),
+            chargedToday = o.obj("battery_charged_today")?.let(::charged),
         )
     }
+
+    /** `BatteryChargedToday` (contract 2026-10-11): kWh sạc vào pin hôm nay theo nguồn. */
+    private fun charged(o: JsonObject): ChargedToday =
+        ChargedToday(fromPvKwh = o.num("from_pv_kwh") ?: 0.0, fromGridKwh = o.num("from_grid_kwh") ?: 0.0)
 
     private suspend fun stats(projectId: String, selection: PeriodSelection): JsonObject {
         val period = when (selection.period) {
@@ -445,9 +460,36 @@ class LiveDeviceRepository @Inject constructor(private val api: ApiClient) : Dev
                         voltageV = it.num("voltage_v"), sohPercent = it.int("soh_percent"),
                     )
                 },
+                // Khối `datalogger` (contract 2026-10-11); backend cũ không có thì suy từ inverter như trước: firmware lấy từ
+                // logger_firmware, online theo trạng thái inverter (datalogger là đường liên lạc duy nhất).
+                datalogger = o.obj("datalogger")?.let(::datalogger) ?: DataloggerSummary(
+                    serial = null,
+                    online = when (inv.str("status")) {
+                        null, "waiting_connection" -> null
+                        "offline" -> false
+                        else -> true
+                    },
+                    signal = null,
+                    link = null,
+                    firmware = inv.str("logger_firmware"),
+                ),
             )
         }
     }
+
+    /** `Datalogger` (contract 2026-10-11): RSSI quy ra mức tín hiệu; kiểu kết nối lạ thì để trống ("—"). */
+    private fun datalogger(o: JsonObject) = DataloggerSummary(
+        serial = o.str("serial"),
+        online = (o["online"] as? JsonPrimitive)?.booleanOrNull,
+        signal = SignalLevel.fromRssi(o.int("rssi_dbm")),
+        link = when (o.str("connection")) {
+            "wifi" -> LinkType.WiFi
+            "ethernet" -> LinkType.Ethernet
+            "4g" -> LinkType.Cellular
+            else -> null
+        },
+        firmware = o.str("firmware"),
+    )
 }
 
 /** Ảnh chụp trạng thái thiết bị: bản lưu → bản mới qua REST → cập nhật qua kênh thời gian thực. */
@@ -631,6 +673,8 @@ class LiveBatteryEnergyRepository @Inject constructor(private val api: ApiClient
                     content = c?.num("capacity_kwh")?.takeIf { it > 0 }?.let { BatteryContent(it, c.num("from_pv_kwh") ?: 0.0, c.num("from_grid_kwh") ?: 0.0) },
                     voltageV = voltage, currentA = current, temperatureC = b?.num("temp_cells_c"),
                     sohPercent = b?.num("soh_percent"), cycles = b?.int("cycles"), cellDeltaMv = null,
+                    chargeLimitSocPercent = b?.int("charge_limit_soc_percent"),
+                    dischargeLimitSocPercent = b?.int("discharge_limit_soc_percent"),
                 ),
             )
         }

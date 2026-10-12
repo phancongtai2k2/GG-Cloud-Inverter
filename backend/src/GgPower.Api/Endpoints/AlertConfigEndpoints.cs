@@ -76,7 +76,7 @@ public static class AlertEndpoints
             });
         });
 
-        g.MapPut("/{alertId:guid}/resolved", async (Guid projectId, Guid alertId, ResolveRequest body, HttpContext ctx, AccessService access, Db db, LiveStateCache live, RealtimeHub hub, CancellationToken ct) =>
+        g.MapPut("/{alertId:guid}/resolved", async (Guid projectId, Guid alertId, ResolveRequest body, HttpContext ctx, AccessService access, Db db, ILiveStore live, IRealtimeBus bus, CancellationToken ct) =>
         {
             if (await access.ProjectAsync(ctx.User, projectId, ct) is not { } a) return Api.NotFound();
             if (body.Resolved is not { } resolved) return Api.Invalid();
@@ -85,11 +85,9 @@ public static class AlertEndpoints
                 "UPDATE alerts SET resolved = @resolved, resolved_by = @by WHERE id = @alertId AND serial = ANY(@serials) RETURNING serial",
                 new { resolved, by = resolved ? ctx.User.UserId() : (Guid?)null, alertId, serials = a.Serials });
             if (serial is null) return Api.NotFound("ALERT_NOT_FOUND");
-            if (live.Get(serial) is { } d)
-            {
-                await IngestPipeline.RecountAsync(c, d);
-                hub.Publish(serial, LiveJson.Bytes(new { type = "alerts_changed", serial }));
-            }
+            // Counters are recomputed where the device's data is received (C2).
+            await live.AlertsChangedAsync(serial, ct);
+            bus.Publish(serial, LiveJson.Bytes(new { type = "alerts_changed", serial }));
             return Results.NoContent();
         });
     }
@@ -124,9 +122,9 @@ public static class ConfigEndpoints
     {
         var g = api.MapGroup("/devices/{serial}").RequireAuthorization();
 
-        g.MapGet("/config", async (string serial, HttpContext ctx, AccessService access, LiveStateCache live, CommandService commands, StatsService stats, TimeProvider clock, CancellationToken ct) =>
+        g.MapGet("/config", async (string serial, HttpContext ctx, AccessService access, ILiveStore live, CommandService commands, StatsService stats, TimeProvider clock, CancellationToken ct) =>
         {
-            if (await access.DeviceAsync(ctx.User, serial, ct) is not { } a || live.Get(serial) is not { } d) return Api.NotFound("DEVICE_NOT_FOUND");
+            if (await access.DeviceAsync(ctx.User, serial, ct) is not { } a || await live.GetAsync(serial, ct) is not { } d) return Api.NotFound("DEVICE_NOT_FOUND");
             var role = RoleOf(a);
             var tou = await commands.TouAsync(d.Serial, ct);
             var state = d.ConfigState;
@@ -151,9 +149,14 @@ public static class ConfigEndpoints
                 write_access = new
                 {
                     state = writeState, role,
-                    writable_groups = writeState == "enabled" ? ConfigMapping.WritableGroups(state) : [],
-                    // A datalogger whose firmware cannot write the backup SOC reports it as blocked rather than silently missing.
-                    blocked_groups = ConfigMapping.SupportsBackupSoc(state) ? [] : new[] { new { group = WriteGroups.BackupSoc, reason = "NOT_SUPPORTED_BY_DEVICE" } },
+                    writable_groups = writeState == "enabled"
+                        ? ConfigMapping.WritableGroups(state).Where(g => g != WriteGroups.BackupSoc || !d.BmsDisconnected).ToArray()
+                        : [],
+                    // A group the device cannot apply right now is reported as blocked rather than silently missing:
+                    // firmware that cannot write the backup SOC, or no link to the battery's BMS.
+                    blocked_groups = !ConfigMapping.SupportsBackupSoc(state)
+                        ? new[] { new { group = WriteGroups.BackupSoc, reason = "NOT_SUPPORTED_BY_DEVICE" } }
+                        : d.BmsDisconnected ? new[] { new { group = WriteGroups.BackupSoc, reason = "BMS_NOT_CONNECTED" } } : [],
                     backup_soc_range = new { min = ConfigMapping.BackupSocMin, max = ConfigMapping.BackupSocMax },
                     writable_modes = OperatingModes.WritableFor(role),
                 },
@@ -169,9 +172,9 @@ public static class ConfigEndpoints
             });
         });
 
-        g.MapPost("/config-commands", async (string serial, JsonElement body, HttpContext ctx, AccessService access, LiveStateCache live, CommandService commands, AuditLog audit, Db db, CancellationToken ct) =>
+        g.MapPost("/config-commands", async (string serial, JsonElement body, HttpContext ctx, AccessService access, ILiveStore live, CommandService commands, AuditLog audit, Db db, CancellationToken ct) =>
         {
-            if (await access.DeviceAsync(ctx.User, serial, ct) is not { } a || live.Get(serial) is not { } d) return Api.NotFound("DEVICE_NOT_FOUND");
+            if (await access.DeviceAsync(ctx.User, serial, ct) is not { } a || await live.GetAsync(serial, ct) is not { } d) return Api.NotFound("DEVICE_NOT_FOUND");
             if (!Guid.TryParse(ctx.Request.Headers["Idempotency-Key"], out var key) || body.ValueKind != JsonValueKind.Object) return Api.Invalid();
             string? name;
             await using (var c = await db.OpenAsync(ct))

@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -181,7 +180,6 @@ private fun EvnTierCard(tiers: List<EvnTier>) {
             modifier = Modifier.padding(vertical = 6.dp),
         )
         rows.forEach { (label, value) ->
-            HorizontalDivider(thickness = 1.dp, color = colors.cardBorder)
             Row(
                 Modifier.fillMaxWidth().padding(vertical = GgSpacing.space2).heightIn(min = 44.dp),
                 verticalAlignment = Alignment.CenterVertically,

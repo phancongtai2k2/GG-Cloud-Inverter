@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import vn.ggpower.inverter.data.home.HomeRepository
+import vn.ggpower.inverter.data.settings.SettingsStore
+import vn.ggpower.inverter.domain.home.HomeLayout
 import vn.ggpower.inverter.domain.home.PeriodSelection
 import vn.ggpower.inverter.domain.home.StatsPeriod
 import vn.ggpower.inverter.navigation.ProjectHome
@@ -28,6 +30,7 @@ class HomeViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val repository: HomeRepository,
     private val clock: Clock,
+    private val settings: SettingsStore,
 ) : ViewModel() {
 
     val projectId: String = savedStateHandle.toRoute<ProjectHome>().projectId
@@ -46,6 +49,15 @@ class HomeViewModel @Inject constructor(
     fun onSelectPower(index: Int) = stats.onSelectPower(index)
     fun onSelectBattery(index: Int) = stats.onSelectBattery(index)
     fun onSelectYield(index: Int) = stats.onSelectYield(index)
+
+    /** Bố cục màn (kiểu sơ đồ, thẻ); mặc định cho tới khi DataStore đọc xong. */
+    val layout: StateFlow<HomeLayout> = settings.homeLayout
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeLayout())
+
+    /** "Áp dụng" ở màn Tuỳ chỉnh màn hình chính. */
+    fun onApplyLayout(layout: HomeLayout) {
+        viewModelScope.launch { settings.setHomeLayout(layout) }
+    }
 }
 
 /**

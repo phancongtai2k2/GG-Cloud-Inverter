@@ -1,5 +1,6 @@
 package vn.ggpower.inverter.ui.data
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,7 +13,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -20,16 +20,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.foundation.background
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
 import vn.ggpower.inverter.R
 import vn.ggpower.inverter.domain.format.GgFormat
 import vn.ggpower.inverter.domain.project.ProjectStatus
@@ -44,9 +49,6 @@ import vn.ggpower.inverter.ui.projects.ProjectStatusChip
 import vn.ggpower.inverter.ui.theme.GgRadius
 import vn.ggpower.inverter.ui.theme.GgSpacing
 import vn.ggpower.inverter.ui.theme.GgTheme
-import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZoneId
 
 // Phần dùng chung của màn 17 · Theo dõi dữ liệu (inverter và pin), theo DataInverter / DataBattery.dc.html.
 
@@ -105,7 +107,7 @@ private fun ageText(age: DataAge): String = when (age) {
 }
 
 /**
- * Thẻ danh sách hai cột (§17.5): đệm 4 16; mỗi dòng cao tối thiểu 48, đệm 8, viền trên giữa các dòng; tên 13/18;
+ * Thẻ danh sách hai cột (§17.5): đệm 4 16; mỗi dòng cao tối thiểu 48, đệm 8, không kẻ phân cách; tên 13/18;
  * giá trị 14/20 600 số đều canh phải. Mã thanh ghi không hiển thị cho người dùng (quyết 06/10/2026).
  * Giá trị dài (ví dụ danh sách mã lỗi) xuống dòng riêng dưới tên: nếu để cùng hàng, nó chiếm hết bề ngang và tên bị
  * ép xuống dòng từng chữ cái.
@@ -114,8 +116,7 @@ private fun ageText(age: DataAge): String = when (age) {
 fun DataRowsCard(rows: List<DataRow>) {
     val colors = GgTheme.colors
     GgCard(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)) {
-        rows.forEachIndexed { i, row ->
-            if (i > 0) HorizontalDivider(thickness = 1.dp, color = colors.cardBorder)
+        rows.forEach { row ->
             val labelStyle = GgTheme.typography.bodySm.copy(lineHeight = 18.sp)
             val valueStyle = GgTheme.typography.body.copy(fontSize = 14.sp, lineHeight = 20.sp, fontWeight = FontWeight.SemiBold, fontFeatureSettings = "tnum")
             val rowModifier = Modifier
@@ -179,4 +180,20 @@ fun ColumnScope.DataErrorBlock(noConnection: Boolean, onRetry: () -> Unit) {
         )
         SecondaryButton(stringResource(R.string.action_retry), onClick = onRetry, size = ButtonSize.Medium)
     }
+}
+
+/**
+ * Một nhóm dữ liệu xếp dọc (gg-inverter-design DataInverter / DataBattery: không còn tab chọn nhóm): tiêu đề in hoa
+ * 12/16 600, giãn chữ 0,06 em, `inkMuted`, đệm ngang 4; nhóm sau cách thêm 8 ở trên. [content] mặc định là thẻ các dòng.
+ */
+@Composable
+fun DataSection(title: String, first: Boolean, content: @Composable () -> Unit) {
+    Text(
+        title.uppercase(),
+        style = GgTheme.typography.caption.copy(fontWeight = FontWeight.SemiBold, letterSpacing = 0.06.em),
+        color = GgTheme.colors.inkMuted,
+        modifier = Modifier.padding(start = GgSpacing.space1, end = GgSpacing.space1, top = if (first) 0.dp else GgSpacing.space2)
+            .semantics { heading() },
+    )
+    content()
 }

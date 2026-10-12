@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Chuyển từ SVG trong gg-inverter-design Main.dc.html (viewBox 24). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="20dp" android:height="20dp" android:viewportWidth="24" android:viewportHeight="24">
+    <path android:fillColor="#FF000000" android:pathData="M7.4,6a1.6,1.6 0,1 1,3.2,0a1.6,1.6 0,1 1,-3.2,0ZM13.4,6a1.6,1.6 0,1 1,3.2,0a1.6,1.6 0,1 1,-3.2,0ZM7.4,12a1.6,1.6 0,1 1,3.2,0a1.6,1.6 0,1 1,-3.2,0ZM13.4,12a1.6,1.6 0,1 1,3.2,0a1.6,1.6 0,1 1,-3.2,0ZM7.4,18a1.6,1.6 0,1 1,3.2,0a1.6,1.6 0,1 1,-3.2,0ZM13.4,18a1.6,1.6 0,1 1,3.2,0a1.6,1.6 0,1 1,-3.2,0Z" />
+</vector>

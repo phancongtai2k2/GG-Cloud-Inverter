@@ -23,7 +23,7 @@ public sealed class ContentOptions
 }
 
 /// <summary>Statistics read from the roll-up tables. Closed periods never change and are cached.</summary>
-public sealed class StatsService(Db db, IMemoryCache cache, BackfillTracker backfill, IOptions<StatsOptions> options, TimeProvider clock)
+public sealed class StatsService(Db db, IMemoryCache cache, ICacheVersions versions, IOptions<StatsOptions> options, TimeProvider clock)
 {
     // A period counts as closed (never changing again) one day after it ended: until then a datalogger
     // that was cut off around midnight may still deliver the samples it stored.
@@ -68,7 +68,7 @@ public sealed class StatsService(Db db, IMemoryCache cache, BackfillTracker back
             default: count = 12; closed = Settled(new DateOnly(anchor.Year, 12, 31), today); break;
         }
         // The data version changes when stored samples were added to the past, which drops older cache entries.
-        var key = $"stats:{serial}:{backfill.Version(serial)}:{period}:{anchor:yyyyMMdd}";
+        var key = $"stats:{serial}:{await versions.VersionAsync(serial)}:{period}:{anchor:yyyyMMdd}";
         if (closed && cache.TryGetValue(key, out object? hit)) return (hit!, true);
 
         var rows = new Bucket[count];
@@ -135,7 +135,7 @@ public sealed class StatsService(Db db, IMemoryCache cache, BackfillTracker back
     {
         var serial = a.PrimarySerial;
         var closed = Settled(date, Today(a.Zone));
-        var key = $"curves:{serial}:{backfill.Version(serial)}:{date:yyyyMMdd}";
+        var key = $"curves:{serial}:{await versions.VersionAsync(serial)}:{date:yyyyMMdd}";
         if (closed && cache.TryGetValue(key, out object? hit)) return (hit!, true);
         var from = LocalMidnightUtc(date, a.Zone);
         IEnumerable<dynamic> rows = [];
@@ -167,6 +167,15 @@ public sealed class StatsService(Db db, IMemoryCache cache, BackfillTracker back
     {
         await using var c = await db.OpenAsync(ct);
         return await c.ExecuteScalarAsync<double?>("SELECT pv_kwh FROM rollup_1d WHERE serial = @serial AND day = @day", new { serial, day }) ?? 0;
+    }
+
+    /// <summary>kWh charged into the battery on a local day: the PV part and the rest (from the grid).</summary>
+    public async Task<ChargedToday> DayChargeAsync(string serial, DateOnly day, CancellationToken ct)
+    {
+        await using var c = await db.OpenAsync(ct);
+        var r = await c.QuerySingleOrDefaultAsync<(double Pv, double Total)?>(
+            "SELECT pv_charge_kwh, charge_kwh FROM rollup_1d WHERE serial = @serial AND day = @day", new { serial, day });
+        return r is { } v ? new ChargedToday(v.Pv, Math.Max(v.Total - v.Pv, 0)) : new ChargedToday(0, 0);
     }
 
     /// <summary>Average load of the last 7 days in kW (for the backup-hours estimate).</summary>

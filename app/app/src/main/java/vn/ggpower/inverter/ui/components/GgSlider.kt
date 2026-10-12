@@ -53,6 +53,8 @@ data class SliderTickLabel(val at: Int, val text: String)
  * Vị trí vẽ theo [scale] (prototype vẽ trên thang 0–100 % dù giá trị nhỏ nhất là 5), giá trị bị kẹp trong
  * [valueRange] và làm tròn theo [step]. Kéo hoặc chạm đều đổi giá trị; hỗ trợ TalkBack qua `setProgress`.
  * [onValueChangeFinished]: gọi khi thả tay, sau một lần chạm hoặc sau `setProgress` (để mở hộp xác nhận).
+ * Khoá ([enabled] = false): phần đã chọn và viền núm đổi sang `sliderDisabled`; [dimmed] làm mờ ray 50 % (Config.dc.html
+ * chỉ mờ khi chưa có truyền thông BMS, còn khoá vì đang ghi / mất kết nối thì không).
  */
 @Composable
 fun GgSlider(
@@ -66,6 +68,7 @@ fun GgSlider(
     tickLabels: List<SliderTickLabel> = emptyList(),
     valueText: String = value.toString(),
     enabled: Boolean = true,
+    dimmed: Boolean = false,
     onValueChangeFinished: () -> Unit = {},
 ) {
     val colors = GgTheme.colors
@@ -79,11 +82,13 @@ fun GgSlider(
         return stepped.coerceIn(valueRange.first, valueRange.last)
     }
 
-    Column(modifier = modifier.alpha(if (enabled) 1f else 0.5f)) {
+    val fill = if (enabled) colors.energyBattery else colors.sliderDisabled
+    Column(modifier = modifier) {
         BoxWithConstraints(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(44.dp)
+                .alpha(if (dimmed) 0.5f else 1f)
                 .semantics {
                     stateDescription = valueText
                     progressBarRangeInfo = ProgressBarRangeInfo(
@@ -127,7 +132,7 @@ fun GgSlider(
             // Ray
             Box(Modifier.fillMaxWidth().height(6.dp).clip(CircleShape).background(colors.surfaceSunken))
             // Phần đã chọn
-            Box(Modifier.width(width * fractionOf(value)).height(6.dp).clip(CircleShape).background(colors.energyBattery))
+            Box(Modifier.width(width * fractionOf(value)).height(6.dp).clip(CircleShape).background(fill))
             // Vạch mốc
             marks.forEach { m ->
                 Box(Modifier.offset(x = width * fractionOf(m) - 1.dp).size(2.dp, 14.dp).background(colors.sliderTick))
@@ -140,7 +145,7 @@ fun GgSlider(
                     .shadow(2.dp, CircleShape, ambientColor = colors.shadow, spotColor = colors.shadow)
                     .clip(CircleShape)
                     .background(colors.surfaceRaised)
-                    .border(2.dp, colors.energyBattery, CircleShape),
+                    .border(2.dp, fill, CircleShape),
             )
         }
         if (tickLabels.isNotEmpty()) {
@@ -188,6 +193,7 @@ fun LabeledSlider(
     marks: List<Int> = emptyList(),
     tickLabels: List<SliderTickLabel> = emptyList(),
     enabled: Boolean = true,
+    dimmed: Boolean = false,
     onValueChangeFinished: () -> Unit = {},
 ) {
     Layout(
@@ -208,7 +214,7 @@ fun LabeledSlider(
         }
         GgSlider(
             value = value, onValueChange = onValueChange, valueRange = valueRange, step = step,
-            scale = scale, marks = marks, tickLabels = tickLabels, valueText = valueText, enabled = enabled,
+            scale = scale, marks = marks, tickLabels = tickLabels, valueText = valueText, enabled = enabled, dimmed = dimmed,
             onValueChangeFinished = onValueChangeFinished,
         )
         },

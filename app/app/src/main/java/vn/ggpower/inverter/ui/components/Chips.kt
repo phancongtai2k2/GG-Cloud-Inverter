@@ -51,8 +51,8 @@ fun GgFilterChip(
             modifier = Modifier
                 .height(36.dp)
                 .clip(RoundedCornerShape(GgRadius.radiusPill))
-                .background(if (selected) colors.primary else colors.surfaceRaised)
-                .border(1.dp, if (selected) colors.primary else colors.lineStrong, RoundedCornerShape(GgRadius.radiusPill))
+                .background(if (selected) colors.primaryFill else colors.surfaceRaised)
+                .border(1.dp, if (selected) colors.primaryFill else colors.lineStrong, RoundedCornerShape(GgRadius.radiusPill))
                 .padding(horizontal = 14.dp),
             contentAlignment = Alignment.Center,
         ) {

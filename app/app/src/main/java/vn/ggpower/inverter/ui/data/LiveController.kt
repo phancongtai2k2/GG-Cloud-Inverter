@@ -18,13 +18,13 @@ import vn.ggpower.inverter.data.telemetry.TelemetryLoadException
 import java.time.Clock
 import java.time.Instant
 
-/** Trạng thái màn 17 cho số liệu kiểu [T] và nhóm dữ liệu kiểu [G]. */
-sealed interface LiveUiState<out T, out G> {
-    data object Loading : LiveUiState<Nothing, Nothing>
-    data class Error(val noConnection: Boolean) : LiveUiState<Nothing, Nothing>
+/** Trạng thái màn 17 cho số liệu kiểu [T]. Mọi nhóm dữ liệu hiện cùng lúc, không còn chọn nhóm (thiết kế mới). */
+sealed interface LiveUiState<out T> {
+    data object Loading : LiveUiState<Nothing>
+    data class Error(val noConnection: Boolean) : LiveUiState<Nothing>
 
     /** [now]: đồng hồ cập nhật mỗi giây để dòng "cập nhật N giây trước" chạy. */
-    data class Content<T, G>(val data: T, val now: Instant, val group: G) : LiveUiState<T, G>
+    data class Content<T>(val data: T, val now: Instant) : LiveUiState<T>
 }
 
 /**
@@ -32,9 +32,8 @@ sealed interface LiveUiState<out T, out G> {
  * còn ai theo dõi); nút làm mới mở lại luồng; lỗi khi đã có số liệu thì giữ số liệu cũ. Dùng chung inverter và pin.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
-class LiveController<T : Any, G>(
+class LiveController<T : Any>(
     private val source: () -> Flow<T>,
-    initialGroup: G,
     private val clock: Clock,
     scope: CoroutineScope,
 ) {
@@ -44,7 +43,6 @@ class LiveController<T : Any, G>(
     }
 
     private val refreshes = MutableStateFlow(0)
-    private val group = MutableStateFlow(initialGroup)
     private var last: T? = null
 
     private val feed: Flow<Feed<T>> = refreshes.flatMapLatest {
@@ -63,18 +61,16 @@ class LiveController<T : Any, G>(
         }
     }
 
-    val state: StateFlow<LiveUiState<T, G>> =
-        combine(feed, ticker, group) { f, now, g ->
+    val state: StateFlow<LiveUiState<T>> =
+        combine(feed, ticker) { f, now ->
             when (f) {
                 is Feed.Data -> {
                     last = f.value
-                    LiveUiState.Content(f.value, now, g)
+                    LiveUiState.Content(f.value, now)
                 }
-                is Feed.Failed -> last?.let { LiveUiState.Content(it, now, g) } ?: LiveUiState.Error(f.noConnection)
+                is Feed.Failed -> last?.let { LiveUiState.Content(it, now) } ?: LiveUiState.Error(f.noConnection)
             }
         }.stateIn(scope, SharingStarted.WhileSubscribed(5_000), LiveUiState.Loading)
-
-    fun onGroupChange(g: G) { group.value = g }
 
     fun onRefresh() = refreshes.update { it + 1 }
 }

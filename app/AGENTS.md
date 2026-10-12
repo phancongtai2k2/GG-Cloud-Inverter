@@ -63,7 +63,7 @@ app/src/main/res/values-en/strings.xml   (tiếng Anh, bổ sung sau)
 ## 7. Dữ liệu và API
 
 - Mỗi màn đọc dữ liệu qua repository interface. Giai đoạn này dùng `Fake…Repository` trả về dữ liệu mẫu lấy từ khối `<script>` của HTML tương ứng.
-- **Không tự bịa endpoint, tên trường JSON hay mã thanh ghi.** Khi cần API thật mà chưa có hợp đồng trong `docs/api/`, dừng lại và ghi vào `docs/OPEN_QUESTIONS.md`. Hợp đồng hiện có và trạng thái duyệt: `docs/api/README.md`.
+- **Không tự bịa endpoint, tên trường JSON hay mã thanh ghi.** Hợp đồng app ↔ backend: `../contract/openapi.yaml` (REST) và `../contract/realtime.md` (WebSocket). Khi cần API chưa có ở đó, dừng lại, ghi vào mục "Đang chờ" của `../contract/CHANGES.md` (và `docs/OPEN_QUESTIONS.md` nếu cần quyết định).
 - App **không bao giờ** ghi trực tiếp xuống inverter. Mọi thay đổi cấu hình: hộp xác nhận "giá trị cũ → giá trị mới" → gọi backend → chỉ cập nhật UI khi backend báo ghi thành công.
 - Cờ `BuildConfig.CONFIG_READ_ONLY` là công tắc chỉ xem: khi bật, mọi control cấu hình hiện giá trị nhưng bị vô hiệu. Theo ADR-001, bản demo **tắt** cờ này và chỉ cho ghi các tham số trong danh sách cho phép của ADR-001; các tham số khác vẫn bị vô hiệu.
 

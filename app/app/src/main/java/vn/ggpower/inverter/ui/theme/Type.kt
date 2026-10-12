@@ -17,10 +17,13 @@ val Montserrat = FontFamily(
     Font(R.font.montserrat_bold, FontWeight.Bold),
 )
 
-/** Kiểu chữ theo `docs/design/tokens/tokens.md` (mục Typography) và quy ước trên màn hình app. */
+/** Kiểu chữ theo `gg-inverter-design/design/tokens.json` (mục Typography) và quy ước trên màn hình app. */
 @Immutable
 data class GgTypography(
     val display: TextStyle,
+    val h1: TextStyle,
+    val h2: TextStyle,
+    val h3: TextStyle,
     val screenTitle: TextStyle,
     val eyebrow: TextStyle,
     val body: TextStyle,
@@ -50,6 +53,9 @@ private fun style(size: Int, line: Int, weight: FontWeight, spacing: Float = 0f)
 
 val GgTypographyDefault = GgTypography(
     display = style(48, 56, FontWeight.Bold, -0.02f),
+    h1 = style(32, 40, FontWeight.Bold, -0.01f),
+    h2 = style(24, 32, FontWeight.SemiBold),
+    h3 = style(18, 26, FontWeight.SemiBold),
     screenTitle = style(22, 28, FontWeight.SemiBold),
     eyebrow = style(12, 16, FontWeight.SemiBold, 0.2f),
     body = style(15, 24, FontWeight.Normal),

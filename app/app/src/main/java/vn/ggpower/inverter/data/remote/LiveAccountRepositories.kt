@@ -1,5 +1,6 @@
 package vn.ggpower.inverter.data.remote
 
+import vn.ggpower.inverter.domain.config.BlockReason
 import android.content.Context
 import android.net.Uri
 import androidx.core.net.toUri
@@ -182,8 +183,11 @@ class LiveConfigRepository @Inject constructor(private val api: ApiClient) : Con
                 else -> null
             }
         }.toSet(),
-        // Nhóm bị chặn vì thiết bị chưa hỗ trợ đã không nằm trong writable_groups, nên control tự bị khoá.
-        blockedGroups = emptyMap(),
+        // Chỉ BMS_NOT_CONNECTED cần lời giải thích riêng (contract 2026-10-11); NOT_SUPPORTED_BY_DEVICE đã không nằm trong
+        // writable_groups nên control tự bị khoá.
+        blockedGroups = o?.arr("blocked_groups").orEmpty()
+            .filter { it.str("group") == "backup_soc" && it.str("reason") == "BMS_NOT_CONNECTED" }
+            .associate { WriteGroup.BackupSoc to BlockReason.BmsNotConnected },
         writableModes = o?.let { strings(it, "writable_modes") }.orEmpty().map(::operatingMode).filter { it != OperatingMode.Unknown }.toSet(),
     )
 

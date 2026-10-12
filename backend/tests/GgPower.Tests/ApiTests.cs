@@ -10,6 +10,7 @@ using GgPower.Infrastructure;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Npgsql;
@@ -140,11 +141,22 @@ public sealed class FakeDevices : IMqttPublisher
 }
 
 /// <summary>Runs the real application against the test database (recreated empty on every run).</summary>
-public sealed class AppFixture : WebApplicationFactory<Program>
+public class AppFixture : WebApplicationFactory<Program>
 {
     public readonly CapturingOtpSender Otp = new();
     public readonly FakeDevices Devices = new();
     private int _counter;
+    private readonly Dictionary<string, string?> _settings = [];
+
+    /// <summary>
+    /// Another host on the database the main fixture prepared (it does not wipe it), with its own settings, such as the
+    /// instances of a multi-instance test. <paramref name="firstNumber"/> keeps its serials and users apart.
+    /// </summary>
+    protected AppFixture(Dictionary<string, string?> settings, int firstNumber)
+    {
+        _settings = settings;
+        _counter = firstNumber;
+    }
 
     public AppFixture()
     {
@@ -177,6 +189,7 @@ public sealed class AppFixture : WebApplicationFactory<Program>
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
+        if (_settings.Count > 0) builder.ConfigureAppConfiguration((_, c) => c.AddInMemoryCollection(_settings));
         builder.ConfigureTestServices(s =>
         {
             s.RemoveAll<IOtpSender>();
@@ -240,9 +253,13 @@ public sealed class AppFixture : WebApplicationFactory<Program>
 
     // ----- device helpers -----
 
-    public Task Feed(string serial, string kind, object payload, bool retained = false) =>
-        Service<IngestPipeline>().HandleAsync($"solar/ggp/inverter/{serial}/up/{kind}",
+    /// <summary>Delivers one device message and waits until its database work (status, alarms…) is done.</summary>
+    public async Task Feed(string serial, string kind, object payload, bool retained = false)
+    {
+        await Service<IngestPipeline>().HandleAsync($"solar/ggp/inverter/{serial}/up/{kind}",
             Encoding.UTF8.GetBytes(payload as string ?? JsonSerializer.Serialize(payload)), CancellationToken.None, retained);
+        await Service<DeviceEventQueue>().DrainAsync();
+    }
 
     public static object Telemetry(string serial, double pv = 1500, double grid = 200, double load = 900, double battFlow = -800, double soc = 60, long? ts = null) => new
     {
@@ -498,6 +515,37 @@ public class IngestTests(AppFixture app)
     }
 
     [Fact]
+    public async Task DataloggerLinkAndBatteryLimitsReachTheDeviceScreens()
+    {
+        var owner = await app.NewUser();
+        var serial = await app.NewDevice();
+        var project = await app.NewProject(owner, serial);
+        await app.Feed(serial, "status", new { sn = serial, state = "online", logger_fw = "1.0.17", ip_addr = "192.168.1.23", signal_rssi = -61 });
+
+        // Current firmware: no own serial, no link type → serial unknown, link is the Wi-Fi the product ships with.
+        var logger = (await app.Get($"/api/v1/projects/{project}/devices", owner.Access)).Body!.AsArray()[0]!["datalogger"]!;
+        Assert.Null(logger["serial"]);
+        Assert.Equal("wifi", (string)logger["connection"]!);
+        Assert.Equal(-61, (int)logger["rssi_dbm"]!);
+        Assert.Equal("192.168.1.23", (string)logger["ip"]!);
+        Assert.Equal("1.0.17", (string)logger["firmware"]!);
+        Assert.True((bool)logger["online"]!);
+
+        // Newer firmware sends them; an unknown link type is ignored.
+        await app.Feed(serial, "status", new { sn = serial, state = "online", logger_sn = "GGW-25031501", conn_type = "ethernet" });
+        var frame = (await app.Get($"/api/v1/projects/{project}/telemetry", owner.Access)).Body!;
+        Assert.Equal("GGW-25031501", (string)frame["datalogger"]!["serial"]!);
+        Assert.Equal("ethernet", (string)frame["datalogger"]!["connection"]!);
+        Assert.Equal(-61, (int)frame["datalogger"]!["rssi_dbm"]!);   // kept from the earlier status
+
+        // Battery limits: discharge stops at the backup SOC; the charge limit waits for the firmware.
+        await app.Feed(serial, "battery", new { sn = serial, ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds(), soc = 76, voltage = 52.0, current = 3.0, present = true });
+        var battery = (await app.Get($"/api/v1/projects/{project}/telemetry", owner.Access)).Body!["battery"]!;
+        Assert.Equal(10, (int)battery["discharge_limit_soc_percent"]!);
+        Assert.Null(battery["charge_limit_soc_percent"]);
+    }
+
+    [Fact]
     public async Task ReplayedBrokerMessagesAreNotASignOfLife()
     {
         var owner = await app.NewUser();
@@ -581,6 +629,18 @@ public class IngestTests(AppFixture app)
         Assert.True(stats["energy_buckets"]!.AsArray().Sum(b => (double)b!["pv_kwh"]!) > 0.05);
         var curves = (await app.Get($"/api/v1/projects/{project}/day-curves?date={today}", owner.Access)).Body!;
         Assert.NotEmpty(curves["power"]!.AsArray());
+
+        // Home screen: charged today by source (1 kW into the battery, all of it PV surplus), CO₂ from today's yield.
+        var overview = (await app.Get($"/api/v1/projects/{project}/overview", owner.Access)).Body!;
+        Assert.Equal("Test Inverter", (string)overview["model"]!);
+        Assert.Equal(5.1, (double)overview["co2_today_kg"]!);   // 7.5 kWh × 0.6766
+        var charged = overview["battery_charged_today"]!;
+        Assert.InRange((double)charged["from_pv_kwh"]!, 0.01, 0.03);
+        Assert.Equal(0, (double)charged["from_grid_kwh"]!);
+        // The roll-up copied the same figure into the live state, so the realtime frame carries it too.
+        var frame = (await app.Get($"/api/v1/projects/{project}/telemetry", owner.Access)).Body!;
+        Assert.Equal((double)charged["from_pv_kwh"]!, (double)frame["battery_charged_today"]!["from_pv_kwh"]!);
+        Assert.Equal(5.1, (double)frame["co2_today_kg"]!);
 
         var closed = await app.Get($"/api/v1/projects/{project}/stats?period=day&anchor=2026-01-01", owner.Access);
         Assert.Contains("immutable", closed.Raw.Headers.CacheControl!.ToString());
@@ -751,7 +811,7 @@ public class FieldSignalTests(AppFixture app)
         var project = await app.NewProject(owner, serial);
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         var liveBefore = (string)(await app.Get($"/api/v1/projects/{project}/telemetry", owner.Access)).Body!["telemetry"]!["ts"]!;
-        var versionBefore = app.Service<BackfillTracker>().Version(serial);
+        var versionBefore = await app.Service<ICacheVersions>().VersionAsync(serial);
 
         // ten samples of 3 kW, two minutes apart, from an hour ago
         var start = now - 3600;
@@ -784,11 +844,11 @@ public class FieldSignalTests(AppFixture app)
         {
             await app.Service<RollupService>().RunOnceAsync(DateTimeOffset.UtcNow, CancellationToken.None);
             pv = await c.ExecuteScalarAsync<double?>("SELECT sum(pv_kwh) FROM rollup_15m WHERE serial = @serial AND bucket < @cutoff", new { serial, cutoff }) ?? 0;
-            if (pv > 0.99 && app.Service<BackfillTracker>().Version(serial) > versionBefore) break;
+            if (pv > 0.99 && await app.Service<ICacheVersions>().VersionAsync(serial) > versionBefore) break;
             await Task.Delay(250);
         }
         Assert.InRange(pv, 0.99, 1.01);
-        Assert.True(app.Service<BackfillTracker>().Version(serial) > versionBefore);
+        Assert.True(await app.Service<ICacheVersions>().VersionAsync(serial) > versionBefore);
         var days = await c.ExecuteScalarAsync<double?>("SELECT sum(pv_kwh) FROM rollup_1d WHERE serial = @serial", new { serial }) ?? 0;
         Assert.True(days > 0.99, $"daily roll-up {days}");
     }
@@ -986,6 +1046,21 @@ public class CommandTests(AppFixture app)
         Assert.Equal("NOT_SUPPORTED_BY_DEVICE", (string)config["write_access"]!["blocked_groups"]![0]!["reason"]!);
         var (s, body) = await Submit(owner3, old, new { group = "backup_soc", based_on_version = await app.Version(owner3, old), soc_percent = 30 });
         Assert.Equal((HttpStatusCode.Forbidden, "GROUP_NOT_IN_ALLOWLIST"), (s, (string)body!["code"]!));
+
+        // no link to the BMS: blocked with its own reason (the app explains it), and refused; it comes back with the link
+        var (owner4, noBms) = await Setup();
+        var ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        await app.Feed(noBms, "battery", new { sn = noBms, ts, soc = 60, voltage = 52.0, current = 0.0, present = true, bms_comm = "fault" });
+        config = (await app.Get($"/api/v1/devices/{noBms}/config", owner4.Access)).Body!;
+        Assert.DoesNotContain("backup_soc", config["write_access"]!["writable_groups"]!.AsArray().Select(x => (string)x!));
+        Assert.Equal(("backup_soc", "BMS_NOT_CONNECTED"),
+            ((string)config["write_access"]!["blocked_groups"]![0]!["group"]!, (string)config["write_access"]!["blocked_groups"]![0]!["reason"]!));
+        (s, body) = await Submit(owner4, noBms, new { group = "backup_soc", based_on_version = await app.Version(owner4, noBms), soc_percent = 30 });
+        Assert.Equal((HttpStatusCode.Conflict, "BMS_NOT_CONNECTED"), (s, (string)body!["code"]!));
+        await app.Feed(noBms, "battery", new { sn = noBms, ts = ts + 1, soc = 60, voltage = 52.0, current = 0.0, present = true, bms_comm = "ok" });
+        config = (await app.Get($"/api/v1/devices/{noBms}/config", owner4.Access)).Body!;
+        Assert.Contains("backup_soc", config["write_access"]!["writable_groups"]!.AsArray().Select(x => (string)x!));
+        Assert.Empty(config["write_access"]!["blocked_groups"]!.AsArray());
     }
 
     [Fact]

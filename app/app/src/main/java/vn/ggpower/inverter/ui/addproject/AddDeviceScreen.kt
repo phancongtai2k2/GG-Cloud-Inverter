@@ -21,7 +21,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -113,7 +112,7 @@ fun AddDeviceScreen(
             verticalArrangement = Arrangement.spacedBy(GgSpacing.space4),
         ) {
             StepProgress(addProjectSteps(), current = 1)
-            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(GgSpacing.space4)) {
                 Text(
                     stringResource(R.string.add_device_intro),
                     style = GgTheme.typography.body.copy(fontSize = 14.sp, lineHeight = 22.sp),
@@ -246,8 +245,7 @@ private fun DeviceCard(device: DeviceIdentity) {
             StatusChip(stringResource(R.string.add_device_valid), StatusTone.Success)
         }
         Column {
-            rows.forEachIndexed { i, (label, value) ->
-                if (i > 0) HorizontalDivider(thickness = 1.dp, color = colors.cardBorder)
+            rows.forEach { (label, value) ->
                 Row(
                     Modifier.fillMaxWidth().padding(vertical = GgSpacing.space2).heightIn(min = 44.dp),
                     verticalAlignment = Alignment.CenterVertically,

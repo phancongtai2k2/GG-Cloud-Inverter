@@ -32,5 +32,34 @@ data class BatterySummary(
     val sohPercent: Int?,
 )
 
-/** Thiết bị của một dự án: mỗi inverter kèm dàn pin của nó (nếu có). */
-data class DeviceUnit(val inverter: InverterSummary, val battery: BatterySummary?)
+/** Thiết bị của một dự án: mỗi inverter kèm dàn pin (nếu có) và datalogger của nó. */
+data class DeviceUnit(val inverter: InverterSummary, val battery: BatterySummary?, val datalogger: DataloggerSummary? = null)
+
+/** Mức sóng Wi-Fi hiển thị ở thẻ Datalogger (gg-inverter-design Device.dc.html: "Mạnh"). */
+enum class SignalLevel {
+    Strong, Medium, Weak;
+
+    companion object {
+        /** Từ RSSI (dBm): ≥ −60 mạnh, ≥ −70 trung bình, còn lại yếu (ngưỡng Wi-Fi thông dụng). */
+        fun fromRssi(rssi: Int?): SignalLevel? = when {
+            rssi == null -> null
+            rssi >= -60 -> Strong
+            rssi >= -70 -> Medium
+            else -> Weak
+        }
+    }
+}
+
+enum class LinkType { WiFi, Ethernet, Cellular }
+
+/**
+ * Thẻ Datalogger Wi-Fi ở màn 5 (thiết kế mới). Giá trị null hiện "—": backend chưa trả serial datalogger, tín hiệu và
+ * kiểu kết nối (contract/CHANGES.md, mục "Đang chờ"); [online] null khi chưa biết.
+ */
+data class DataloggerSummary(
+    val serial: String?,
+    val online: Boolean?,
+    val signal: SignalLevel?,
+    val link: LinkType?,
+    val firmware: String?,
+)

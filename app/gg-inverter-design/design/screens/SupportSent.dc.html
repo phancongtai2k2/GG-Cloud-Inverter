@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Gửi yêu cầu thành công</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&amp;display=swap">
+<style>
+html,body{scrollbar-width:none}html::-webkit-scrollbar,body::-webkit-scrollbar,*::-webkit-scrollbar{display:none;width:0;height:0}
+body{margin:0;font-family:Montserrat,system-ui,-apple-system,"Segoe UI",sans-serif;background:#f5f7f3;color:#13201b}
+a{color:#0f7a3a}a:hover{color:#0b6630}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:none;box-shadow:0 0 0 2px #ffffff,0 0 0 4px #0f7a3a}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; position: relative; display: flex; flex-direction: column; background: #f5f7f3; color: #13201b; font-family: Montserrat, system-ui, sans-serif; overflow: hidden">
+<header style="height: 64px; flex-shrink: 0; display: flex; align-items: center; gap: 4px; padding: 0 8px 0 4px"><a href="Support.dc.html" aria-label="Quay lại" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 999px; color: #13201b; text-decoration: none"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M19 12H5M11 6l-6 6 6 6"></path></svg></a><span style="flex-grow: 1"></span></header>
+<main style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; padding: 24px 20px 0; overflow: hidden">
+<span style="width: 72px; height: 72px; flex-shrink: 0; border-radius: 999px; background: #e3f3e8; color: #0f7a3a; display: flex; align-items: center; justify-content: center"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+<h1 style="margin: 16px 0 0; font-size: 22px; line-height: 28px; font-weight: 600; text-align: center">Đã gửi yêu cầu</h1>
+<section style="margin-top: 24px; width: 100%; box-sizing: border-box; background: #f9faf7; border-radius: 16px; box-shadow: 0 1px 2px rgba(19,32,27,0.06), 0 2px 8px rgba(19,32,27,0.05); padding: 10px 6px 10px 16px; display: flex; align-items: center; gap: 12px">
+<div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 12px; line-height: 16px; font-weight: 500; color: #56625c">Mã yêu cầu</span><span style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 15px; line-height: 22px; font-weight: 600; color: #13201b">{{code}}</span></div>
+<button type="button" aria-label="{{cp.label}}" onClick="{{cp.copy}}" style="width: 48px; height: 48px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; padding: 0; border: none; border-radius: 999px; background: transparent; cursor: pointer"><span style="{{cp.innerStyle}}"><sc-if value="{{cp.off}}" hint-placeholder-val="{{true}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M10.5 8.5h7a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-7a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2z"></path><path d="M15.5 8.5V6a1.5 1.5 0 0 0-1.5-1.5H6A1.5 1.5 0 0 0 4.5 6v8A1.5 1.5 0 0 0 6 15.5h2.5"></path></svg></sc-if><sc-if value="{{cp.on}}" hint-placeholder-val="{{false}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></sc-if></span></button>
+</section>
+<sc-if value="{{technical}}" hint-placeholder-val="{{true}}"><p style="margin: 12px 0 0; font-size: 13px; line-height: 20px; color: #56625c; text-align: center">Thời gian phản hồi dự kiến: trong 4 giờ làm việc.</p></sc-if>
+<div role="status" aria-live="polite" style="{{cp.toastStyle}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>Đã sao chép mã yêu cầu</div>
+</main>
+<div style="flex-shrink: 0; display: flex; flex-direction: column; gap: 10px; padding: 0 20px 16px">
+<a href="Support.dc.html" style="height: 52px; display: flex; align-items: center; justify-content: center; border-radius: 10px; background: #0f7a3a; color: #ffffff; font-size: 15px; line-height: 20px; font-weight: 600; text-decoration: none">Xem yêu cầu của tôi</a>
+<a href="Service.dc.html" style="height: 52px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border-radius: 10px; border: 1px solid #7f8b85; background: #ffffff; color: #13201b; font-size: 15px; line-height: 20px; font-weight: 600; text-decoration: none">Về Dịch vụ</a>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"type": {"editor": "enum", "options": ["Kỹ thuật", "Tài khoản", "Khác"], "default": "Kỹ thuật", "section": "Loại yêu cầu"}, "$preview": {"width": 390, "height": 844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.state || {};
+    const copied = !!s.copied;
+    const cp = { on: copied, off: !copied, label: copied ? 'Đã sao chép mã yêu cầu' : 'Sao chép mã yêu cầu',
+      copy: () => { this.setState({ copied: true }); clearTimeout(this.__cpT); this.__cpT = setTimeout(() => this.setState({ copied: false }), 2000); },
+      innerStyle: 'width: 44px; height: 44px; border-radius: 999px; display: flex; align-items: center; justify-content: center; ' + (copied ? 'background: #e3f3e8; color: #0f7a3a' : 'background: transparent; color: #56625c'),
+      toastStyle: (copied ? 'visibility: visible' : 'visibility: hidden') + '; margin-top: 12px; display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: #13201b; color: #ffffff; font-size: 12px; line-height: 16px; font-weight: 600; white-space: nowrap' };
+    return { code: '#HT-0310-0151', technical: (this.props.type || 'Kỹ thuật') === 'Kỹ thuật', cp };
+  }
+}
+</script>
+</body>
+</html>

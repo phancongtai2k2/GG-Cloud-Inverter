@@ -6,6 +6,7 @@ Phần cloud của hệ thống giám sát và điều khiển biến tần GG P
 | Thư mục | Nội dung |
 |---|---|
 | [`backend/`](backend/) | Backend .NET 9 (API REST + WebSocket, nhận MQTT, PostgreSQL), bộ test, và cấu hình triển khai Docker Compose (`backend/deploy/`, gồm cả trang web tĩnh) |
+| [`contract/`](contract/) | Hợp đồng chung app ↔ backend: `openapi.yaml` (REST), `realtime.md` (WebSocket), `CHANGES.md` (nhật ký thay đổi, file bàn giao giữa hai bên) |
 | [`app/`](app/) | Ứng dụng Android (Kotlin, Jetpack Compose). Flavor `mock` chạy dữ liệu giả, flavor `live` nối với backend |
 
 Firmware của datalogger nằm ở kho riêng và không thuộc kho này.

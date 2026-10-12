@@ -1,12 +1,15 @@
 package vn.ggpower.inverter.ui.battery
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.CubicBezierEasing
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,20 +23,20 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
-import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.withTransform
@@ -50,16 +53,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.delay
 import vn.ggpower.inverter.R
 import vn.ggpower.inverter.data.battery.FakeBatteryEnergyRepository
 import vn.ggpower.inverter.domain.battery.BatteryEnergy
-import vn.ggpower.inverter.domain.settings.TemperatureUnit
-import vn.ggpower.inverter.ui.format.temperatureText
-import vn.ggpower.inverter.domain.battery.EnergyShares
 import vn.ggpower.inverter.domain.battery.activity
-import vn.ggpower.inverter.domain.battery.shares
+import vn.ggpower.inverter.domain.battery.availableKwh
 import vn.ggpower.inverter.domain.format.GgFormat
 import vn.ggpower.inverter.domain.home.BatteryActivity
+import vn.ggpower.inverter.domain.settings.TemperatureUnit
 import vn.ggpower.inverter.ui.components.ButtonSize
 import vn.ggpower.inverter.ui.components.GgCard
 import vn.ggpower.inverter.ui.components.Metric
@@ -68,6 +70,7 @@ import vn.ggpower.inverter.ui.components.ScreenHeader
 import vn.ggpower.inverter.ui.components.SecondaryButton
 import vn.ggpower.inverter.ui.components.StatusChip
 import vn.ggpower.inverter.ui.components.StatusTone
+import vn.ggpower.inverter.ui.format.temperatureText
 import vn.ggpower.inverter.ui.theme.GgPowerTheme
 import vn.ggpower.inverter.ui.theme.GgRadius
 import vn.ggpower.inverter.ui.theme.GgSpacing
@@ -105,7 +108,6 @@ fun BatteryEnergyScreen(
 
 @Composable
 private fun Content(e: BatteryEnergy, temperatureUnit: TemperatureUnit) {
-    val shares = e.content?.shares()
     val kwh = stringResource(R.string.unit_kwh)
     Column(
         Modifier
@@ -118,10 +120,9 @@ private fun Content(e: BatteryEnergy, temperatureUnit: TemperatureUnit) {
         NameRow(e)
         Row(horizontalArrangement = Arrangement.spacedBy(GgSpacing.space3)) {
             BigStat(e.socPercent?.let { GgFormat.number(it, 0) }, stringResource(R.string.unit_percent), stringResource(R.string.bat_soc), Modifier.weight(1f))
-            BigStat(shares?.let { GgFormat.number(it.availableKwh, 1) }, kwh, stringResource(R.string.energy_available), Modifier.weight(1f))
+            BigStat(e.availableKwh?.let { GgFormat.number(it, 1) }, kwh, stringResource(R.string.energy_available), Modifier.weight(1f))
         }
-        BatteryFigure(e, shares)
-        Legend(shares)
+        BatteryFigure(e)
         Params(e, temperatureUnit)
     }
 }
@@ -162,7 +163,8 @@ private fun BigStat(value: String?, unit: String, label: String, modifier: Modif
 
 // ---------- Khối pin 3D ----------
 
-/** Khung của BatteryEnergy.dc.html (viewBox 0 24 350 320): mặt trước x 80–220, đáy 300, cao 240; chiều sâu (44, -26). */
+/** Khung của BatteryEnergy.dc.html (viewBox −42 24 350 320): mặt trước x 80–220, đáy 300, cao 240; chiều sâu (44, −26). */
+private const val VIEW_X = -42f
 private const val VIEW_W = 350f
 private const val VIEW_TOP = 24f
 private const val VIEW_H = 320f
@@ -172,23 +174,26 @@ private const val BOTTOM = 300f
 private const val HEIGHT = 240f
 private const val DX = 44f
 private const val DY = 26f
-private const val LABEL_X = 282f
 
-/** Tâm nhãn không xuống quá 268 (prototype: nhãn "Từ lưới" ở 268) và hai nhãn cách nhau tối thiểu 52 (khối chữ cao ~42). */
-private const val LABEL_MAX_Y = 268f
-private const val LABEL_MIN_GAP = 52f
+/** Nhãn vạch giới hạn canh phải tại x 62, vạch ngắn 66–78. */
+private const val LIMIT_LABEL_X = 62f
 
 /**
- * Tung độ (toạ độ viewBox) của vạch dẫn nhãn lớp PV và lớp lưới; null khi lớp rỗng. Vạch đặt giữa lớp, đo tại giữa
- * mặt bên (giữa mặt trước lùi lên 13); prototype: PV 182, lưới 268 (bị chặn dưới).
+ * Sóng sánh khi mở màn (prototype: `<animate>` 2,6 s, bắt đầu sau 0,15 s, spline 0.4 0 0.6 1 giữa các mốc): độ lệch của
+ * mép trái mặt chất lỏng; mép phải lệch ngược dấu. Kết thúc phẳng.
  */
-internal fun labelLines(pvFraction: Double, gridFraction: Double): Pair<Float?, Float?> {
-    val gridTop = BOTTOM - HEIGHT * gridFraction.toFloat()
-    val pvTop = gridTop - HEIGHT * pvFraction.toFloat()
-    val grid = if (gridFraction > 0) minOf((gridTop + BOTTOM) / 2 - DY / 2, LABEL_MAX_Y) else null
-    var pv = if (pvFraction > 0) minOf((pvTop + gridTop) / 2 - DY / 2, LABEL_MAX_Y) else null
-    if (pv != null && grid != null && grid - pv < LABEL_MIN_GAP) pv = grid - LABEL_MIN_GAP
-    return pv to grid
+private val SLOSH_TIMES = floatArrayOf(0f, 0.1f, 0.25f, 0.4f, 0.55f, 0.7f, 0.85f, 1f)
+private val SLOSH_OFFSETS = floatArrayOf(0f, 10f, -8f, 6f, -4f, 2.5f, -1.2f, 0f)
+private val SloshEasing = CubicBezierEasing(0.4f, 0f, 0.6f, 1f)
+private const val SLOSH_MS = 2600
+private const val SLOSH_DELAY_MS = 150L
+
+/** Độ lệch mép trái của mặt chất lỏng tại tiến độ [t] (0..1) của sóng sánh. */
+internal fun sloshOffset(t: Float): Float {
+    if (t <= 0f || t >= 1f) return 0f
+    val i = SLOSH_TIMES.indexOfLast { it <= t }.coerceAtMost(SLOSH_TIMES.size - 2)
+    val local = (t - SLOSH_TIMES[i]) / (SLOSH_TIMES[i + 1] - SLOSH_TIMES[i])
+    return SLOSH_OFFSETS[i] + (SLOSH_OFFSETS[i + 1] - SLOSH_OFFSETS[i]) * SloshEasing.transform(local)
 }
 
 private val OUTLINE = listOf(
@@ -216,31 +221,29 @@ private fun poly(vararg p: Float) = Path().apply {
     close()
 }
 
-/** Một lớp năng lượng từ đáy [bottom] lên đỉnh [top]: mặt trước, mặt bên, mặt trên. */
-private fun DrawScope.layer(top: Float, bottom: Float, front: Color, side: Color, lid: Color) {
-    drawPath(poly(FRONT_L, top, FRONT_R, top, FRONT_R, bottom, FRONT_L, bottom), front)
-    drawPath(poly(FRONT_R, bottom, FRONT_R + DX, bottom - DY, FRONT_R + DX, top - DY, FRONT_R, top), side)
-    drawPath(poly(FRONT_L, top, FRONT_R, top, FRONT_R + DX, top - DY, FRONT_L + DX, top - DY), lid)
-}
-
 /**
- * Khối pin kính 3D (đặc tả §3.11): lớp dưới Từ lưới (xanh dương), lớp trên Từ PV (cam), phần trên trống; nhãn bên
- * phải gồm nguồn 11/600, năng lượng 13/700, phần trăm 11/500. Vẽ theo viewBox 350 × 320 của prototype, co giãn theo
- * bề rộng.
+ * Khối pin kính 3D (gg-inverter-design BatteryEnergy.dc.html): chất lỏng xanh tới mức SOC, mặt chất lỏng sóng sánh tắt
+ * dần khi mở màn; hai vạch nét đứt giới hạn sạc / xả từ cấu hình BMS, nhãn bên trái (12/700 + 10/500). Vẽ theo viewBox
+ * của prototype, co giãn theo bề rộng.
  */
 @Composable
-private fun BatteryFigure(e: BatteryEnergy, shares: EnergyShares?) {
+private fun BatteryFigure(e: BatteryEnergy) {
     val colors = GgTheme.colors
     val measurer = rememberTextMeasurer()
     val kwh = stringResource(R.string.unit_kwh)
     val pct = stringResource(R.string.unit_percent)
-    val pvName = stringResource(R.string.battery_from_pv)
-    val gridName = stringResource(R.string.battery_from_grid)
-    val cd = if (shares != null && e.content != null) stringResource(
-        R.string.energy_figure_cd, e.name,
-        GgFormat.trimmed(e.content.capacityKwh, 1) + " " + kwh, GgFormat.withUnit(shares.availableKwh, 1, kwh),
-        GgFormat.withUnit(shares.pvKwh, 1, kwh), GgFormat.withUnit(shares.pvPercent, 1, pct),
-        GgFormat.withUnit(shares.gridKwh, 1, kwh), GgFormat.withUnit(shares.gridPercent, 1, pct),
+    val chargeName = stringResource(R.string.energy_charge_limit)
+    val dischargeName = stringResource(R.string.energy_discharge_limit)
+    val charge = e.chargeLimitSocPercent
+    val discharge = e.dischargeLimitSocPercent
+    val capacity = e.content?.capacityKwh
+    val soc = e.socPercent
+    val cd = if (soc != null && capacity != null) stringResource(
+        R.string.energy_figure_cd, e.name, GgFormat.trimmed(capacity, 1) + " " + kwh, GgFormat.withUnit(soc, 0, pct),
+        GgFormat.withUnit(e.availableKwh ?: 0.0, 1, kwh),
+        if (charge != null && discharge != null) stringResource(
+            R.string.energy_figure_cd_limits, GgFormat.withUnit(charge.toLong(), pct), GgFormat.withUnit(discharge.toLong(), pct),
+        ) else "",
         stringResource(
             when (e.activity) {
                 BatteryActivity.Charging -> R.string.energy_cd_charging
@@ -250,14 +253,14 @@ private fun BatteryFigure(e: BatteryEnergy, shares: EnergyShares?) {
         ),
     ) else stringResource(R.string.energy_figure_cd_unknown, e.name)
     val font = GgTheme.typography.caption.fontFamily
-    val nameStyle = TextStyle(fontFamily = font, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
-    val valueStyle = TextStyle(fontFamily = font, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = colors.ink, fontFeatureSettings = "tnum")
-    val pctStyle = TextStyle(fontFamily = font, fontSize = 11.sp, fontWeight = FontWeight.Medium, color = colors.inkMuted, fontFeatureSettings = "tnum")
-    // Lớp và nhãn theo kWh / dung lượng (không dùng phần trăm đã làm tròn), như prototype.
-    val capacity = e.content?.capacityKwh
-    val pvExact = if (shares != null && capacity != null) (shares.pvKwh / capacity).toFloat() else 0f
-    val gridExact = if (shares != null && capacity != null) (shares.gridKwh / capacity).toFloat() else 0f
-    val (pvLine, gridLine) = labelLines(pvExact.toDouble(), gridExact.toDouble())
+    val limitValueStyle = TextStyle(fontFamily = font, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = colors.ink, fontFeatureSettings = "tnum")
+    val limitNameStyle = TextStyle(fontFamily = font, fontSize = 10.sp, fontWeight = FontWeight.Medium, color = colors.inkMuted)
+    val level = ((soc ?: 0.0) / 100).coerceIn(0.0, 1.0).toFloat()
+    val slosh = remember { Animatable(0f) }
+    LaunchedEffect(Unit) {
+        delay(SLOSH_DELAY_MS)
+        slosh.animateTo(1f, tween(SLOSH_MS, easing = LinearEasing))
+    }
     Canvas(
         Modifier
             .fillMaxWidth()
@@ -267,15 +270,20 @@ private fun BatteryFigure(e: BatteryEnergy, shares: EnergyShares?) {
         val s = size.width / VIEW_W
         withTransform({
             scale(s, s, Offset.Zero)
-            translate(0f, -VIEW_TOP)
+            translate(-VIEW_X, -VIEW_TOP)
         }) {
             val outline = outlinePath()
             clipPath(outline) {
                 drawPath(poly(FRONT_L, BOTTOM, FRONT_L, 60f, 124f, 34f, 264f, 34f, 264f, 274f, FRONT_R, BOTTOM), colors.batteryGlass)
-                val gridTop = BOTTOM - HEIGHT * gridExact
-                val pvTop = gridTop - HEIGHT * pvExact
-                if (gridExact > 0) layer(gridTop, BOTTOM, colors.energyGrid, colors.batteryGridSide, colors.batteryGridTop)
-                if (pvExact > 0) layer(pvTop, gridTop, colors.energyPv, colors.batteryPvSide, colors.batteryPvTop)
+                if (level > 0f) {
+                    val top = BOTTOM - HEIGHT * level
+                    val a = sloshOffset(slosh.value)
+                    val l = top + a
+                    val r = top - a
+                    drawPath(poly(FRONT_L, l, FRONT_R, r, FRONT_R, BOTTOM, FRONT_L, BOTTOM), colors.batteryLiquidFront)
+                    drawPath(poly(FRONT_R, BOTTOM, FRONT_R + DX, BOTTOM - DY, FRONT_R + DX, r - DY, FRONT_R, r), colors.batteryLiquidSide)
+                    drawPath(poly(FRONT_L, l, FRONT_R, r, FRONT_R + DX, r - DY, FRONT_L + DX, l - DY), colors.batteryLiquidTop)
+                }
                 drawRect(
                     Brush.horizontalGradient(listOf(colors.batteryHighlight.copy(alpha = 0.35f), colors.batteryHighlight.copy(alpha = 0.08f)), FRONT_L, FRONT_R),
                     topLeft = Offset(FRONT_L, 60f), size = androidx.compose.ui.geometry.Size(FRONT_R - FRONT_L, BOTTOM - 60f),
@@ -291,67 +299,29 @@ private fun BatteryFigure(e: BatteryEnergy, shares: EnergyShares?) {
                 drawLine(colors.batteryEdge, Offset(86f, 60f), Offset(216f, 60f), 1f, StrokeCap.Round)
             }
             drawPath(outline, colors.batteryOutline, style = Stroke(1.5f, join = StrokeJoin.Round))
-            listOfNotNull(pvLine, gridLine).forEach { y -> drawLine(colors.lineStrong, Offset(264f, y), Offset(278f, y), 1f) }
+            listOfNotNull(charge, discharge).forEach { limit ->
+                val y = BOTTOM - HEIGHT * limit.coerceIn(0, 100) / 100f
+                drawPath(
+                    Path().apply { moveTo(FRONT_L, y); lineTo(FRONT_R, y); lineTo(FRONT_R + DX, y - DY) },
+                    colors.batteryLimitLine,
+                    style = Stroke(1.5f, pathEffect = PathEffect.dashPathEffect(floatArrayOf(5f, 4f))),
+                )
+                drawLine(colors.batteryLimitLine, Offset(66f, y), Offset(78f, y), 1.5f)
+            }
         }
         fun text(t: String, style: TextStyle, baseline: Float) {
             val l = measurer.measure(t, style)
-            drawText(l, topLeft = Offset(LABEL_X * s, (baseline - VIEW_TOP) * s - l.firstBaseline))
+            drawText(l, topLeft = Offset((LIMIT_LABEL_X - VIEW_X) * s - l.size.width, (baseline - VIEW_TOP) * s - l.firstBaseline))
         }
-        if (shares != null) {
-            pvLine?.let {
-                text(pvName, nameStyle.copy(color = colors.accentText), it - 12)
-                text(GgFormat.withUnit(shares.pvKwh, 1, kwh), valueStyle, it + 4)
-                text(GgFormat.withUnit(shares.pvPercent, 1, pct), pctStyle, it + 19)
-            }
-            gridLine?.let {
-                text(gridName, nameStyle.copy(color = colors.energyGrid), it - 12)
-                text(GgFormat.withUnit(shares.gridKwh, 1, kwh), valueStyle, it + 4)
-                text(GgFormat.withUnit(shares.gridPercent, 1, pct), pctStyle, it + 19)
-            }
+        listOfNotNull(charge?.let { it to chargeName }, discharge?.let { it to dischargeName }).forEach { (limit, name) ->
+            val y = BOTTOM - HEIGHT * limit.coerceIn(0, 100) / 100f
+            text(GgFormat.withUnit(limit.toLong(), pct), limitValueStyle, y + 4)
+            text(name, limitNameStyle, y + 17)
         }
     }
 }
 
-// ---------- Bảng chi tiết và thông số ----------
-
-/** Thẻ đệm 4 16; dòng đệm 10, cách 10: ô màu 12 bo 3; tên 13/20; kWh 13/20 600; phần trăm rộng 56 12/16 500. */
-@Composable
-private fun Legend(shares: EnergyShares?) {
-    val colors = GgTheme.colors
-    val kwh = stringResource(R.string.unit_kwh)
-    val pct = stringResource(R.string.unit_percent)
-    val dash = stringResource(R.string.value_missing)
-    val rows = listOf(
-        Triple(colors.energyPv, stringResource(R.string.battery_from_pv), shares?.let { it.pvKwh to it.pvPercent }),
-        Triple(colors.energyGrid, stringResource(R.string.energy_from_grid_full), shares?.let { it.gridKwh to it.gridPercent }),
-        Triple(colors.surfaceSunken, stringResource(R.string.energy_empty), shares?.let { it.emptyKwh to it.emptyPercent }),
-    )
-    GgCard(contentPadding = PaddingValues(horizontal = GgSpacing.space4, vertical = GgSpacing.space1)) {
-        rows.forEachIndexed { i, (swatch, name, v) ->
-            if (i > 0) HorizontalDivider(thickness = 1.dp, color = colors.cardBorder)
-            Row(
-                Modifier.fillMaxWidth().padding(vertical = 10.dp),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Box(Modifier.size(12.dp).clip(RoundedCornerShape(3.dp)).background(swatch))
-                Text(name, style = GgTheme.typography.bodySm, color = colors.ink, modifier = Modifier.weight(1f))
-                Text(
-                    v?.let { GgFormat.withUnit(it.first, 1, kwh) } ?: dash,
-                    style = GgTheme.typography.bodySm.copy(fontWeight = FontWeight.SemiBold, fontFeatureSettings = "tnum"),
-                    color = colors.ink,
-                )
-                Text(
-                    v?.let { GgFormat.withUnit(it.second, 1, pct) } ?: dash,
-                    style = GgTheme.typography.caption.copy(fontFeatureSettings = "tnum"),
-                    color = colors.inkMuted,
-                    textAlign = TextAlign.End,
-                    modifier = Modifier.width(56.dp),
-                )
-            }
-        }
-    }
-}
+// ---------- Thông số ----------
 
 /**
  * Thông số pin: lưới 3 cột [MetricRow]. Pin đang xả thì nhãn

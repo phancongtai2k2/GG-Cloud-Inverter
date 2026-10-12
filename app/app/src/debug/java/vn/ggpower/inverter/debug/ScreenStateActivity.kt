@@ -62,19 +62,12 @@ import vn.ggpower.inverter.ui.alerts.SaveFailure
 import vn.ggpower.inverter.ui.alerts.previewAlertDetail
 import vn.ggpower.inverter.ui.alerts.AlertsUiState
 import vn.ggpower.inverter.data.home.FakeHomeRepository
-import vn.ggpower.inverter.data.telemetry.FakeTelemetryRepository
 import vn.ggpower.inverter.ui.data.BatteryDataScreen
-import vn.ggpower.inverter.ui.data.BatteryGroup
 import vn.ggpower.inverter.ui.data.InverterDataScreen
 import vn.ggpower.inverter.ui.data.previewBatteryDataState
-import vn.ggpower.inverter.ui.data.previewBatteryHistory
 import vn.ggpower.inverter.ui.data.LiveUiState
-import vn.ggpower.inverter.ui.data.InverterGroup
 import vn.ggpower.inverter.ui.data.previewInverterDataState
-import vn.ggpower.inverter.ui.data.previewInverterHistory
 import vn.ggpower.inverter.domain.settings.TemperatureUnit
-import vn.ggpower.inverter.domain.telemetry.HistoryFields
-import vn.ggpower.inverter.domain.telemetry.HistoryRange
 import vn.ggpower.inverter.ui.devices.DevicesScreen
 import vn.ggpower.inverter.ui.devices.DevicesUiState
 import vn.ggpower.inverter.ui.devices.previewDeviceTabs
@@ -241,29 +234,12 @@ private val States: Map<String, @Composable () -> Unit> = mapOf(
     "support_mine_empty" to { SupportScreen(previewSupportState(tab = SupportTab.Mine).copy(tickets = TicketsState.Content(emptyList())), SupportActions()) },
     "support_sent" to { SupportSentScreen(SupportSentUiState("#HT-0310-0151", technical = true), {}, {}, {}, {}) },
     "support_sent_copied" to { SupportSentScreen(SupportSentUiState("#HT-0310-0151", technical = true, copied = true), {}, {}, {}, {}) },
-    "data_inverter_ov" to { InverterDataScreen(previewInverterDataState(InverterGroup.Overview), {}, {}, {}) },
-    "data_inverter_pv" to { InverterDataScreen(previewInverterDataState(InverterGroup.Pv), {}, {}, {}) },
-    "data_inverter_grid" to { InverterDataScreen(previewInverterDataState(InverterGroup.GridLoad), {}, {}, {}) },
-    "data_inverter_temp" to { InverterDataScreen(previewInverterDataState(InverterGroup.Temperature), {}, {}, {}) },
-    "data_inverter_history" to { InverterDataScreen(previewInverterDataState(), {}, {}, {}, history = previewInverterHistory()) },
-    "data_inverter_history_hour" to { InverterDataScreen(previewInverterDataState(), {}, {}, {}, history = previewInverterHistory(HistoryRange.Hour)) },
-    "data_inverter_history_week" to { InverterDataScreen(previewInverterDataState(), {}, {}, {}, history = previewInverterHistory(HistoryRange.Week)) },
-    "data_inverter_loading" to { InverterDataScreen(LiveUiState.Loading, {}, {}, {}) },
-    "data_inverter_temp_f" to { InverterDataScreen(previewInverterDataState(InverterGroup.Temperature), {}, {}, {}, temperatureUnit = TemperatureUnit.Fahrenheit) },
-    "data_inverter_history_f" to { InverterDataScreen(previewInverterDataState(), {}, {}, {}, temperatureUnit = TemperatureUnit.Fahrenheit, history = previewInverterHistory()) },
-    "data_battery_f" to {
-        val history = previewBatteryHistory().copy(selected = listOf(HistoryFields.Soc, HistoryFields.BatteryTemp))
-        BatteryDataScreen(previewBatteryDataState(), {}, {}, {}, temperatureUnit = TemperatureUnit.Fahrenheit, history = history)
-    },
-    "data_battery_cells_f" to { BatteryDataScreen(previewBatteryDataState(BatteryGroup.Cells), {}, {}, {}, temperatureUnit = TemperatureUnit.Fahrenheit) },
-    "data_battery" to { BatteryDataScreen(previewBatteryDataState(), {}, {}, {}, history = previewBatteryHistory()) },
-    "data_battery_limits" to { BatteryDataScreen(previewBatteryDataState(BatteryGroup.Limits), {}, {}, {}) },
-    "data_battery_limited" to { BatteryDataScreen(previewBatteryDataState(BatteryGroup.Limits, FakeTelemetryRepository.BATTERY.copy(packVoltageInverterV = 52.4, packCurrentA = 99.0)), {}, {}, {}) },
-    "data_battery_deviation" to { BatteryDataScreen(previewBatteryDataState(data = FakeTelemetryRepository.BATTERY.copy(packVoltageInverterV = 52.4, packCurrentA = 99.0)), {}, {}, {}) },
-    "data_battery_cells" to { BatteryDataScreen(previewBatteryDataState(BatteryGroup.Cells), {}, {}, {}) },
-    "data_battery_protection" to { BatteryDataScreen(previewBatteryDataState(BatteryGroup.Protection), {}, {}, {}) },
-    "data_battery_protection_all" to { BatteryDataScreen(previewBatteryDataState(BatteryGroup.Protection), {}, {}, {}, showAllFlags = true) },
-    "data_battery_versions" to { BatteryDataScreen(previewBatteryDataState(BatteryGroup.Versions), {}, {}, {}) },
+    "data_inverter" to { InverterDataScreen(previewInverterDataState(), {}, {}) },
+    "data_inverter_loading" to { InverterDataScreen(LiveUiState.Loading, {}, {}) },
+    "data_inverter_f" to { InverterDataScreen(previewInverterDataState(), {}, {}, temperatureUnit = TemperatureUnit.Fahrenheit) },
+    "data_battery" to { BatteryDataScreen(previewBatteryDataState(), {}, {}) },
+    "data_battery_f" to { BatteryDataScreen(previewBatteryDataState(), {}, {}, temperatureUnit = TemperatureUnit.Fahrenheit) },
+    "data_battery_protection_all" to { BatteryDataScreen(previewBatteryDataState(), {}, {}, showAllFlags = true) },
     "alerts" to { AlertsScreen(AlertsUiState.Content(FakeAlertRepository.SAMPLE, AlertFilter.All), {}, {}, {}, {}, {}) },
     "alerts_open" to { AlertsScreen(AlertsUiState.Content(FakeAlertRepository.SAMPLE, AlertFilter.Open), {}, {}, {}, {}, {}) },
     "alerts_empty" to { AlertsScreen(AlertsUiState.Content(FakeAlertRepository.SAMPLE.map { it.copy(resolved = true) }, AlertFilter.Open), {}, {}, {}, {}, {}) },

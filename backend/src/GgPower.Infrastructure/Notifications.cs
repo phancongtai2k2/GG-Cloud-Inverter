@@ -22,7 +22,7 @@ public sealed class LoggingPushSender(ILogger<LoggingPushSender> log) : IPushSen
 }
 
 /// <summary>Device alert pushes and the daily report (20:00 project time), honouring each user's switches.</summary>
-public sealed class NotificationService(Db db, IPushSender push, TimeProvider clock, ILogger<NotificationService> log)
+public sealed class NotificationService(Db db, IPushSender push, JobLeader leader, TimeProvider clock, ILogger<NotificationService> log)
     : BackgroundService, IDeviceEventSink
 {
     public async Task OnAlarmAsync(AlarmEvent alarm, bool isNew, CancellationToken ct)
@@ -47,7 +47,10 @@ public sealed class NotificationService(Db db, IPushSender push, TimeProvider cl
         var sent = new Dictionary<Guid, DateOnly>();
         while (!stop.IsCancellationRequested)
         {
-            try { await DailyReportsAsync(sent, stop); }
+            try
+            {
+                if (await leader.TryLeadAsync(JobLeader.DailyReport, stop)) await DailyReportsAsync(sent, stop);
+            }
             catch (OperationCanceledException) when (stop.IsCancellationRequested) { break; }
             catch (Exception ex) { log.LogError(ex, "daily report failed"); }
             await Task.Delay(TimeSpan.FromMinutes(1), stop).ContinueWith(_ => { }, CancellationToken.None);
@@ -65,6 +68,8 @@ public sealed class NotificationService(Db db, IPushSender push, TimeProvider cl
             var day = DateOnly.FromDateTime(local.DateTime);
             if (local.Hour != 20 || sent.GetValueOrDefault(p.Id) == day) continue;
             sent[p.Id] = day;
+            // Recorded in the database too: a restart or another instance taking the job over within the hour must not send it again.
+            if (await c.ExecuteAsync("INSERT INTO daily_reports_sent (project_id, day) VALUES (@id, @day) ON CONFLICT DO NOTHING", new { id = p.Id, day }) == 0) continue;
             var tokens = (await c.QueryAsync<string>(
                 """
                 SELECT t.token FROM push_tokens t
@@ -90,7 +95,7 @@ public sealed class NotificationService(Db db, IPushSender push, TimeProvider cl
 /// Notices devices that went silent without a last-will message: pushes the "offline" state to
 /// connected apps, and keeps one open "connection lost" alert per device while it lasts.
 /// </summary>
-public sealed class LiveMonitor(Db db, LiveStateCache live, RealtimeHub hub, Microsoft.Extensions.Options.IOptions<IngestOptions> options, TimeProvider clock, ILogger<LiveMonitor> log) : BackgroundService
+public sealed class LiveMonitor(Db db, LiveStateCache live, ILiveStore store, IRealtimeBus bus, JobLeader leader, Microsoft.Extensions.Options.IOptions<IngestOptions> options, TimeProvider clock, ILogger<LiveMonitor> log) : BackgroundService
 {
     public const string OfflineCode = "OFFLINE";
     private static readonly TimeSpan AlertAfter = TimeSpan.FromMinutes(5);
@@ -100,13 +105,7 @@ public sealed class LiveMonitor(Db db, LiveStateCache live, RealtimeHub hub, Mic
         var reachable = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
         var alerted = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var started = clock.GetUtcNow();
-        try
-        {
-            await using var c = await db.OpenAsync(stop);
-            foreach (var s in await c.QueryAsync<string>("SELECT serial FROM alerts WHERE code = @c AND ended_at IS NULL", new { c = OfflineCode })) alerted.Add(s);
-        }
-        catch (Exception ex) { log.LogError(ex, "could not load open offline alerts"); }
-
+        var leading = false;
         while (!stop.IsCancellationRequested)
         {
             try
@@ -114,13 +113,31 @@ public sealed class LiveMonitor(Db db, LiveStateCache live, RealtimeHub hub, Mic
                 var now = clock.GetUtcNow();
                 // Right after a restart every device looks silent until its next message arrives.
                 var settled = now - started > TimeSpan.FromMinutes(2);
+                // Every instance pushes reachability to its own apps; only the job leader keeps the alerts.
+                bool lead;
+                try { lead = await leader.TryLeadAsync(JobLeader.OfflineAlerts, stop); }
+                catch (Exception ex) when (!stop.IsCancellationRequested)
+                {
+                    log.LogWarning(ex, "could not check the offline-alerts job lock");
+                    lead = false;
+                }
+                if (lead && !leading)
+                {
+                    // Taken over (or started): the alerts that are open now are whatever the previous leader left.
+                    alerted.Clear();
+                    await using var c = await db.OpenAsync(stop);
+                    foreach (var s in await c.QueryAsync<string>("SELECT serial FROM alerts WHERE code = @c AND ended_at IS NULL", new { c = OfflineCode })) alerted.Add(s);
+                }
+                leading = lead;
                 foreach (var d in live.All)
                 {
                     var up = d.IsReachable(now);
-                    if (reachable.TryGetValue(d.Serial, out var was) && was != up)
-                        hub.Publish(d.Serial, LiveJson.Bytes(LiveJson.Snapshot(d, now)));
+                    // Only copies kept current here: one merely loaded from the database would look silent (C2).
+                    if (d.Fed && reachable.TryGetValue(d.Serial, out var was) && was != up)
+                        bus.Publish(d.Serial, LiveJson.Bytes(LiveJson.Snapshot(d, now)));
                     reachable[d.Serial] = up;
 
+                    if (!lead) continue;
                     if (!up && settled && now - d.LastSeen > AlertAfter && alerted.Add(d.Serial)) await SetOfflineAlertAsync(d, true, now, stop);
                     else if (up && alerted.Remove(d.Serial)) await SetOfflineAlertAsync(d, false, now, stop);
                 }
@@ -143,6 +160,7 @@ public sealed class LiveMonitor(Db db, LiveStateCache live, RealtimeHub hub, Mic
         else
             await c.ExecuteAsync("UPDATE alerts SET ended_at = @now WHERE serial = @serial AND code = @code AND ended_at IS NULL", new { now, serial = d.Serial, code = OfflineCode });
         await IngestPipeline.RecountAsync(c, d);
-        hub.Publish(d.Serial, LiveJson.Bytes(new { type = "alerts_changed", serial = d.Serial }));
+        store.Changed(d, LiveParts.State);
+        bus.Publish(d.Serial, LiveJson.Bytes(new { type = "alerts_changed", serial = d.Serial }));
     }
 }

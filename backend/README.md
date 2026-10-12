@@ -26,8 +26,10 @@ Kiểm tra: `http://localhost:5080/healthz`. Máy ảo Android gọi máy dev qu
 
 ## Kiểm thử
 
-**Test tự động** (`.
-un.ps1 -Test`, khoảng 15 giây): 77 test trong `tests/GgPower.Tests`.
+**Test tự động** (`.\run.ps1 -Test`, khoảng 50 giây): 126 test trong `tests/GgPower.Tests`. `RedisSharedTests` và
+`MultiInstanceTests` (nhiều instance) cần thêm Redis và SeaweedFS trong Docker — lệnh tạo ở `../PROGRESS.md` mục 5.
+- `ContractTests.cs`: route thật phải khớp `../contract/openapi.yaml` (hợp đồng với app) và mọi `$ref` trong đó phải
+  trỏ đúng. Thêm / đổi endpoint thì sửa `openapi.yaml` và ghi vào `../contract/CHANGES.md`.
 - `DomainTests.cs`: quy tắc thuần — khung giờ TOU (kể cả qua nửa đêm), ánh xạ chế độ ↔ lệnh datalogger, phân tích bản tin,
   quy tắc tài khoản và mật khẩu, ước tính nguồn năng lượng trong pin.
 - `ApiTests.cs`: chạy cả ứng dụng với cơ sở dữ liệu `ggpower_test` (bị xoá trắng mỗi lần chạy; test từ chối chạy nếu tên
@@ -45,6 +47,19 @@ Cần backend đang chạy (`pip install requests websockets paho-mqtt`):
 | `tools/load_test.py 200 180` | 200 thiết bị giả × 5 giây | Không |
 
 Bộ giả lập: `..\.integration_repo\simulator\device_simulator.py`. Tenant `dev` chỉ được nhận khi `MQTT_TENANTS` có `dev`.
+
+## Chạy nhiều instance
+
+Mặc định một instance, mọi trạng thái trong RAM và file trên ổ đĩa. Để chạy nhiều instance (đã làm theo
+`docs/KE_HOACH_NANG_CAP_BACKEND.docx`, giai đoạn A–B và C2):
+
+- `Roles` = `api`, `ingest`, `jobs` (mặc định cả ba). Một instance `api,ingest,jobs` nhận MQTT và chạy job định kỳ
+  (mỗi job một leader qua advisory lock của Postgres); các instance `api` chỉ phục vụ app.
+- `Shared:Provider=redis` — vé WebSocket, khoá lệnh, phiên bản cache, frame realtime, ack lệnh và live state thiết bị
+  đi qua Redis. `Storage:Provider=s3` — file đính kèm trên S3 (SeaweedFS tự host).
+- Health: `/healthz/live`, `/healthz/ready` (Caddy dùng để cân bằng tải); metrics Prometheus ở `/metrics`
+  (`docs/METRICS.md`).
+- Bật, deploy cuốn chiếu, quay lại: `docs/DEPLOY.md`. Số đo: `docs/LOADTEST.md` (một máy ~10.000 thiết bị).
 
 ## Việc quản trị
 

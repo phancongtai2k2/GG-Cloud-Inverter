@@ -1,7 +1,6 @@
 package vn.ggpower.inverter.ui.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -25,7 +24,7 @@ import vn.ggpower.inverter.ui.theme.GgSpacing
 import vn.ggpower.inverter.ui.theme.GgTheme
 
 /**
- * Thẻ (AGENTS.md §4): nền `cardBg`, viền 1 dp `cardBorder`, bo 16 dp, bóng nhẹ `shadow-card`.
+ * Thẻ (gg-inverter-design/CLAUDE.md): nền `cardBg`, không viền, bo 16 dp, bóng nhẹ `shadow-card` (cả light và dark).
  * Đệm trong mặc định 16 dp; các thẻ trong prototype có đệm riêng (ví dụ `8 16 12`) thì truyền [contentPadding].
  */
 @Composable
@@ -45,7 +44,6 @@ fun GgCard(
             .shadow(elevation = 3.dp, shape = shape, ambientColor = colors.shadow, spotColor = colors.shadow)
             .clip(shape)
             .background(colors.cardBg)
-            .border(1.dp, colors.cardBorder, shape)
             .then(
                 if (onClick != null) Modifier.clickable(onClickLabel = onClickLabel, role = Role.Button, onClick = onClick)
                 else Modifier,

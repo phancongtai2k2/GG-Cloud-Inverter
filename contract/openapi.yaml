@@ -1,0 +1,1756 @@
+openapi: 3.1.0
+info:
+  title: GG Cloud Inverter API
+  version: 1.0.0
+  description: |
+    Hợp đồng REST giữa backend (`backend/`) và app Android (`app/`). Viết lại từ code backend ngày 11/10/2026
+    (commit f9308aa) và là nguồn sự thật duy nhất cho cả hai phía từ đây.
+
+    - Mọi đường dẫn có tiền tố `/api/v1`. JSON dùng snake_case. Thời điểm `*_utc` / `*_at` không kèm hậu tố là
+      ISO-8601 UTC, trừ khi mô tả nói "giờ địa phương" (múi giờ của dự án, dạng `yyyy-MM-ddTHH:mm:ss` không có offset).
+    - Lỗi luôn có dạng `{"code": "..."}` kèm trường phụ tuỳ mã (xem `Error`). App tự đặt câu chữ theo `code`.
+    - GET có `ETag` thì gửi lại `If-None-Match` để nhận 304. Kỳ đã chốt trả `Cache-Control: immutable`.
+    - Realtime (WebSocket) mô tả ở `contract/realtime.md`. Mọi thay đổi hợp đồng ghi ở `contract/CHANGES.md`.
+    - Test `ContractTests` của backend so danh sách route trong file này với route thật: thêm/bớt endpoint mà
+      không sửa file này thì test đỏ.
+servers:
+  - url: https://{host}
+    variables:
+      host:
+        default: api.ggpower.vn
+security:
+  - bearerAuth: []
+tags:
+  - name: auth
+  - name: profile
+  - name: projects
+  - name: project-data
+  - name: alerts
+  - name: config
+  - name: support
+  - name: admin
+  - name: realtime
+  - name: ops
+
+paths:
+  /healthz:
+    get:
+      tags: [ops]
+      summary: Trạng thái tiến trình (không có tiền tố /api/v1, không giới hạn tốc độ)
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Health" }
+  /healthz/live:
+    get:
+      tags: [ops]
+      summary: Tiến trình còn chạy (liveness) — luôn 200, không kiểm tra gì khác
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { type: object, properties: { status: { type: string, const: ok } } }
+  /healthz/ready:
+    get:
+      tags: [ops]
+      summary: Nhận được traffic (readiness) — DB trả lời ≤ 2 s, MQTT đã nối nếu instance nhận dữ liệu, hàng đợi ghi < 80 %
+      security: []
+      responses:
+        "200":
+          description: Sẵn sàng
+          content:
+            application/json:
+              schema: { type: object, properties: { status: { type: string, const: ready } } }
+        "503":
+          description: Chưa sẵn sàng
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, const: not_ready }
+                  problems: { type: array, items: { type: string, enum: [database, mqtt, ingest_queue] } }
+  /metrics:
+    get:
+      tags: [ops]
+      summary: Metrics dạng Prometheus (nội bộ, Caddy không chuyển ra ngoài) — danh sách ở backend/docs/METRICS.md
+      security: []
+      responses:
+        "200":
+          description: Văn bản định dạng Prometheus exposition
+          content:
+            text/plain: { schema: { type: string } }
+
+  # ---------------------------------------------------------------- auth
+  /api/v1/auth/login:
+    post:
+      tags: [auth]
+      summary: Đăng nhập bằng email hoặc số điện thoại
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                account: { type: string, description: Email hoặc số điện thoại }
+                password: { type: string }
+      responses:
+        "200": { $ref: "#/components/responses/Tokens" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+  /api/v1/auth/refresh:
+    post:
+      tags: [auth]
+      summary: Đổi refresh token lấy cặp token mới (refresh token xoay vòng; dùng lại token cũ thu hồi cả phiên)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RefreshRequest" }
+      responses:
+        "200": { $ref: "#/components/responses/Tokens" }
+        "401": { $ref: "#/components/responses/Error" }
+  /api/v1/auth/logout:
+    post:
+      tags: [auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RefreshRequest" }
+      responses:
+        "204": { description: Đã thu hồi phiên }
+  /api/v1/auth/register:
+    post:
+      tags: [auth]
+      summary: Đăng ký; gửi OTP tới số điện thoại
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                email: { type: string }
+                phone: { type: string }
+                password: { type: string }
+      responses:
+        "202": { $ref: "#/components/responses/CodeSent" }
+        "400": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+  /api/v1/auth/register/resend:
+    post:
+      tags: [auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone: { type: string }
+      responses:
+        "202": { $ref: "#/components/responses/CodeSent" }
+        "429": { $ref: "#/components/responses/Error" }
+  /api/v1/auth/register/verify:
+    post:
+      tags: [auth]
+      summary: Xác nhận OTP đăng ký; trả token (đăng nhập luôn)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone: { type: string }
+                code: { type: string, description: 6 chữ số }
+      responses:
+        "200": { $ref: "#/components/responses/Tokens" }
+        "400": { $ref: "#/components/responses/Error" }
+        "410": { $ref: "#/components/responses/Error" }
+        "423": { $ref: "#/components/responses/Error" }
+  /api/v1/auth/password/forgot:
+    post:
+      tags: [auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AccountRequest" }
+      responses:
+        "202": { $ref: "#/components/responses/CodeSent" }
+        "429": { $ref: "#/components/responses/Error" }
+  /api/v1/auth/password/verify:
+    post:
+      tags: [auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                account: { type: string }
+                code: { type: string }
+      responses:
+        "200":
+          description: Mã đúng
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [reset_token]
+                properties:
+                  reset_token: { type: string }
+        "400": { $ref: "#/components/responses/Error" }
+        "410": { $ref: "#/components/responses/Error" }
+        "423": { $ref: "#/components/responses/Error" }
+  /api/v1/auth/password/reset:
+    post:
+      tags: [auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reset_token: { type: string }
+                new_password: { type: string }
+      responses:
+        "204": { description: Đã đổi mật khẩu }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+
+  # ---------------------------------------------------------------- profile
+  /api/v1/me:
+    get:
+      tags: [profile]
+      responses:
+        "200":
+          description: Hồ sơ (có ETag)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Profile" }
+        "401": { $ref: "#/components/responses/Error" }
+    patch:
+      tags: [profile]
+      summary: Sửa tên, ngôn ngữ, tuỳ chọn thông báo (trường bỏ trống giữ nguyên)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string, minLength: 1, maxLength: 80 }
+                language: { type: string, enum: [vi, en] }
+                notifications: { $ref: "#/components/schemas/NotificationPrefs" }
+      responses:
+        "204": { description: Đã lưu }
+        "400": { $ref: "#/components/responses/Error" }
+  /api/v1/me/avatar:
+    get:
+      tags: [profile]
+      responses:
+        "200": { $ref: "#/components/responses/Image" }
+        "404": { $ref: "#/components/responses/Error" }
+    put:
+      tags: [profile]
+      summary: Tải ảnh đại diện (thân yêu cầu là byte ảnh JPEG/PNG/WebP, tối đa 2 MB)
+      requestBody: { $ref: "#/components/requestBodies/RawImage" }
+      responses:
+        "200":
+          description: Đã lưu
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [avatar_url]
+                properties:
+                  avatar_url: { type: string }
+        "413": { $ref: "#/components/responses/Error" }
+        "415": { $ref: "#/components/responses/Error" }
+    delete:
+      tags: [profile]
+      responses:
+        "204": { description: Đã xoá }
+  /api/v1/me/deletion:
+    post:
+      tags: [profile]
+      summary: Yêu cầu xoá tài khoản (khoá tài khoản ngay, nhân viên xử lý sau)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password: { type: string }
+      responses:
+        "202":
+          description: Đã nhận yêu cầu
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  requested: { type: boolean, const: true }
+        "403": { $ref: "#/components/responses/Error" }
+  /api/v1/me/push-token:
+    put:
+      tags: [profile]
+      summary: Đăng ký token đẩy (FCM/APNs)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, platform]
+              properties:
+                token: { type: string, minLength: 11, maxLength: 4096 }
+                platform: { type: string, enum: [android, ios] }
+      responses:
+        "204": { description: Đã lưu }
+        "400": { $ref: "#/components/responses/Error" }
+
+  # ---------------------------------------------------------------- projects
+  /api/v1/projects:
+    get:
+      tags: [projects]
+      summary: Danh sách dự án của người dùng kèm số liệu trực tiếp
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/ProjectListItem" }
+    post:
+      tags: [projects]
+      summary: Tạo dự án với một thiết bị
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateProject" }
+      responses:
+        "201":
+          description: Đã tạo
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [project_id]
+                properties:
+                  project_id: { type: string, format: uuid }
+        "400": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+  /api/v1/projects/check-serial:
+    post:
+      tags: [projects]
+      summary: Bước 1 thêm dự án — serial có tồn tại và còn trống không
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                serial: { type: string }
+      responses:
+        "200":
+          description: Thiết bị còn trống
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SerialCheck" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+  /api/v1/projects/{projectId}:
+    parameters:
+      - $ref: "#/components/parameters/ProjectId"
+    delete:
+      tags: [projects]
+      summary: Xoá dự án (chỉ chủ dự án); thiết bị được giải phóng
+      responses:
+        "204": { description: Đã xoá }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+  /api/v1/projects/{projectId}/photo:
+    parameters:
+      - $ref: "#/components/parameters/ProjectId"
+    get:
+      tags: [projects]
+      responses:
+        "200": { $ref: "#/components/responses/Image" }
+        "404": { $ref: "#/components/responses/Error" }
+    put:
+      tags: [projects]
+      summary: Tải ảnh dự án (byte ảnh, tối đa 5 MB)
+      requestBody: { $ref: "#/components/requestBodies/RawImage" }
+      responses:
+        "204": { description: Đã lưu }
+        "413": { $ref: "#/components/responses/Error" }
+        "415": { $ref: "#/components/responses/Error" }
+
+  # ---------------------------------------------------------------- project data
+  /api/v1/projects/{projectId}/overview:
+    parameters:
+      - $ref: "#/components/parameters/ProjectId"
+    get:
+      tags: [project-data]
+      summary: Màn hình chính, lần vẽ đầu (sau đó cập nhật qua realtime)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Overview" }
+        "404": { $ref: "#/components/responses/Error" }
+  /api/v1/projects/{projectId}/day-curves:
+    parameters:
+      - $ref: "#/components/parameters/ProjectId"
+    get:
+      tags: [project-data]
+      summary: Đường công suất và pin trong một ngày, bước 15 phút (có ETag)
+      parameters:
+        - { name: date, in: query, required: true, schema: { type: string, format: date } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DayCurves" }
+        "400": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+  /api/v1/projects/{projectId}/stats:
+    parameters:
+      - $ref: "#/components/parameters/ProjectId"
+    get:
+      tags: [project-data]
+      summary: Thống kê năng lượng theo ngày (12 ô 2 giờ) / tháng (theo ngày) / năm (12 tháng) (có ETag)
+      parameters:
+        - { name: period, in: query, required: true, schema: { type: string, enum: [day, month, year] } }
+        - { name: anchor, in: query, required: true, description: Một ngày bất kỳ trong kỳ, schema: { type: string, format: date } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Stats" }
+        "400": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+  /api/v1/projects/{projectId}/devices:
+    parameters:
+      - $ref: "#/components/parameters/ProjectId"
+    get:
+      tags: [project-data]
+      summary: Thiết bị của dự án (mỗi serial một phần tử)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/DeviceEntry" }
+        "404": { $ref: "#/components/responses/Error" }
+  /api/v1/projects/{projectId}/telemetry:
+    parameters:
+      - $ref: "#/components/parameters/ProjectId"
+    get:
+      tags: [project-data]
+      summary: Ảnh chụp trực tiếp đầy đủ của thiết bị chính (cùng dạng frame `device` của realtime)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DeviceSnapshot" }
+        "404": { $ref: "#/components/responses/Error" }
+  /api/v1/projects/{projectId}/history:
+    parameters:
+      - $ref: "#/components/parameters/ProjectId"
+    get:
+      tags: [project-data]
+      summary: Chuỗi lịch sử tính đến hiện tại (hour 1 phút × 60, day 15 phút × 24 h, week 1 giờ × 7 ngày)
+      parameters:
+        - { name: range, in: query, required: true, schema: { type: string, enum: [hour, day, week] } }
+        - name: fields
+          in: query
+          required: true
+          description: 1–12 trường, phân tách bằng dấu phẩy
+          schema: { type: string, example: "pv_power,load_power,soc" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/History" }
+        "400": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+  /api/v1/projects/{projectId}/warranty:
+    parameters:
+      - $ref: "#/components/parameters/ProjectId"
+    get:
+      tags: [project-data]
+      responses:
+        "200":
+          description: OK (có ETag)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Warranty" }
+        "404": { $ref: "#/components/responses/Error" }
+
+  # ---------------------------------------------------------------- alerts
+  /api/v1/projects/{projectId}/alerts:
+    parameters:
+      - $ref: "#/components/parameters/ProjectId"
+    get:
+      tags: [alerts]
+      summary: 200 cảnh báo mới nhất (có ETag)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/AlertListItem" }
+        "404": { $ref: "#/components/responses/Error" }
+  /api/v1/projects/{projectId}/alerts/{alertId}:
+    parameters:
+      - $ref: "#/components/parameters/ProjectId"
+      - $ref: "#/components/parameters/AlertId"
+    get:
+      tags: [alerts]
+      responses:
+        "200":
+          description: OK (có ETag)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AlertDetail" }
+        "404": { $ref: "#/components/responses/Error" }
+  /api/v1/projects/{projectId}/alerts/{alertId}/resolved:
+    parameters:
+      - $ref: "#/components/parameters/ProjectId"
+      - $ref: "#/components/parameters/AlertId"
+    put:
+      tags: [alerts]
+      summary: Đánh dấu đã xử lý / chưa xử lý; phát `alerts_changed` qua realtime
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [resolved]
+              properties:
+                resolved: { type: boolean }
+      responses:
+        "204": { description: Đã lưu }
+        "400": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+
+  # ---------------------------------------------------------------- config
+  /api/v1/devices/{serial}/config:
+    parameters:
+      - $ref: "#/components/parameters/Serial"
+    get:
+      tags: [config]
+      summary: Cấu hình đọc được và quyền ghi (có ETag)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ConfigSnapshot" }
+        "404": { $ref: "#/components/responses/Error" }
+  /api/v1/devices/{serial}/config-commands:
+    parameters:
+      - $ref: "#/components/parameters/Serial"
+    post:
+      tags: [config]
+      summary: Gửi lệnh ghi cấu hình (bất đồng bộ; hỏi lại theo `poll_after_ms`)
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ConfigCommandRequest" }
+      responses:
+        "202":
+          description: Đã nhận (header `Location` trỏ tới lệnh). Gửi lại cùng key và cùng thân trả lại lệnh cũ.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ConfigCommand" }
+        "400": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+    get:
+      tags: [config]
+      summary: Lịch sử lệnh, mới nhất trước, phân trang bằng con trỏ
+      parameters:
+        - { name: from, in: query, schema: { type: string, format: date-time } }
+        - { name: to, in: query, schema: { type: string, format: date-time } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+        - { name: cursor, in: query, description: "`next_cursor` của trang trước", schema: { type: string } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, next_cursor]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/ConfigCommand" }
+                  next_cursor: { type: [string, "null"] }
+        "404": { $ref: "#/components/responses/Error" }
+  /api/v1/devices/{serial}/config-commands/{commandId}:
+    parameters:
+      - $ref: "#/components/parameters/Serial"
+      - { name: commandId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      tags: [config]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ConfigCommand" }
+        "404": { $ref: "#/components/responses/Error" }
+
+  # ---------------------------------------------------------------- admin (config write)
+  /api/v1/admin/config-write-switch:
+    get:
+      tags: [admin]
+      summary: Công tắc khẩn cấp tắt ghi (cần claim write_admin)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WriteSwitch" }
+        "403": { $ref: "#/components/responses/Error" }
+    put:
+      tags: [admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties:
+                enabled: { type: boolean }
+                reason: { type: string, maxLength: 200 }
+      responses:
+        "200":
+          description: Đã đổi
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WriteSwitch" }
+        "400": { $ref: "#/components/responses/Error" }
+  /api/v1/admin/config-write-allowlist:
+    get:
+      tags: [admin]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/AllowlistEntry" }
+  /api/v1/admin/config-write-allowlist/{serial}:
+    parameters:
+      - $ref: "#/components/parameters/Serial"
+    put:
+      tags: [admin]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                note: { type: string, maxLength: 200 }
+      responses:
+        "200":
+          description: Đã thêm / cập nhật
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  serial: { type: string }
+                  note: { type: [string, "null"] }
+        "400": { $ref: "#/components/responses/Error" }
+    delete:
+      tags: [admin]
+      responses:
+        "204": { description: Đã xoá }
+
+  # ---------------------------------------------------------------- support
+  /api/v1/support/contact:
+    get:
+      tags: [support]
+      responses:
+        "200":
+          description: OK (có ETag)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [hotline, email]
+                properties:
+                  hotline: { type: string }
+                  email: { type: string }
+  /api/v1/explore:
+    get:
+      tags: [support]
+      summary: Nội dung Khám phá (file JSON biên tập tay cho tới khi có CMS)
+      responses:
+        "200":
+          description: OK (có ETag)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Explore" }
+  /api/v1/tickets:
+    get:
+      tags: [support]
+      summary: 200 yêu cầu hỗ trợ mới nhất của người dùng (có ETag)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/TicketSummary" }
+    post:
+      tags: [support]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type, title, description]
+              properties:
+                type: { $ref: "#/components/schemas/TicketType" }
+                title: { type: string, minLength: 1, maxLength: 120 }
+                description: { type: string, minLength: 1, maxLength: 4000 }
+                project_id: { type: [string, "null"], format: uuid }
+                alert_id: { type: [string, "null"], format: uuid, description: Chỉ được lưu khi cảnh báo thuộc project_id }
+      responses:
+        "201":
+          description: Đã tạo
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TicketSummary" }
+        "400": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+  /api/v1/tickets/{ticketId}:
+    parameters:
+      - $ref: "#/components/parameters/TicketId"
+    get:
+      tags: [support]
+      responses:
+        "200":
+          description: OK (có ETag)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TicketDetail" }
+        "404": { $ref: "#/components/responses/Error" }
+  /api/v1/tickets/{ticketId}/messages:
+    parameters:
+      - $ref: "#/components/parameters/TicketId"
+    post:
+      tags: [support]
+      summary: Người dùng nhắn thêm; yêu cầu đang `resolved` chuyển lại `processing`
+      requestBody: { $ref: "#/components/requestBodies/MessageText" }
+      responses:
+        "201":
+          description: Đã gửi
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TicketMessage" }
+        "400": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+  /api/v1/tickets/{ticketId}/attachments:
+    parameters:
+      - $ref: "#/components/parameters/TicketId"
+    post:
+      tags: [support]
+      summary: Một tệp mỗi yêu cầu, thân là byte tệp (ảnh ≤ 10 MB, MP4 ≤ 50 MB, tối đa 5 tệp)
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema: { type: string, format: binary }
+      responses:
+        "201":
+          description: Đã lưu
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Attachment" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "413": { $ref: "#/components/responses/Error" }
+        "415": { $ref: "#/components/responses/Error" }
+  /api/v1/tickets/{ticketId}/attachments/{attachmentId}:
+    parameters:
+      - $ref: "#/components/parameters/TicketId"
+      - { name: attachmentId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      tags: [support]
+      responses:
+        "200":
+          description: "Byte tệp, header Content-Disposition = attachment"
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+        "404": { $ref: "#/components/responses/Error" }
+
+  # ---------------------------------------------------------------- admin (support staff, role ggp_technician)
+  /api/v1/admin/tickets:
+    get:
+      tags: [admin]
+      parameters:
+        - { name: status, in: query, schema: { $ref: "#/components/schemas/TicketStatus" } }
+      responses:
+        "200":
+          description: 500 yêu cầu mới nhất
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required: [ticket, user_name, user_phone]
+                  properties:
+                    ticket: { $ref: "#/components/schemas/TicketSummary" }
+                    user_name: { type: string }
+                    user_phone: { type: string }
+        "400": { $ref: "#/components/responses/Error" }
+  /api/v1/admin/tickets/{ticketId}:
+    parameters:
+      - $ref: "#/components/parameters/TicketId"
+    get:
+      tags: [admin]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [summary, description, messages]
+                properties:
+                  summary: { $ref: "#/components/schemas/TicketSummary" }
+                  description: { type: string }
+                  alert_id: { type: [string, "null"], format: uuid }
+                  messages:
+                    type: array
+                    items: { $ref: "#/components/schemas/TicketMessage" }
+        "404": { $ref: "#/components/responses/Error" }
+  /api/v1/admin/tickets/{ticketId}/messages:
+    parameters:
+      - $ref: "#/components/parameters/TicketId"
+    post:
+      tags: [admin]
+      summary: Nhân viên trả lời; yêu cầu `received` chuyển sang `processing`
+      requestBody: { $ref: "#/components/requestBodies/MessageText" }
+      responses:
+        "201":
+          description: Đã gửi (không có created_at)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: string, format: uuid }
+                  author: { type: string, const: support }
+                  text: { type: string }
+        "400": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+  /api/v1/admin/tickets/{ticketId}/status:
+    parameters:
+      - $ref: "#/components/parameters/TicketId"
+    put:
+      tags: [admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { $ref: "#/components/schemas/TicketStatus" }
+      responses:
+        "204": { description: Đã đổi }
+        "400": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+
+  # ---------------------------------------------------------------- realtime
+  /api/v1/realtime/ticket:
+    post:
+      tags: [realtime]
+      summary: Vé dùng một lần (30 s) để mở WebSocket `/ws/v1/realtime?ticket=` — xem contract/realtime.md
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ticket, expires_in]
+                properties:
+                  ticket: { type: string }
+                  expires_in: { type: integer, description: Giây }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Access token 15 phút; hết hạn thì gọi /auth/refresh một lần rồi thử lại.
+
+  parameters:
+    ProjectId:
+      { name: projectId, in: path, required: true, schema: { type: string, format: uuid } }
+    AlertId:
+      { name: alertId, in: path, required: true, schema: { type: string, format: uuid } }
+    TicketId:
+      { name: ticketId, in: path, required: true, schema: { type: string, format: uuid } }
+    Serial:
+      name: serial
+      in: path
+      required: true
+      description: Serial inverter (không phân biệt hoa thường)
+      schema: { type: string }
+
+  requestBodies:
+    RawImage:
+      required: true
+      description: Byte ảnh; loại ảnh xác định từ nội dung, không theo Content-Type
+      content:
+        application/octet-stream:
+          schema: { type: string, format: binary }
+    MessageText:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [text]
+            properties:
+              text: { type: string, minLength: 1, maxLength: 2000 }
+
+  responses:
+    Error:
+      description: Lỗi
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    Tokens:
+      description: Cặp token
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Tokens" }
+    CodeSent:
+      description: Đã gửi mã OTP
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code_sent: { type: boolean, const: true }
+    Image:
+      description: Byte ảnh
+      content:
+        image/jpeg: { schema: { type: string, format: binary } }
+        image/png: { schema: { type: string, format: binary } }
+        image/webp: { schema: { type: string, format: binary } }
+
+  schemas:
+    # ---------- common
+    Error:
+      type: object
+      required: [code]
+      description: |
+        Mã đang dùng: VALIDATION_FAILED, NOT_FOUND, UNAUTHENTICATED, SERVER_ERROR, METHOD_NOT_ALLOWED,
+        PAYLOAD_TOO_LARGE, UNSUPPORTED_MEDIA_TYPE, TOO_MANY_REQUESTS (giới hạn tốc độ toàn cục, kèm header Retry-After),
+        INVALID_CREDENTIALS, ACCOUNT_LOCKED, ACCOUNT_NOT_VERIFIED, EMAIL_TAKEN, PHONE_TAKEN, CODE_WRONG, CODE_EXPIRED,
+        CODE_LOCKED, TOKEN_EXPIRED, WRONG_PASSWORD, SERIAL_NOT_FOUND, SERIAL_OWNED, PROJECT_LIMIT, PROJECT_NOT_FOUND,
+        ROLE_NOT_PERMITTED, DEVICE_NOT_FOUND, ALERT_NOT_FOUND, COMMAND_NOT_FOUND, TICKET_NOT_FOUND, TICKET_CLOSED,
+        ATTACHMENT_LIMIT, GROUP_NOT_IN_ALLOWLIST, DEVICE_READ_ONLY, WRITE_DISABLED_BY_SERVER, GATEWAY_OFFLINE, BMS_NOT_CONNECTED,
+        CONFIG_STALE, COMMAND_IN_PROGRESS, IDEMPOTENCY_KEY_REUSED, RATE_LIMITED.
+      properties:
+        code: { type: string }
+        errors:
+          type: array
+          description: Khi VALIDATION_FAILED có lỗi theo trường
+          items: { $ref: "#/components/schemas/FieldError" }
+        retry_after_seconds: { type: integer, description: ACCOUNT_LOCKED, TOO_MANY_REQUESTS, RATE_LIMITED }
+        attempts_left: { type: integer, description: CODE_WRONG }
+        current_version: { type: string, description: CONFIG_STALE }
+        command_id: { type: string, format: uuid, description: COMMAND_IN_PROGRESS }
+      additionalProperties: true
+    FieldError:
+      type: object
+      required: [field, code]
+      properties:
+        field: { type: string, description: "Đường dẫn trường, ví dụ name, tariff.fixed_per_kwh, strategies[0].charge_slots[1]" }
+        code:
+          type: string
+          description: |
+            Chung: NAME_INVALID, VALUE_INVALID, VALUE_OUT_OF_RANGE, ADDRESS_INVALID, DATE_INVALID, SERIAL_INVALID,
+            TITLE_INVALID, DESCRIPTION_INVALID. Lịch TOU: TOO_MANY_STRATEGIES, ID_INVALID, WEEKDAYS_EMPTY, WEEKDAY_INVALID,
+            WEEKDAY_DUPLICATE, TOO_MANY_SLOTS, TIME_INVALID, SLOT_EMPTY, SLOT_OVERLAP. Mật khẩu/tài khoản: theo AuthService.
+    Health:
+      type: object
+      properties:
+        status: { type: string }
+        mqtt_connected: { type: boolean }
+        realtime_connections: { type: integer }
+        messages_received: { type: integer }
+        rows_written: { type: integer }
+        rows_dropped: { type: integer }
+        last_batch_ms: { type: number }
+    DeviceStatus:
+      type: string
+      enum: [online, warning, error, offline, waiting_connection]
+      description: "`waiting_connection`: dự án chưa nhận được dữ liệu nào từ thiết bị"
+    BmsComm:
+      type: [string, "null"]
+      enum: [ok, fault, disabled, unknown, null]
+      description: Truyền thông inverter ↔ BMS; null khi datalogger không báo
+    Role:
+      type: string
+      enum: [owner, distributor, ggp_technician]
+      description: owner = cấp A, distributor = cấp B, ggp_technician = cấp C
+
+    # ---------- auth & profile
+    Tokens:
+      type: object
+      required: [access_token, expires_in, refresh_token, refresh_expires_in, token_type]
+      properties:
+        access_token: { type: string }
+        expires_in: { type: integer, description: Giây }
+        refresh_token: { type: string }
+        refresh_expires_in: { type: integer, description: Giây }
+        token_type: { type: string, const: Bearer }
+    RefreshRequest:
+      type: object
+      required: [refresh_token]
+      properties:
+        refresh_token: { type: string }
+    AccountRequest:
+      type: object
+      properties:
+        account: { type: string, description: Email hoặc số điện thoại }
+    NotificationPrefs:
+      type: object
+      properties:
+        device_alerts: { type: boolean }
+        daily_report: { type: boolean }
+        gg_power_news: { type: boolean }
+    Profile:
+      type: object
+      required: [id, name, email, phone, role, notifications]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        email: { type: string }
+        phone: { type: string }
+        role: { $ref: "#/components/schemas/Role" }
+        language: { type: [string, "null"], enum: [vi, en, null] }
+        avatar_url: { type: [string, "null"], description: "Đường dẫn tương đối, đổi khi ảnh đổi (/api/v1/me/avatar?v=...)" }
+        notifications: { $ref: "#/components/schemas/NotificationPrefs" }
+
+    # ---------- projects
+    ProjectListItem:
+      type: object
+      required: [id, name, address, site_type, role, configuration, status]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        address: { type: string }
+        site_type: { type: string, enum: [home, factory] }
+        role: { $ref: "#/components/schemas/Role" }
+        configuration: { type: string, description: "Ví dụ \"ESS-6K\" hoặc \"2 × ESS-6K\"; rỗng khi chưa có dữ liệu" }
+        status: { $ref: "#/components/schemas/DeviceStatus" }
+        pv_power_kw: { type: [number, "null"] }
+        today_energy_kwh: { type: [number, "null"] }
+        battery_soc_percent: { type: [integer, "null"] }
+    SerialCheck:
+      type: object
+      required: [serial, name]
+      properties:
+        serial: { type: string }
+        name: { type: string }
+        model: { type: [string, "null"] }
+        rated_power_kw: { type: [number, "null"] }
+        manufactured_on: { type: [string, "null"], format: date, description: Chưa có nguồn dữ liệu, luôn null }
+    CreateProject:
+      type: object
+      required: [serial, name, site_type, address, installed_on, pv_kwp]
+      properties:
+        serial: { type: string }
+        name: { type: string, minLength: 1, maxLength: 40 }
+        site_type: { type: string, enum: [home, factory] }
+        address: { type: string, minLength: 1, maxLength: 300 }
+        latitude: { type: [number, "null"], minimum: -90, maximum: 90 }
+        longitude: { type: [number, "null"], minimum: -180, maximum: 180 }
+        time_zone: { type: string, default: Asia/Ho_Chi_Minh }
+        installed_on: { type: string, format: date }
+        pv_kwp: { type: number, exclusiveMinimum: 0, maximum: 100000 }
+        tariff:
+          type: object
+          properties:
+            kind: { type: string, enum: [evn_tiered, fixed], default: evn_tiered }
+            fixed_per_kwh: { type: integer, description: "VND/kWh, bắt buộc khi kind = fixed (1–1.000.000)" }
+            sell_per_kwh: { type: integer, minimum: 0, maximum: 1000000 }
+
+    # ---------- project data
+    EnergyNow:
+      type: object
+      properties:
+        pv_kw: { type: [number, "null"] }
+        grid_kw: { type: [number, "null"], description: "> 0 mua từ lưới, < 0 bán lên lưới" }
+        battery_kw: { type: [number, "null"], description: "> 0 sạc, < 0 xả; null khi không có pin" }
+        load_kw: { type: [number, "null"] }
+        battery_soc_percent: { type: [integer, "null"] }
+    BatteryContent:
+      type: object
+      required: [capacity_kwh, from_pv_kwh, from_grid_kwh]
+      properties:
+        capacity_kwh: { type: number }
+        from_pv_kwh: { type: number, description: Ước tính năng lượng trong pin đến từ PV }
+        from_grid_kwh: { type: number, description: Ước tính năng lượng trong pin đến từ lưới }
+    Overview:
+      type: object
+      required: [project_name, status, unresolved_alerts, yield_today_kwh, yield_yesterday_kwh, mode]
+      properties:
+        project_name: { type: string }
+        serial: { type: [string, "null"] }
+        status: { $ref: "#/components/schemas/DeviceStatus" }
+        updated_at: { type: [string, "null"], format: date-time }
+        unresolved_alerts: { type: integer }
+        yield_today_kwh: { type: number }
+        yield_yesterday_kwh: { type: number }
+        energy:
+          description: null khi thiết bị không liên lạc được
+          oneOf:
+            - { $ref: "#/components/schemas/EnergyNow" }
+            - { type: "null" }
+        battery_present: { type: [boolean, "null"], description: Do inverter báo; null khi chưa báo }
+        mode: { $ref: "#/components/schemas/OperatingMode" }
+        backup_soc_percent: { type: [integer, "null"] }
+        battery:
+          oneOf:
+            - { $ref: "#/components/schemas/BatteryContent" }
+            - { type: "null" }
+        model: { type: [string, "null"], description: Model inverter do datalogger báo }
+        co2_today_kg:
+          type: [number, "null"]
+          description: CO₂ giảm hôm nay = yield_today_kwh × hệ số `Stats:Co2KgPerKwh`; null khi dự án chưa gắn thiết bị
+        battery_charged_today:
+          description: kWh đã sạc vào pin hôm nay theo nguồn (khác `battery` là năng lượng đang trong pin); null khi chưa gắn thiết bị hoặc inverter báo không có pin
+          oneOf:
+            - { $ref: "#/components/schemas/BatteryChargedToday" }
+            - { type: "null" }
+    Datalogger:
+      type: object
+      required: [online, connection]
+      properties:
+        serial: { type: [string, "null"], description: Serial riêng của datalogger (`logger_sn` trong up/status); null khi firmware chưa gửi }
+        online: { type: boolean, description: Datalogger đang liên lạc được (cùng nghĩa với thiết bị reachable) }
+        connection: { type: string, enum: [wifi, ethernet, 4g], description: "`conn_type` trong up/status; chưa gửi thì `wifi`" }
+        rssi_dbm: { type: [integer, "null"], description: Cường độ Wi-Fi (`signal_rssi`), dBm; app quy ra mức }
+        ip: { type: [string, "null"] }
+        firmware: { type: [string, "null"] }
+    BatteryChargedToday:
+      type: object
+      required: [from_pv_kwh, from_grid_kwh]
+      properties:
+        from_pv_kwh: { type: number, description: Phần sạc từ PV dư (rollup pv_charge_kwh) }
+        from_grid_kwh: { type: number, description: Phần còn lại (charge_kwh − pv_charge_kwh, không âm) }
+    DayCurves:
+      type: object
+      required: [date, step_minutes, closed, power, battery]
+      properties:
+        date: { type: string, format: date }
+        step_minutes: { type: integer, const: 15 }
+        closed: { type: boolean, description: Kỳ đã chốt, không đổi nữa }
+        power:
+          type: array
+          items:
+            type: object
+            required: [minute]
+            properties:
+              minute: { type: integer, description: Phút kể từ 00:00 giờ địa phương }
+              pv_kw: { type: [number, "null"] }
+              grid_kw: { type: [number, "null"] }
+              battery_kw: { type: [number, "null"] }
+              load_kw: { type: [number, "null"] }
+        battery:
+          type: array
+          items:
+            type: object
+            required: [minute]
+            properties:
+              minute: { type: integer }
+              current_a: { type: [number, "null"] }
+              soc_percent: { type: [integer, "null"] }
+    Stats:
+      type: object
+      required: [period, anchor, closed, energy_buckets, yield_buckets, summary]
+      properties:
+        period: { type: string, enum: [day, month, year] }
+        anchor: { type: string, format: date }
+        closed: { type: boolean }
+        energy_buckets:
+          type: array
+          description: "day: 12 ô (2 giờ); month: số ngày trong tháng; year: 12 tháng"
+          items:
+            type: object
+            properties:
+              pv_kwh: { type: number }
+              grid_net_kwh: { type: number, description: Mua − bán }
+              battery_charge_kwh: { type: number }
+              battery_discharge_kwh: { type: number }
+              load_kwh: { type: number }
+              average_soc_percent: { type: [integer, "null"] }
+        yield_buckets:
+          type: array
+          items:
+            type: object
+            properties:
+              self_kwh: { type: number }
+              charge_kwh: { type: number }
+              export_kwh: { type: number }
+        summary:
+          type: object
+          properties:
+            consumption_kwh: { type: number }
+            self_use_percent: { type: integer }
+            saving_vnd: { type: integer }
+            co2_kg: { type: number }
+            price_per_kwh: { type: integer }
+            price_is_default: { type: boolean, description: true khi dự án dùng giá bậc thang EVN (chưa có bảng giá, dùng giá mặc định) }
+    DeviceEntry:
+      type: object
+      required: [inverter]
+      properties:
+        inverter:
+          type: object
+          required: [name, serial, status]
+          properties:
+            name: { type: string }
+            serial: { type: string }
+            status: { $ref: "#/components/schemas/DeviceStatus" }
+            power_kw: { type: [number, "null"] }
+            temperature_c: { type: [number, "null"] }
+            firmware: { type: [string, "null"] }
+            logger_firmware: { type: [string, "null"] }
+        battery_present: { type: [boolean, "null"] }
+        bms_comm: { $ref: "#/components/schemas/BmsComm" }
+        datalogger:
+          description: null khi thiết bị chưa từng kết nối
+          oneOf:
+            - { $ref: "#/components/schemas/Datalogger" }
+            - { type: "null" }
+        battery:
+          oneOf:
+            - type: object
+              required: [name, state]
+              properties:
+                name: { type: string }
+                state: { type: string, enum: [charging, discharging, idle] }
+                hours_remaining: { type: [number, "null"] }
+                soc_percent: { type: [integer, "null"] }
+                power_kw: { type: [number, "null"] }
+                voltage_v: { type: [number, "null"] }
+                soh_percent: { type: [integer, "null"] }
+            - { type: "null" }
+    DeviceSnapshot:
+      type: object
+      description: Cũng là frame `device` của realtime. telemetry/battery là null khi thiết bị không liên lạc được.
+      required: [type, serial, status, active_errors, unresolved_alerts]
+      properties:
+        type: { type: string, const: device }
+        serial: { type: string }
+        status: { $ref: "#/components/schemas/DeviceStatus" }
+        updated_at: { type: [string, "null"], format: date-time }
+        inverter_comm: { type: [string, "null"], description: "\"ok\" hoặc mã lỗi truyền thông datalogger ↔ inverter" }
+        model: { type: [string, "null"] }
+        inverter_fw: { type: [string, "null"] }
+        logger_fw: { type: [string, "null"] }
+        unresolved_alerts: { type: integer }
+        active_errors:
+          type: array
+          items:
+            type: object
+            properties:
+              code: { type: string }
+              title: { type: string }
+        battery_present: { type: [boolean, "null"] }
+        bms_comm: { $ref: "#/components/schemas/BmsComm" }
+        telemetry:
+          oneOf:
+            - { $ref: "#/components/schemas/TelemetryLive" }
+            - { type: "null" }
+        battery:
+          oneOf:
+            - { $ref: "#/components/schemas/BatteryLive" }
+            - { type: "null" }
+        battery_content:
+          oneOf:
+            - { $ref: "#/components/schemas/BatteryContent" }
+            - { type: "null" }
+        datalogger: { $ref: "#/components/schemas/Datalogger" }
+        co2_today_kg:
+          type: [number, "null"]
+          description: CO₂ giảm hôm nay = yield_today_kwh × hệ số `Stats:Co2KgPerKwh` (như /stats summary.co2_kg); null khi không liên lạc được
+        battery_charged_today:
+          description: kWh đã sạc vào pin từ 00:00 giờ địa phương (từ bảng tổng hợp, trễ ≈ 30 s); null khi inverter báo không có pin hoặc chưa tính lần nào
+          oneOf:
+            - { $ref: "#/components/schemas/BatteryChargedToday" }
+            - { type: "null" }
+    TelemetryLive:
+      type: object
+      description: Đơn vị W / V / A / Hz / °C / kWh như tên trường. Mọi trường có thể null.
+      properties:
+        ts: { type: string, format: date-time }
+        inv_status: { type: [integer, "null"] }
+        inv_temp_c: { type: [number, "null"] }
+        pv1_v: { type: [number, "null"] }
+        pv1_a: { type: [number, "null"] }
+        pv1_w: { type: [number, "null"] }
+        pv2_v: { type: [number, "null"] }
+        pv2_a: { type: [number, "null"] }
+        pv2_w: { type: [number, "null"] }
+        pv_w: { type: [number, "null"] }
+        grid_v: { type: [number, "null"] }
+        grid_a: { type: [number, "null"] }
+        grid_hz: { type: [number, "null"] }
+        grid_w: { type: [number, "null"] }
+        load_v: { type: [number, "null"] }
+        load_a: { type: [number, "null"] }
+        load_hz: { type: [number, "null"] }
+        load_w: { type: [number, "null"] }
+        battery_w: { type: [number, "null"] }
+        soc_percent: { type: [number, "null"] }
+        yield_today_kwh: { type: [number, "null"] }
+        yield_total_kwh: { type: [number, "null"] }
+        load_today_kwh: { type: [number, "null"] }
+        export_today_kwh: { type: [number, "null"] }
+        import_today_kwh: { type: [number, "null"] }
+    BatteryLive:
+      type: object
+      properties:
+        ts: { type: string, format: date-time }
+        present: { type: [boolean, "null"] }
+        bms_comm: { $ref: "#/components/schemas/BmsComm" }
+        battery_type: { type: [integer, "null"] }
+        bms_serial: { type: [string, "null"] }
+        model: { type: [string, "null"] }
+        soc_percent: { type: [number, "null"] }
+        soh_percent: { type: [number, "null"] }
+        voltage_v: { type: [number, "null"] }
+        current_a: { type: [number, "null"], description: "> 0 sạc, < 0 xả" }
+        power_w: { type: [number, "null"] }
+        temp_cells_c: { type: [number, "null"] }
+        temp_bms_c: { type: [number, "null"] }
+        cycles: { type: [integer, "null"] }
+        capacity_remaining_ah: { type: [number, "null"] }
+        capacity_nominal_ah: { type: [number, "null"] }
+        est_minutes: { type: [number, "null"] }
+        charge_limit_soc_percent: { type: [integer, "null"], description: SOC dừng sạc (`charge_stop_soc` từ cấu hình); null khi firmware chưa báo }
+        discharge_limit_soc_percent: { type: [integer, "null"], description: SOC dừng xả = SOC dự phòng (`battery_reserve_soc`) }
+    History:
+      type: object
+      required: [range, step_minutes, start, start_utc, values]
+      properties:
+        range: { type: string, enum: [hour, day, week] }
+        step_minutes: { type: integer }
+        start: { type: string, description: Giờ địa phương của điểm đầu }
+        start_utc: { type: string, format: date-time }
+        values:
+          type: object
+          description: |
+            Khoá là tên trường đã yêu cầu: pv_power, load_power, temp_dcac, grid_voltage, grid_frequency, soc,
+            pack_current, battery_temp, cell_delta (luôn null — datalogger chưa gửi dữ liệu cell).
+            Mỗi giá trị là mảng cách đều `step_minutes`, null ở chỗ thiếu dữ liệu.
+          additionalProperties:
+            type: array
+            items: { type: [number, "null"] }
+    Warranty:
+      type: object
+      required: [project_name, devices, history]
+      properties:
+        project_name: { type: string }
+        devices:
+          type: array
+          items:
+            type: object
+            properties:
+              name: { type: string }
+              serial: { type: string }
+              activated_on: { type: string, format: date }
+              expires_on: { type: string, format: date }
+        history:
+          type: array
+          items:
+            type: object
+            properties:
+              title: { type: string }
+              device: { type: string }
+              work_kind: { type: string }
+              work_ref: { type: [string, "null"] }
+              date: { type: string, format: date }
+              channel: { type: string }
+              status: { type: string }
+
+    # ---------- alerts
+    AlertSeverity:
+      type: string
+      enum: [error, warning, info]
+    AlertListItem:
+      type: object
+      required: [id, severity, title, description, code, started_at, started_at_utc, resolved, occurrences]
+      properties:
+        id: { type: string, format: uuid }
+        severity: { $ref: "#/components/schemas/AlertSeverity" }
+        title: { type: string }
+        description: { type: string }
+        code: { type: string }
+        started_at: { type: string, description: Giờ địa phương }
+        started_at_utc: { type: string, format: date-time }
+        ended_at_utc: { type: [string, "null"], format: date-time, description: null khi lỗi vẫn đang diễn ra }
+        resolved: { type: boolean, description: Người dùng đã đánh dấu xử lý }
+        occurrences: { type: integer, description: Số lần lỗi lặp lại khi chưa xử lý }
+        last_triggered_at_utc: { type: [string, "null"], format: date-time }
+    AlertDetail:
+      type: object
+      required: [id, severity, title, description, device, project_name, started_at, resolved, code, code_name, occurrences, causes, steps]
+      properties:
+        id: { type: string, format: uuid }
+        severity: { $ref: "#/components/schemas/AlertSeverity" }
+        title: { type: string }
+        description: { type: string }
+        device: { type: string, description: Tên thiết bị trong dự án }
+        project_name: { type: string }
+        started_at: { type: string, description: Giờ địa phương }
+        ended_at: { type: [string, "null"], description: Giờ địa phương }
+        end_kind: { type: [string, "null"], enum: [auto_recovered, null] }
+        resolved: { type: boolean }
+        code: { type: string }
+        code_name: { type: string }
+        occurrences: { type: integer }
+        last_triggered_at: { type: [string, "null"], description: Giờ địa phương }
+        chart:
+          description: Điện áp lưới ±15 phút quanh sự kiện; null khi thiếu dữ liệu thô hoặc lỗi mất kết nối
+          oneOf:
+            - type: object
+              required: [kind, unit, values, start, step_seconds, mark_index]
+              properties:
+                kind: { type: string, const: grid }
+                unit: { type: string, const: volt }
+                values: { type: array, items: { type: number } }
+                start: { type: string, description: Giờ địa phương }
+                step_seconds: { type: integer, const: 60 }
+                mark_index: { type: integer, description: Vị trí thời điểm xảy ra lỗi }
+            - { type: "null" }
+        causes: { type: array, items: { type: string } }
+        steps: { type: array, items: { type: string } }
+        snapshot: { description: Ảnh chụp số liệu lúc xảy ra (JSON tự do) }
+
+    # ---------- config (nhóm ghi theo ADR-001)
+    OperatingMode:
+      type: string
+      enum: [self_consumption, battery_priority, max_grid_export, tou, unknown]
+    WritableOperatingMode:
+      type: string
+      enum: [self_consumption, battery_priority, max_grid_export, tou]
+      description: Cấp A (owner) không được chọn max_grid_export
+    WriteGroup:
+      type: string
+      enum: [operating_mode, backup_soc, tou_schedule]
+    TimeOfDay:
+      type: object
+      required: [hour, minute]
+      properties:
+        hour: { type: integer, minimum: 0, maximum: 23 }
+        minute: { type: integer, minimum: 0, maximum: 59 }
+    TouSlot:
+      type: object
+      required: [start, end, stop_soc_percent, max_power_w]
+      description: Có thể qua nửa đêm (start > end). Chạm mép không tính là trùng.
+      properties:
+        start: { $ref: "#/components/schemas/TimeOfDay" }
+        end: { $ref: "#/components/schemas/TimeOfDay" }
+        stop_soc_percent: { type: integer, minimum: 0, maximum: 100 }
+        max_power_w: { type: integer, minimum: 0, maximum: 12000 }
+    TouStrategy:
+      type: object
+      required: [id, name, weekdays, charge_slots, discharge_slots]
+      properties:
+        id: { type: string, format: uuid, description: App sinh khi tạo }
+        name: { type: string, minLength: 1, maxLength: 40 }
+        weekdays:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items: { type: string, enum: [mon, tue, wed, thu, fri, sat, sun] }
+        charge_slots: { type: array, maxItems: 3, items: { $ref: "#/components/schemas/TouSlot" } }
+        discharge_slots: { type: array, maxItems: 3, items: { $ref: "#/components/schemas/TouSlot" } }
+    ConfigSnapshot:
+      type: object
+      required: [device_serial, version, mode, strategies, write_access, settings]
+      properties:
+        device_serial: { type: string }
+        version: { type: string, description: Mã mờ; gửi lại ở based_on_version }
+        read_at: { type: [string, "null"], format: date-time }
+        mode: { $ref: "#/components/schemas/OperatingMode" }
+        backup_soc_percent: { type: [integer, "null"] }
+        strategies: { type: array, maxItems: 4, items: { $ref: "#/components/schemas/TouStrategy" } }
+        today_strategy_id: { type: [string, "null"], description: Chỉ có khi mode = tou }
+        write_access: { $ref: "#/components/schemas/WriteAccess" }
+        settings: { $ref: "#/components/schemas/DeviceSettings" }
+    WriteAccess:
+      type: object
+      required: [state, role, writable_groups, blocked_groups, backup_soc_range, writable_modes]
+      properties:
+        state: { type: string, enum: [enabled, device_read_only, disabled_by_server, gateway_offline] }
+        role: { $ref: "#/components/schemas/Role" }
+        writable_groups:
+          type: array
+          description: Rỗng khi state khác enabled
+          items: { $ref: "#/components/schemas/WriteGroup" }
+        blocked_groups:
+          type: array
+          items:
+            type: object
+            required: [group, reason]
+            properties:
+              group: { $ref: "#/components/schemas/WriteGroup" }
+              reason: { type: string, enum: [NOT_SUPPORTED_BY_DEVICE, BMS_NOT_CONNECTED], description: "BMS_NOT_CONNECTED: inverter báo không có pin hoặc bms_comm là fault / disabled" }
+        backup_soc_range:
+          type: object
+          properties:
+            min: { type: integer }
+            max: { type: integer }
+        writable_modes:
+          type: array
+          description: Quyền theo vai trò, không bị làm rỗng khi state khác enabled
+          items: { $ref: "#/components/schemas/WritableOperatingMode" }
+    DeviceSettings:
+      type: object
+      description: Tham số chỉ xem mà datalogger có gửi; null khi chưa có
+      properties:
+        battery_capacity_kwh: { type: [number, "null"] }
+        average_load_kw_7d: { type: [number, "null"] }
+        grid_charge_current_a: { type: [integer, "null"] }
+        grid_work_mode_name: { type: [string, "null"] }
+        zero_export_w: { type: [integer, "null"] }
+    ConfigCommandRequest:
+      type: object
+      required: [group, based_on_version]
+      description: |
+        Theo `group`: operating_mode cần `mode`; backup_soc cần `soc_percent` (trong backup_soc_range);
+        tou_schedule cần `strategies` (thay toàn bộ danh sách, tối đa 4).
+      properties:
+        group: { $ref: "#/components/schemas/WriteGroup" }
+        based_on_version: { type: string }
+        mode: { $ref: "#/components/schemas/WritableOperatingMode" }
+        soc_percent: { type: integer }
+        strategies: { type: array, maxItems: 4, items: { $ref: "#/components/schemas/TouStrategy" } }
+    CommandStatus:
+      type: string
+      enum: [queued, writing, verifying, reverting, applied, reverted, failed]
+      description: Trạng thái cuối là applied, reverted, failed
+    ConfigCommand:
+      type: object
+      required: [command_id, device_serial, group, status, initiator, created_at, updated_at, expires_at]
+      properties:
+        command_id: { type: string, format: uuid }
+        device_serial: { type: string }
+        group: { $ref: "#/components/schemas/WriteGroup" }
+        status: { $ref: "#/components/schemas/CommandStatus" }
+        initiator:
+          type: object
+          required: [type]
+          properties:
+            type: { type: string, enum: [user, system] }
+            user_id: { type: string, format: uuid }
+            display_name: { type: [string, "null"] }
+            role: { oneOf: [{ $ref: "#/components/schemas/Role" }, { type: "null" }] }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+        expires_at: { type: string, format: date-time }
+        poll_after_ms: { type: integer, description: Chỉ có khi chưa ở trạng thái cuối }
+        changes: { type: array, items: { $ref: "#/components/schemas/Change" } }
+        outcome:
+          type: object
+          description: Chỉ có ở trạng thái cuối
+          required: [device_state]
+          properties:
+            device_written: { type: boolean }
+            device_state: { type: string, enum: [new, old_restored, old_unchanged, unknown] }
+            unsupported:
+              type: array
+              description: Phần thiết bị chưa hỗ trợ nên chỉ lưu ở backend (hiện có discharge_slots)
+              items: { type: string }
+        failure:
+          type: object
+          required: [code]
+          properties:
+            code: { type: string, enum: [READBACK_MISMATCH, ACK_TIMEOUT, GATEWAY_ERROR, MODBUS_EXCEPTION] }
+            device_code: { description: Mã lỗi datalogger trả về, chỉ khi GATEWAY_ERROR }
+          additionalProperties: true
+    Change:
+      type: object
+      required: [parameter]
+      properties:
+        parameter: { type: string, description: "operating_mode, backup_soc, tou.strategies, schedule_days, charge_schedule_enabled, …" }
+        old: {}
+        new: {}
+        readback: {}
+        readback_matched: { type: [boolean, "null"] }
+    WriteSwitch:
+      type: object
+      required: [enabled, changed_at]
+      properties:
+        enabled: { type: boolean }
+        reason: { type: [string, "null"] }
+        changed_by: { type: [string, "null"] }
+        changed_at: { type: string, format: date-time }
+    AllowlistEntry:
+      type: object
+      required: [serial, added_at]
+      properties:
+        serial: { type: string }
+        note: { type: [string, "null"] }
+        added_by: { type: [string, "null"], format: uuid }
+        added_at: { type: string, format: date-time }
+
+    # ---------- support
+    Explore:
+      type: object
+      required: [products, articles, videos]
+      properties:
+        products:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string }
+              name: { type: string }
+              description: { type: string }
+              icon: { $ref: "#/components/schemas/ExploreIcon" }
+        articles:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string }
+              title: { type: string }
+              category: { type: string }
+              read_minutes: { type: integer }
+              icon: { $ref: "#/components/schemas/ExploreIcon" }
+              featured: { type: boolean }
+              date_label: { type: string }
+              image_description: { type: string }
+        videos:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string }
+              title: { type: string }
+              related_product: { type: string }
+              duration_seconds: { type: integer }
+              icon: { $ref: "#/components/schemas/ExploreIcon" }
+    ExploreIcon:
+      type: string
+      description: Giá trị lạ hiển thị như article
+      enum: [battery, inverter, solar_panel, accessory, article]
+    TicketType:
+      type: string
+      enum: [technical, account, other]
+    TicketStatus:
+      type: string
+      enum: [received, processing, resolved, closed]
+    TicketSummary:
+      type: object
+      required: [id, code, title, type, created_at, status]
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string, description: "Ví dụ #HT-1110-0042" }
+        title: { type: string }
+        type: { $ref: "#/components/schemas/TicketType" }
+        project_id: { type: [string, "null"], format: uuid }
+        project_name: { type: [string, "null"] }
+        created_at: { type: string, format: date-time }
+        status: { $ref: "#/components/schemas/TicketStatus" }
+    TicketMessage:
+      type: object
+      required: [id, author, text, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        author: { type: string, enum: [user, support] }
+        text: { type: string }
+        created_at: { type: string, format: date-time }
+    Attachment:
+      type: object
+      required: [id, content_type, size_bytes]
+      properties:
+        id: { type: string, format: uuid }
+        content_type: { type: string, enum: [image/jpeg, image/png, image/webp, video/mp4] }
+        size_bytes: { type: integer }
+    TicketDetail:
+      type: object
+      required: [summary, description, attachments, messages]
+      properties:
+        summary: { $ref: "#/components/schemas/TicketSummary" }
+        description: { type: string }
+        attachments: { type: array, items: { $ref: "#/components/schemas/Attachment" } }
+        messages: { type: array, items: { $ref: "#/components/schemas/TicketMessage" } }

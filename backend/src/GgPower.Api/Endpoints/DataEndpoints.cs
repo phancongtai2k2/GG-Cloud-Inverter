@@ -16,11 +16,11 @@ public static class DataEndpoints
         var g = api.MapGroup("/projects/{projectId:guid}").RequireAuthorization();
 
         // Home screen, first paint. Afterwards the app keeps it fresh from the realtime channel.
-        g.MapGet("/overview", async (Guid projectId, HttpContext ctx, AccessService access, LiveStateCache live, StatsService stats, Db db, TimeProvider clock, CancellationToken ct) =>
+        g.MapGet("/overview", async (Guid projectId, HttpContext ctx, AccessService access, ILiveStore live, StatsService stats, Db db, TimeProvider clock, CancellationToken ct) =>
         {
             if (await access.ProjectAsync(ctx.User, projectId, ct) is not { } a) return Api.NotFound();
             var now = clock.GetUtcNow();
-            var d = a.PrimarySerial is { } serial ? live.Get(serial) : null;
+            var d = a.PrimarySerial is { } serial ? await live.GetAsync(serial, ct) : null;
             var reachable = d?.IsReachable(now) == true;
             var t = reachable ? d!.Telemetry : null;
             // Whether there is a battery is the inverter's statement (null: not reported), never derived here.
@@ -32,14 +32,20 @@ public static class DataEndpoints
                 await using var c = await db.OpenAsync(ct);
                 touActive = await c.ExecuteScalarAsync<bool?>("SELECT tou_active FROM tou_strategies WHERE serial = @s", new { s = d.Serial }) ?? false;
             }
+            var yieldToday = t?.YieldToday ?? (d is null ? 0 : await stats.DayYieldAsync(d.Serial, today, ct));
             return Results.Json(new
             {
                 project_name = a.Project.Name,
                 serial = d?.Serial,
+                model = d?.Model,
                 status = d is null ? "waiting_connection" : d.StatusName(now),
                 updated_at = d?.LastSeen,
                 unresolved_alerts = d?.Unresolved ?? 0,
-                yield_today_kwh = t?.YieldToday ?? (d is null ? 0 : await stats.DayYieldAsync(d.Serial, today, ct)),
+                yield_today_kwh = yieldToday,
+                // Same emission factor as /stats summary.co2_kg; null before the device is bound.
+                co2_today_kg = d is null ? null : LiveJson.Co2Kg(yieldToday),
+                // kWh charged into the battery since local midnight, by source; null without a device or without a battery.
+                battery_charged_today = d is null || present == false ? null : LiveJson.Charged(await stats.DayChargeAsync(d.Serial, today, ct)),
                 yield_yesterday_kwh = d is null ? 0 : await stats.DayYieldAsync(d.Serial, today.AddDays(-1), ct),
                 energy = t is null ? null : new
                 {
@@ -73,16 +79,17 @@ public static class DataEndpoints
             return Api.Cached(ctx, body, immutable: closed, maxAgeSeconds: 60);
         });
 
-        g.MapGet("/devices", async (Guid projectId, HttpContext ctx, AccessService access, LiveStateCache live, Db db, TimeProvider clock, CancellationToken ct) =>
+        g.MapGet("/devices", async (Guid projectId, HttpContext ctx, AccessService access, ILiveStore live, Db db, TimeProvider clock, CancellationToken ct) =>
         {
             if (await access.ProjectAsync(ctx.User, projectId, ct) is not { } a) return Api.NotFound();
             var now = clock.GetUtcNow();
             await using var c = await db.OpenAsync(ct);
             var names = (await c.QueryAsync<(string Serial, string Name)>("SELECT serial, name FROM project_devices WHERE project_id = @projectId", new { projectId }))
                 .ToDictionary(x => x.Serial, x => x.Name, StringComparer.OrdinalIgnoreCase);
-            return Results.Json(a.Serials.Select(serial =>
+            var states = await live.GetManyAsync(a.Serials, ct);
+            return Results.Json(a.Serials.Select((serial, i) =>
             {
-                var d = live.Get(serial);
+                var d = states[i];
                 var reachable = d?.IsReachable(now) == true;
                 var t = reachable ? d!.Telemetry : null;
                 var b = reachable ? d!.Battery : null;
@@ -100,6 +107,7 @@ public static class DataEndpoints
                     },
                     battery_present = present,
                     bms_comm = d?.Battery?.BmsComm,
+                    datalogger = d is null ? null : LiveJson.Datalogger(d, reachable),
                     battery = !hasBattery ? null : new
                     {
                         name = d!.Battery!.Model ?? "Battery",
@@ -115,10 +123,10 @@ public static class DataEndpoints
         });
 
         // Full live snapshot of the project's device (device detail screens, first paint).
-        g.MapGet("/telemetry", async (Guid projectId, HttpContext ctx, AccessService access, LiveStateCache live, TimeProvider clock, CancellationToken ct) =>
+        g.MapGet("/telemetry", async (Guid projectId, HttpContext ctx, AccessService access, ILiveStore live, TimeProvider clock, CancellationToken ct) =>
         {
             if (await access.ProjectAsync(ctx.User, projectId, ct) is not { } a) return Api.NotFound();
-            if (a.PrimarySerial is not { } serial || live.Get(serial) is not { } d) return Api.NotFound("DEVICE_NOT_FOUND");
+            if (a.PrimarySerial is not { } serial || await live.GetAsync(serial, ct) is not { } d) return Api.NotFound("DEVICE_NOT_FOUND");
             return Results.Json(LiveJson.Snapshot(d, clock.GetUtcNow()), LiveJson.Options);
         });
 
@@ -134,25 +142,9 @@ public static class DataEndpoints
 }
 
 /// <summary>One-time tickets that authenticate a WebSocket, so the access token never appears in a URL.</summary>
-public sealed class RealtimeTickets(TimeProvider clock)
+public static class RealtimeTickets
 {
-    private readonly ConcurrentDictionary<string, (Guid UserId, string Role, DateTimeOffset Expires)> _tickets = new();
     public static readonly TimeSpan Lifetime = TimeSpan.FromSeconds(30);
-
-    public string Issue(Guid userId, string role)
-    {
-        var now = clock.GetUtcNow();
-        foreach (var kv in _tickets) if (kv.Value.Expires < now) _tickets.TryRemove(kv.Key, out _);
-        var ticket = Secrets.NewToken();
-        _tickets[ticket] = (userId, role, now + Lifetime);
-        return ticket;
-    }
-
-    public (Guid UserId, string Role)? Redeem(string? ticket)
-    {
-        if (string.IsNullOrEmpty(ticket) || !_tickets.TryRemove(ticket, out var t) || t.Expires < clock.GetUtcNow()) return null;
-        return (t.UserId, t.Role);
-    }
 }
 
 public static class RealtimeEndpoints
@@ -161,16 +153,16 @@ public static class RealtimeEndpoints
 
     public static void Map(WebApplication app, RouteGroupBuilder api)
     {
-        api.MapPost("/realtime/ticket", (HttpContext ctx, RealtimeTickets tickets) =>
-            Results.Json(new { ticket = tickets.Issue(ctx.User.UserId(), ctx.User.Role()), expires_in = (int)RealtimeTickets.Lifetime.TotalSeconds }))
+        api.MapPost("/realtime/ticket", async (HttpContext ctx, ITicketStore tickets) =>
+            Results.Json(new { ticket = await tickets.IssueAsync(ctx.User.UserId(), ctx.User.Role(), RealtimeTickets.Lifetime), expires_in = (int)RealtimeTickets.Lifetime.TotalSeconds }))
             .RequireAuthorization();
 
         // Protocol: client sends {"subscribe":["<project id>", ...]}; the server answers with a snapshot of
         // each device at once and then pushes every change. {"ping":1} is answered with {"type":"pong"}.
-        app.Map("/ws/v1/realtime", async (HttpContext ctx, RealtimeTickets tickets, RealtimeHub hub, LiveStateCache live, Db db, TimeProvider clock, ILoggerFactory lf) =>
+        app.Map("/ws/v1/realtime", async (HttpContext ctx, ITicketStore tickets, RealtimeHub hub, ILiveStore live, Db db, TimeProvider clock, ILoggerFactory lf) =>
         {
             if (!ctx.WebSockets.IsWebSocketRequest) { ctx.Response.StatusCode = 400; return; }
-            if (tickets.Redeem(ctx.Request.Query["ticket"]) is not { } who) { ctx.Response.StatusCode = 401; return; }
+            if (await tickets.RedeemAsync(ctx.Request.Query["ticket"]) is not { } who) { ctx.Response.StatusCode = 401; return; }
 
             using var ws = await ctx.WebSockets.AcceptWebSocketAsync();
             using var sub = hub.Connect();
@@ -215,8 +207,8 @@ public static class RealtimeEndpoints
                         hub.SetSerials(sub, serials);
                         var now = clock.GetUtcNow();
                         sub.Push(LiveJson.Bytes(new { type = "subscribed", serials }));
-                        foreach (var s in serials)
-                            if (live.Get(s) is { } d) sub.Push(LiveJson.Bytes(LiveJson.Snapshot(d, now)));
+                        foreach (var d in await live.GetManyAsync(serials, ct))
+                            if (d is not null) sub.Push(LiveJson.Bytes(LiveJson.Snapshot(d, now)));
                     }
                 }
             }

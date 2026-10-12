@@ -1,0 +1,766 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "Account.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "light",
+      "radius": 28,
+      "title": "15 · Thông tin tài khoản",
+      "w": 390,
+      "x": 6580,
+      "y": 0
+    },
+    "AccountDark.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "dark",
+      "radius": 28,
+      "title": "15 · Thông tin tài khoản · Dark",
+      "w": 390,
+      "x": 6580,
+      "y": 0
+    },
+    "AddProject.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "light",
+      "radius": 28,
+      "title": "14a · Thêm dự án – Thiết bị",
+      "w": 390,
+      "x": 4700,
+      "y": 0
+    },
+    "AddProjectDark.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "dark",
+      "radius": 28,
+      "title": "14a · Thêm dự án – Thiết bị · Dark",
+      "w": 390,
+      "x": 4700,
+      "y": 0
+    },
+    "AddProjectInfo.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "light",
+      "radius": 28,
+      "title": "14b · Thêm dự án – Thông tin dự án",
+      "w": 390,
+      "x": 5170,
+      "y": 0
+    },
+    "AddProjectInfoDark.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "dark",
+      "radius": 28,
+      "title": "14b · Thêm dự án – Thông tin dự án · Dark",
+      "w": 390,
+      "x": 5170,
+      "y": 0
+    },
+    "AddProjectTariff.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "light",
+      "radius": 28,
+      "title": "14c · Thêm dự án – Giá điện",
+      "w": 390,
+      "x": 5640,
+      "y": 0
+    },
+    "AddProjectTariffDark.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "dark",
+      "radius": 28,
+      "title": "14c · Thêm dự án – Giá điện · Dark",
+      "w": 390,
+      "x": 5640,
+      "y": 0
+    },
+    "AlertDetail.dc.html": {
+      "h": 1390,
+      "is_interactive": true,
+      "page": "light",
+      "radius": 28,
+      "title": "10a · Chi tiết cảnh báo",
+      "w": 390,
+      "x": 2350,
+      "y": 1500
+    },
+    "AlertDetailDark.dc.html": {
+      "h": 1390,
+      "is_interactive": true,
+      "page": "dark",
+      "radius": 28,
+      "title": "10a · Chi tiết cảnh báo · Dark",
+      "w": 390,
+      "x": 2350,
+      "y": 1500
+    },
+    "Alerts.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "light",
+      "radius": 28,
+      "title": "10 · Cảnh báo",
+      "w": 390,
+      "x": 1880,
+      "y": 1500
+    },
+    "AlertsDark.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "dark",
+      "radius": 28,
+      "title": "10 · Cảnh báo · Dark",
+      "w": 390,
+      "x": 1880,
+      "y": 1500
+    },
+    "BatteryEnergy.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "light",
+      "radius": 28,
+      "title": "11 · Nguồn năng lượng pin",
+      "w": 390,
+      "x": 2820,
+      "y": 1500
+    },
+    "BatteryEnergyDark.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "dark",
+      "radius": 28,
+      "title": "11 · Nguồn năng lượng pin · Dark",
+      "w": 390,
+      "x": 2820,
+      "y": 1500
+    },
+    "Config.dc.html": {
+      "h": 3040,
+      "is_interactive": true,
+      "page": "light",
+      "radius": 28,
+      "title": "16 · Cấu hình dự án",
+      "w": 390,
+      "x": 470,
+      "y": 1500
+    },
+    "ConfigDark.dc.html": {
+      "h": 3040,
+      "is_interactive": true,
+      "page": "dark",
+      "radius": 28,
+      "title": "16 · Cấu hình dự án · Dark",
+      "w": 390,
+      "x": 470,
+      "y": 1500
+    },
+    "DataBattery.dc.html": {
+      "h": 1940,
+      "is_interactive": true,
+      "page": "light",
+      "radius": 28,
+      "title": "17 · Theo dõi dữ liệu – Pin S16 Pre",
+      "w": 390,
+      "x": 4230,
+      "y": 1500
+    },
+    "DataBatteryDark.dc.html": {
+      "h": 1940,
+      "is_interactive": true,
+      "page": "dark",
+      "radius": 28,
+      "title": "17 · Theo dõi dữ liệu – Pin S16 Pre · Dark",
+      "w": 390,
+      "x": 4230,
+      "y": 1500
+    },
+    "DataInverter.dc.html": {
+      "h": 1600,
+      "is_interactive": true,
+      "page": "light",
+      "radius": 28,
+      "title": "17 · Theo dõi dữ liệu – Inverter",
+      "w": 390,
+      "x": 3760,
+      "y": 1500
+    },
+    "DataInverterDark.dc.html": {
+      "h": 1600,
+      "is_interactive": true,
+      "page": "dark",
+      "radius": 28,
+      "title": "17 · Theo dõi dữ liệu – Inverter · Dark",
+      "w": 390,
+      "x": 3760,
+      "y": 1500
+    },
+    "Device.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "light",
+      "radius": 28,
+      "title": "5 · Thiết bị",
+      "w": 390,
+      "x": 3290,
+      "y": 1500
+    },
+    "DeviceDark.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "dark",
+      "radius": 28,
+      "title": "5 · Thiết bị · Dark",
+      "w": 390,
+      "x": 3290,
+      "y": 1500
+    },
+    "Explore.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "light",
+      "radius": 28,
+      "title": "7 · Khám phá",
+      "w": 390,
+      "x": 5170,
+      "y": 1500
+    },
+    "ExploreDark.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "dark",
+      "radius": 28,
+      "title": "7 · Khám phá · Dark",
+      "w": 390,
+      "x": 5170,
+      "y": 1500
+    },
+    "ForgotPassword.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "light",
+      "radius": 28,
+      "title": "12a · Quên mật khẩu – Tìm tài khoản",
+      "w": 390,
+      "x": 470,
+      "y": 0
+    },
+    "ForgotPasswordDark.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "dark",
+      "radius": 28,
+      "title": "12a · Quên mật khẩu – Tìm tài khoản · Dark",
+      "w": 390,
+      "x": 470,
+      "y": 0
+    },
+    "ForgotPasswordDone.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "light",
+      "radius": 28,
+      "title": "12d · Quên mật khẩu – Thành công",
+      "w": 390,
+      "x": 1880,
+      "y": 0
+    },
+    "ForgotPasswordDoneDark.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "dark",
+      "radius": 28,
+      "title": "12d · Quên mật khẩu – Thành công · Dark",
+      "w": 390,
+      "x": 1880,
+      "y": 0
+    },
+    "ForgotPasswordNew.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "light",
+      "radius": 28,
+      "title": "12c · Quên mật khẩu – Mật khẩu mới",
+      "w": 390,
+      "x": 1410,
+      "y": 0
+    },
+    "ForgotPasswordNewDark.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "dark",
+      "radius": 28,
+      "title": "12c · Quên mật khẩu – Mật khẩu mới · Dark",
+      "w": 390,
+      "x": 1410,
+      "y": 0
+    },
+    "ForgotPasswordOtp.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "light",
+      "radius": 28,
+      "title": "12b · Quên mật khẩu – Mã xác thực",
+      "w": 390,
+      "x": 940,
+      "y": 0
+    },
+    "ForgotPasswordOtpDark.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "dark",
+      "radius": 28,
+      "title": "12b · Quên mật khẩu – Mã xác thực · Dark",
+      "w": 390,
+      "x": 940,
+      "y": 0
+    },
+    "Login.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "light",
+      "radius": 28,
+      "title": "1 · Đăng nhập",
+      "w": 390,
+      "x": 0,
+      "y": 0
+    },
+    "LoginDark.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "dark",
+      "radius": 28,
+      "title": "1 · Đăng nhập · Dark",
+      "w": 390,
+      "x": 0,
+      "y": 0
+    },
+    "Main.dc.html": {
+      "h": 2130,
+      "is_interactive": true,
+      "page": "light",
+      "radius": 28,
+      "title": "4 · Màn hình chính",
+      "w": 390,
+      "x": 0,
+      "y": 1500
+    },
+    "MainDark.dc.html": {
+      "h": 2130,
+      "is_interactive": true,
+      "page": "dark",
+      "radius": 28,
+      "title": "4 · Màn hình chính · Dark · Ban ngày",
+      "w": 390,
+      "x": 0,
+      "y": 1500
+    },
+    "MainDarkNight.dc.html": {
+      "h": 2130,
+      "is_interactive": true,
+      "page": "dark",
+      "radius": 28,
+      "title": "4 · Màn hình chính · Dark · Ban đêm",
+      "w": 390,
+      "x": -470,
+      "y": 1500
+    },
+    "Me.dc.html": {
+      "h": 970,
+      "is_interactive": true,
+      "page": "light",
+      "radius": 28,
+      "title": "3 · Tôi",
+      "w": 390,
+      "x": 6110,
+      "y": 0
+    },
+    "MeDark.dc.html": {
+      "h": 970,
+      "is_interactive": true,
+      "page": "dark",
+      "radius": 28,
+      "title": "3 · Tôi · Dark",
+      "w": 390,
+      "x": 6110,
+      "y": 0
+    },
+    "Projects.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "light",
+      "radius": 28,
+      "title": "2 · Dự án",
+      "w": 390,
+      "x": 4230,
+      "y": 0
+    },
+    "ProjectsDark.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "dark",
+      "radius": 28,
+      "title": "2 · Dự án · Dark",
+      "w": 390,
+      "x": 4230,
+      "y": 0
+    },
+    "ProjectsEmpty.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "light",
+      "radius": 28,
+      "title": "2 · Dự án (chưa có dự án)",
+      "w": 390,
+      "x": 3760,
+      "y": 0
+    },
+    "ProjectsEmptyDark.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "dark",
+      "radius": 28,
+      "title": "2 · Dự án (chưa có dự án) · Dark",
+      "w": 390,
+      "x": 3760,
+      "y": 0
+    },
+    "QRScan.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "light",
+      "radius": 28,
+      "title": "18 · Thêm thiết bị bằng QR",
+      "w": 390,
+      "x": 3290,
+      "y": 0
+    },
+    "QRScanDark.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "dark",
+      "radius": 28,
+      "title": "18 · Thêm thiết bị bằng QR · Dark",
+      "w": 390,
+      "x": 3290,
+      "y": 0
+    },
+    "Register.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "light",
+      "radius": 28,
+      "title": "13a · Đăng ký – Thông tin",
+      "w": 390,
+      "x": 2350,
+      "y": 0
+    },
+    "RegisterDark.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "dark",
+      "radius": 28,
+      "title": "13a · Đăng ký – Thông tin · Dark",
+      "w": 390,
+      "x": 2350,
+      "y": 0
+    },
+    "RegisterOtp.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "light",
+      "radius": 28,
+      "title": "13b · Đăng ký – Xác thực OTP",
+      "w": 390,
+      "x": 2820,
+      "y": 0
+    },
+    "RegisterOtpDark.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "dark",
+      "radius": 28,
+      "title": "13b · Đăng ký – Xác thực OTP · Dark",
+      "w": 390,
+      "x": 2820,
+      "y": 0
+    },
+    "Service.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "light",
+      "radius": 28,
+      "title": "6 · Dịch vụ",
+      "w": 390,
+      "x": 4700,
+      "y": 1500
+    },
+    "ServiceDark.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "dark",
+      "radius": 28,
+      "title": "6 · Dịch vụ · Dark",
+      "w": 390,
+      "x": 4700,
+      "y": 1500
+    },
+    "Support.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "light",
+      "radius": 28,
+      "title": "8 · Yêu cầu hỗ trợ",
+      "w": 390,
+      "x": 5640,
+      "y": 1500
+    },
+    "SupportDark.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "dark",
+      "radius": 28,
+      "title": "8 · Yêu cầu hỗ trợ · Dark",
+      "w": 390,
+      "x": 5640,
+      "y": 1500
+    },
+    "SupportSent.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "light",
+      "radius": 28,
+      "title": "24 · Gửi yêu cầu thành công",
+      "w": 390,
+      "x": 7050,
+      "y": 1500
+    },
+    "SupportSentDark.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "dark",
+      "radius": 28,
+      "title": "24 · Gửi yêu cầu thành công · Dark",
+      "w": 390,
+      "x": 7050,
+      "y": 1500
+    },
+    "TicketDetail.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "light",
+      "radius": 28,
+      "title": "8 · Chi tiết yêu cầu",
+      "w": 390,
+      "x": 6110,
+      "y": 1500
+    },
+    "TicketDetailDark.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "dark",
+      "radius": 28,
+      "title": "8 · Chi tiết yêu cầu · Dark",
+      "w": 390,
+      "x": 6110,
+      "y": 1500
+    },
+    "TouSchedule.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "light",
+      "radius": 28,
+      "title": "16a · Lịch theo khung giờ – Danh sách chiến lược",
+      "w": 390,
+      "x": 940,
+      "y": 1500
+    },
+    "TouScheduleDark.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "dark",
+      "radius": 28,
+      "title": "16a · Lịch theo khung giờ – Danh sách chiến lược · Dark",
+      "w": 390,
+      "x": 940,
+      "y": 1500
+    },
+    "TouStrategy.dc.html": {
+      "h": 920,
+      "is_interactive": true,
+      "page": "light",
+      "radius": 28,
+      "title": "16b · Chi tiết chiến lược",
+      "w": 390,
+      "x": 1410,
+      "y": 1500
+    },
+    "TouStrategyDark.dc.html": {
+      "h": 920,
+      "is_interactive": true,
+      "page": "dark",
+      "radius": 28,
+      "title": "16b · Chi tiết chiến lược · Dark",
+      "w": 390,
+      "x": 1410,
+      "y": 1500
+    },
+    "Warranty.dc.html": {
+      "h": 1010,
+      "is_interactive": true,
+      "page": "light",
+      "radius": 28,
+      "title": "9 · Bảo hành",
+      "w": 390,
+      "x": 6580,
+      "y": 1500
+    },
+    "WarrantyDark.dc.html": {
+      "h": 1010,
+      "is_interactive": true,
+      "page": "dark",
+      "radius": 28,
+      "title": "9 · Bảo hành · Dark",
+      "w": 390,
+      "x": 6580,
+      "y": 1500
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-09-24T09:01:23Z",
+    "v": 1
+  },
+  "designSystems": [
+    {
+      "artifact": "https://claude.ai/code/artifact/1c9d0496-85f2-4d2e-b594-58af0b2d0146",
+      "copiedAt": "2026-09-24T09:01:23Z",
+      "namespace": "gg-power",
+      "title": "GG Power",
+      "version": null
+    }
+  ],
+  "launch": {
+    "view": "canvas"
+  },
+  "notes": {
+    "acc": {
+      "kind": "title1",
+      "maxW": 6970,
+      "page": "light",
+      "text": "App Inverter · Cấp tài khoản và đăng nhập",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "acc_dark": {
+      "kind": "title1",
+      "maxW": 6970,
+      "page": "dark",
+      "text": "App Inverter · Cấp tài khoản và đăng nhập (Dark mode)",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "prj": {
+      "kind": "title1",
+      "maxW": 7440,
+      "page": "light",
+      "text": "App Inverter · Cấp dự án",
+      "w": 240,
+      "x": 0,
+      "y": 1200
+    },
+    "prj_dark": {
+      "kind": "title1",
+      "maxW": 7440,
+      "page": "dark",
+      "text": "App Inverter · Cấp dự án (Dark mode)",
+      "w": 240,
+      "x": 0,
+      "y": 1200
+    }
+  },
+  "order": [
+    "Login.dc.html",
+    "ForgotPassword.dc.html",
+    "ForgotPasswordOtp.dc.html",
+    "ForgotPasswordNew.dc.html",
+    "ForgotPasswordDone.dc.html",
+    "Register.dc.html",
+    "RegisterOtp.dc.html",
+    "QRScan.dc.html",
+    "ProjectsEmpty.dc.html",
+    "Projects.dc.html",
+    "AddProject.dc.html",
+    "AddProjectInfo.dc.html",
+    "AddProjectTariff.dc.html",
+    "Me.dc.html",
+    "Account.dc.html",
+    "Main.dc.html",
+    "Config.dc.html",
+    "TouSchedule.dc.html",
+    "TouStrategy.dc.html",
+    "Alerts.dc.html",
+    "AlertDetail.dc.html",
+    "BatteryEnergy.dc.html",
+    "Device.dc.html",
+    "DataInverter.dc.html",
+    "DataBattery.dc.html",
+    "Service.dc.html",
+    "Explore.dc.html",
+    "Support.dc.html",
+    "TicketDetail.dc.html",
+    "Warranty.dc.html",
+    "SupportSent.dc.html",
+    "LoginDark.dc.html",
+    "ForgotPasswordDark.dc.html",
+    "ForgotPasswordOtpDark.dc.html",
+    "ForgotPasswordNewDark.dc.html",
+    "ForgotPasswordDoneDark.dc.html",
+    "RegisterDark.dc.html",
+    "RegisterOtpDark.dc.html",
+    "QRScanDark.dc.html",
+    "ProjectsEmptyDark.dc.html",
+    "ProjectsDark.dc.html",
+    "AddProjectDark.dc.html",
+    "AddProjectInfoDark.dc.html",
+    "AddProjectTariffDark.dc.html",
+    "MeDark.dc.html",
+    "AccountDark.dc.html",
+    "MainDark.dc.html",
+    "MainDarkNight.dc.html",
+    "ConfigDark.dc.html",
+    "TouScheduleDark.dc.html",
+    "TouStrategyDark.dc.html",
+    "AlertsDark.dc.html",
+    "AlertDetailDark.dc.html",
+    "BatteryEnergyDark.dc.html",
+    "DeviceDark.dc.html",
+    "DataInverterDark.dc.html",
+    "DataBatteryDark.dc.html",
+    "ServiceDark.dc.html",
+    "ExploreDark.dc.html",
+    "SupportDark.dc.html",
+    "TicketDetailDark.dc.html",
+    "WarrantyDark.dc.html",
+    "SupportSentDark.dc.html"
+  ],
+  "pages": [
+    {
+      "id": "light",
+      "name": "Light mode"
+    },
+    {
+      "id": "dark",
+      "name": "Dark mode"
+    }
+  ],
+  "title": "App inverter dân dụng – Android"
+}

@@ -210,9 +210,7 @@ private fun Body(c: AccountUiState.Content, actions: AccountActions) {
     }
     GgCard(contentPadding = PaddingValues(0.dp)) {
         LinkRow(R.drawable.ic_mail, stringResource(R.string.account_email), c.saved.email, actions.onChangeEmail)
-        HorizontalDivider(thickness = 1.dp, color = colors.cardBorder)
         LinkRow(R.drawable.ic_phone, stringResource(R.string.account_phone), c.saved.phone, actions.onChangePhone)
-        HorizontalDivider(thickness = 1.dp, color = colors.cardBorder)
         LinkRow(R.drawable.ic_lock, stringResource(R.string.account_security), stringResource(R.string.account_change_password), actions.onChangePassword)
     }
     DangerTextButton(stringResource(R.string.account_delete), onClick = actions.onDeleteOpen)
@@ -255,7 +253,7 @@ private fun CameraBadge(modifier: Modifier = Modifier) {
             .border(3.dp, colors.surface, CircleShape)
             .padding(3.dp)
             .clip(CircleShape)
-            .background(colors.primary),
+            .background(colors.primaryFill),
         contentAlignment = Alignment.Center,
     ) {
         Icon(painterResource(R.drawable.ic_camera), contentDescription = null, tint = colors.onPrimary, modifier = Modifier.size(16.dp))

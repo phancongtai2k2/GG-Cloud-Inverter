@@ -1,6 +1,10 @@
-# The backend reads every device's uplink and is the only account that may send commands.
+# The backend reads every device's uplink; it and backend-api are the only accounts that may send commands.
 user backend
 topic read solar/+/inverter/+/up/#
+topic write solar/+/inverter/+/down/command
+
+# Second API instance (plan B7): sends commands only, reads nothing.
+user backend-api
 topic write solar/+/inverter/+/down/command
 
 # A datalogger logs in with its inverter serial as user name and is confined to its own topics:

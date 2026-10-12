@@ -1,5 +1,10 @@
 package vn.ggpower.chart
 
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -74,14 +79,28 @@ fun StackedBarChart(
     modifier: Modifier = Modifier,
     contentDescription: String? = null,
     selectionDescription: String? = null,
+    zoom: ChartZoomState? = null,
+    zoomLabel: ((Int) -> String)? = null,
 ) {
     val measurer = rememberTextMeasurer()
     val currentOnSelect by rememberUpdatedState(onSelect)
     val n = model.segments.size
+    val (start, count) = barWindow(n, zoom?.window)
+    val view = if (start == 0 && count == n) model else model.window(start, count, zoom?.window?.zoom ?: 1f, zoomLabel)
+    val shown = view.segments.size
+    val density = LocalDensity.current.density
+    var widthPx by remember { mutableFloatStateOf(0f) }
     Canvas(
         modifier = modifier
             .fillMaxWidth()
             .height(BarChartHeight)
+            .onSizeChanged { widthPx = it.width.toFloat() }
+            .then(
+                if (zoom != null) {
+                    val side = (SIDE + GAP) * density
+                    Modifier.chartPinchZoom(zoom, side) { widthPx - side }
+                } else Modifier,
+            )
             .semantics {
                 if (contentDescription != null) this.contentDescription = contentDescription
                 if (selectionDescription != null) stateDescription = selectionDescription
@@ -90,17 +109,17 @@ fun StackedBarChart(
                     setProgress { v -> currentOnSelect(v.roundToInt().coerceIn(0, n - 1)); true }
                 }
             }
-            .pointerInput(model) {
-                detectTapGestures { p -> currentOnSelect(barAt(n, p.x, size.width.toFloat(), density)) }
+            .pointerInput(view, start) {
+                detectTapGestures { p -> currentOnSelect(start + barAt(shown, p.x, size.width.toFloat(), density)) }
             }
-            .pointerInput(model) {
+            .pointerInput(view, start) {
                 detectHorizontalDragGestures { change, _ ->
                     change.consume()
-                    currentOnSelect(barAt(n, change.position.x, size.width.toFloat(), density))
+                    currentOnSelect(start + barAt(shown, change.position.x, size.width.toFloat(), density))
                 }
             },
     ) {
-        drawBars(model, selectedIndex, style, measurer)
+        drawBars(view, selectedIndex - start, style, measurer)
     }
 }
 
@@ -192,4 +211,26 @@ private fun DrawScope.drawBars(model: StackedBarModel, selected: Int, style: Cha
         if (label.isEmpty()) return@forEachIndexed
         drawLabel(measurer, label, style, anchorX = left + slot * (i + 0.5f), centerY = (LABEL_ROW_TOP + LABEL_ROW_H / 2) * d, align = LabelAlign.Center)
     }
+}
+
+/**
+ * Cửa sổ cột đang xem khi phóng (Main.dc.html `ys0`, `ycnt`): cột đầu = làm tròn [ZoomWindow.start] × [n], số cột =
+ * làm tròn [n] / [ZoomWindow.zoom] (ít nhất 1, không vượt cuối). Không phóng: (0, [n]).
+ */
+fun barWindow(n: Int, window: ZoomWindow?): Pair<Int, Int> {
+    if (n == 0 || window == null || !window.zoomed) return 0 to n
+    val start = minOf(n - 1, Math.round(window.start * n))
+    val count = (Math.round(n / window.zoom)).coerceIn(1, n - start)
+    return start to count
+}
+
+/** Phần mô hình của [count] cột từ [start]: cột rộng thêm theo [zoom] (tối đa 24 dp); ≤ 8 cột thì nhãn từng cột bằng [label]. */
+private fun StackedBarModel.window(start: Int, count: Int, zoom: Float, label: ((Int) -> String)?): StackedBarModel {
+    val range = start until start + count
+    return copy(
+        segments = segments.slice(range),
+        labels = if (count <= 8 && label != null) range.map(label) else labels.slice(range),
+        barWidth = minOf(24.dp, barWidth * zoom),
+        overlay = overlay?.slice(range),
+    )
 }

@@ -19,7 +19,17 @@ data class HomeOverview(
     val mode: OperatingMode,
     val backupSocPercent: Int,
     val battery: BatteryContent,
+    /** CO₂ giảm phát thải hôm nay (chip trên sơ đồ ngôi nhà); null khi backend chưa trả (`/overview` chưa có trường). */
+    val co2TodayKg: Double? = null,
+    /**
+     * kWh đã sạc vào pin hôm nay theo nguồn (thẻ Pin ở màn chính, quyết định 11/10/2026 — khác [battery] là năng lượng
+     * đang có trong pin); null khi backend chưa trả (`rollup_15m.pv_charge_kwh`, `contract/CHANGES.md` mục Đang chờ).
+     */
+    val chargedToday: ChargedToday? = null,
 )
+
+/** Năng lượng sạc vào pin trong ngày: từ PV và từ lưới (kWh). */
+data class ChargedToday(val fromPvKwh: Double, val fromGridKwh: Double)
 
 /** Một điểm của biểu đồ Công suất (4.5): phút trong ngày và 4 chuỗi kW (pin dương = sạc, lưới dương = mua). */
 data class PowerSample(val minute: Int, val pvKw: Double, val gridKw: Double, val batteryKw: Double, val loadKw: Double)
