@@ -52,6 +52,10 @@ services:
       GGP_Mqtt__UseTls: ${MQTT_TLS:-false}
       GGP_Mqtt__Username: ${MQTT_USER}
       GGP_Mqtt__Password: ${MQTT_PASSWORD}
+      # Fixed client id: the broker finds the persistent session (plan A5) again under this name only. Without it the
+      # id contains the container's host name, which changes every time the container is recreated, i.e. on every
+      # deploy. (use_username_as_clientid in mosquitto.conf applies to the public 8883 listener, not to 1883.)
+      GGP_Mqtt__ClientId: ${MQTT_CLIENT_ID:-ggpower-backend-ingest}
       GGP_Ingest__Tenants__0: ${MQTT_TENANT:-ggp}
       # One instance: memory / local. Several (profile multi): redis / s3, on every instance (backend/docs/DEPLOY.md).
       GGP_Shared__Provider: ${SHARED_PROVIDER:-memory}
@@ -83,6 +87,9 @@ services:
       GGP_Roles: api
       GGP_Mqtt__Username: ${MQTT_API_USER:-backend-api}
       GGP_Mqtt__Password: ${MQTT_API_PASSWORD:-}
+      # No session to keep here: an empty id makes the backend pick a unique one, so it never takes over the session
+      # of the ingesting instance.
+      GGP_Mqtt__ClientId: ""
     networks: [internal]
 
   # ----- Several API instances (plan B, profile "multi": docker compose --profile multi up -d). Not started otherwise. -----

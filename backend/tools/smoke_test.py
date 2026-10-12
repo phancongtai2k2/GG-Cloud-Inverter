@@ -32,7 +32,7 @@ def _api_log():
     import subprocess
     key, target = remote.split(";", 1)
     r = subprocess.run(["plink", "-batch", "-ssh", "-hostkey", key, "-pw", os.environ["SMOKE_SSH_PW"], target,
-                        "cd /opt/ggpower && docker compose logs --since 3m api 2>&1 | grep 'DEV OTP'"], capture_output=True, text=True)
+                        "cd /opt/ggpower && docker compose --profile multi logs --since 3m api api2 2>&1 | grep 'DEV OTP'"], capture_output=True, text=True)
     return r.stdout
 
 

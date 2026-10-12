@@ -16,9 +16,12 @@ xếp hàng bản tin của thiết bị và gửi lại khi backend nối lại
    ```
    Khởi động lại container `mqtt` sau khi đổi. RAM broker khi hàng đầy: ước 400–600 MB thêm (bản tin ~0,5 KB).
    Tăng / giảm `max_queued_messages` theo số thiết bị: thiết bị × 0,25 × số giây muốn giữ.
-2. **Client id cố định** — broker nhận lại phiên theo client id. Mosquitto production bật
-   `use_username_as_clientid`, nên client id chính là tên đăng nhập MQTT của backend: **không** dùng chung tài khoản đó
-   cho công cụ khác (sẽ chiếm phiên của backend). Broker khác: đặt `GGP_Mqtt__ClientId` (ví dụ `ggpower-backend-1`).
+2. **Client id cố định** — broker nhận lại phiên theo client id. `use_username_as_clientid` trong `mosquitto.conf`
+   chỉ áp cho cổng công khai 8883; backend nối cổng nội bộ 1883 nên giữ client id của chính nó. Mặc định id đó chứa tên
+   máy của container, tên này đổi mỗi lần container được tạo lại (mỗi lần deploy), nên `docker-compose.yml` đặt cố định
+   `GGP_Mqtt__ClientId` cho `api` (mặc định `ggpower-backend-ingest`, đổi bằng `MQTT_CLIENT_ID` trong `.env`) và để
+   trống cho `api2`. **Không** dùng client id đó cho công cụ khác (sẽ chiếm phiên của backend).
+   (Sửa ngày 12/10 khi triển khai lên máy chủ thật: bản trước ghi là broker dùng tên đăng nhập làm client id.)
 3. **Lần deploy đầu tiên** sau bước này: phiên cũ là "clean session", nên bản tin trong lúc đổi phiên bản vẫn có thể
    mất; từ lần deploy sau thì không.
 4. **Kiểm tra** sau deploy: `ggpower_ingest_received_total` tăng vọt ngay khi nối lại (broker xả hàng), không có
@@ -120,9 +123,10 @@ Cùng một image, chia vai trò bằng `GGP_Roles` (`api`, `ingest`, `jobs`; m�
    S3_SECRET_KEY=<chuỗi ngẫu nhiên dài>
    MQTT_API_USER=backend-api
    MQTT_API_PASSWORD=<mật khẩu ở bước 1>
-   API_UPSTREAMS=api:8080 api2:8080
+   API_UPSTREAMS="api:8080 api2:8080"
    API_HEALTH_URI=/healthz/ready
    ```
+   (Giá trị có dấu cách phải để trong ngoặc kép: `storage-to-s3.sh` nạp `.env` bằng shell.)
 3. `docker compose --profile multi up -d redis files`, chép file cũ: `./storage-to-s3.sh` (mục B6).
 4. `docker compose --profile multi up -d --build` — `api` khởi động lại với Redis / S3, `api2` lên, Caddy nạp upstream mới.
 5. Kiểm tra: `docker compose exec web wget -qO- http://api:8080/healthz/ready` và `http://api2:8080/healthz/ready` đều
@@ -152,3 +156,39 @@ until docker compose exec -T web wget -qO- http://api:8080/healthz/ready >/dev/n
 
 `.env`: bỏ `API_UPSTREAMS`, `API_HEALTH_URI` (hoặc đặt lại mặc định), giữ `SHARED_PROVIDER` / `STORAGE_PROVIDER` tuỳ ý
 (một instance chạy được với cả memory / local lẫn redis / s3); `docker compose --profile multi stop api2 && docker compose up -d web`.
+
+## Trạng thái trên máy chủ thật (triển khai 12/10/2026)
+
+Đã bật đủ các bước A5, B1–B7, C2 theo tài liệu này: `api` (api, ingest, jobs) + `api2` (api) sau Caddy, `redis`, `files`
+(SeaweedFS), migration 003–006. Bộ test chạy trên chính máy chủ trong container tách riêng trước khi chuyển: 126/126.
+
+Những điểm riêng của máy chủ này, cần nhớ khi deploy lần sau:
+
+- **Mọi lệnh compose phải có `--profile multi`** (`docker compose --profile multi ps | logs | up -d …`); thiếu nó thì `api2`,
+  `redis`, `files` không được tính tới. Mã OTP ở chế độ thử (`LOG_OTP_CODES=true`) nằm trong log của instance đã nhận
+  request: xem cả `api` và `api2`.
+- **`mqtt/config/acl` trên máy chủ có thêm một khối không nằm trong kho**: tài khoản `ingestion_service`
+  (`topic readwrite solar/#`), được thêm tay ngày 10/10 cho dịch vụ `ggp-solar` chạy cùng máy. Khi chép `acl` mới lên phải
+  giữ khối này. Tài khoản đó ghi được cả `down/command` của mọi thiết bị.
+- Broker được nạp lại cấu hình bằng `docker compose kill -s HUP mqtt` (không khởi động lại, thiết bị không rớt kết nối).
+- Trên máy còn các stack khác không thuộc kho này (`/opt/ggp-solar`, `/opt/ggp-influx`, `/opt/ggp-wireguard`, frps/frpc):
+  không đụng tới.
+- Bản sao lưu trước khi nâng cấp: `/opt/ggpower/backups/pre-upgrade-20261012/` (dump database, `docker-compose.yml`,
+  `Caddyfile`, cấu hình broker, `.env`, mã nguồn cũ) và image `ggpower-api:before-upgrade-20261012`.
+- `backup.sh` chưa sao lưu `./data/files` (file đính kèm trên SeaweedFS): bổ sung khi bắt đầu có file thật.
+- Bản sửa "dừng instance khi có app đang nối" (LOADTEST.md, mục đo trên máy chủ thật) đã lên cùng ngày 12/10: build lại
+  `api` và `api2`, thay `api2` trước, chờ `/healthz/ready`, rồi `api` (mỗi instance ~3 giây, không mất mẫu nào của
+  thiết bị thật). Bản trước đó: image `ggpower-api:before-wsfix-20261012`, `ggpower-api2:before-wsfix-20261012` và file
+  nguồn cũ trong `backups/pre-wsfix-20261012/`.
+- Thiết bị thử do người khác gửi lên broker (serial lạ dưới tenant đang nhận) được backend tự đăng ký vào bảng `devices`.
+  Sáu thiết bị kiểu đó của ngày 10/10 đã được gỡ ngày 12/10; các dòng của chúng lưu ở `backups/fake-devices-20261012/`.
+
+Quay về bản trước nâng cấp (schema mới chỉ thêm cột / index nên bản cũ chạy được):
+
+```
+cd /opt/ggpower
+docker compose --profile multi stop api2
+cp backups/pre-upgrade-20261012/docker-compose.yml backups/pre-upgrade-20261012/Caddyfile .
+docker tag ggpower-api:before-upgrade-20261012 ggpower-api:latest
+docker compose up -d --no-build api web
+```
