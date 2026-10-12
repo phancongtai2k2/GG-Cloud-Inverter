@@ -112,6 +112,12 @@ builder.Services.AddSingleton<IFileStore>(sp => sp.GetRequiredService<IOptions<S
     var other => throw new InvalidOperationException($"Storage:Provider '{other}' is not supported (local, s3)"),
 });
 builder.Services.AddSingleton<StatsService>();
+// Chat assistant (Claude); off until Chat:ApiKey is set.
+builder.Services.Configure<GgPower.Api.Chat.ChatOptions>(cfg.GetSection("Chat"));
+builder.Services.AddSingleton<GgPower.Api.Chat.ILlmClient, GgPower.Api.Chat.ClaudeLlmClient>();
+builder.Services.AddHttpClient<GgPower.Api.Chat.IWeatherSource, GgPower.Api.Chat.OpenMeteoWeather>(h => h.Timeout = TimeSpan.FromSeconds(10));
+builder.Services.AddSingleton<GgPower.Api.Chat.ChatTools>();
+builder.Services.AddSingleton<GgPower.Api.Chat.ChatService>();
 builder.Services.AddMemoryCache(o => o.SizeLimit = null);
 // Metrics for Prometheus at /metrics (plan A3): application meter + ASP.NET Core HTTP metrics. Not routed by Caddy.
 builder.Services.AddOpenTelemetry().WithMetrics(m => m
@@ -279,6 +285,7 @@ if (roles.ServesApi)
     AlertEndpoints.Map(api);
     ConfigEndpoints.Map(api);
     ServiceEndpoints.Map(api);
+    ChatEndpoints.Map(api);
     RealtimeEndpoints.Map(app, api);
 }
 

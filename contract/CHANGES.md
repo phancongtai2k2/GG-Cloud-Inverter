@@ -26,6 +26,22 @@
 
 ---
 
+## 2026-10-12 · Trợ lý chat AI của dự án
+- Loại: thêm      Phá tương thích: không
+- Phạm vi: POST /projects/{projectId}/chat/messages; GET /projects/{projectId}/chat/conversations;
+  GET, DELETE /projects/{projectId}/chat/conversations/{conversationId}
+- Chi tiết:
+  - Hỏi: `{text, conversation_id?}` → `ChatAnswer {conversation_id, answer, refused}`. Không có `conversation_id` thì tạo
+    hội thoại mới. Trả lời mất vài giây đến ~30 s (trợ lý tra dữ liệu thiết bị, thống kê, cảnh báo, thời tiết rồi mới trả lời):
+    timeout đọc của app ≥ 60 s. `answer` là Markdown đơn giản. `refused = true`: trợ lý từ chối vì lý do an toàn, không lưu gì.
+  - Mỗi hội thoại thuộc một người dùng và một dự án; người khác (kể cả thành viên khác của dự án) không đọc được.
+  - Mã lỗi mới: 503 `CHAT_DISABLED` (máy chủ chưa có API key: app ẩn hoặc làm mờ mục chat), 404 `CONVERSATION_NOT_FOUND`,
+    409 `CONVERSATION_FULL` (kèm `max_questions`, mặc định 30 câu: app mở hội thoại mới), 409 `CONVERSATION_BUSY`,
+    429 `CHAT_QUOTA_EXCEEDED` (kèm `max_questions_per_day`, mặc định 50 câu / 24 giờ), 502 `CHAT_UNAVAILABLE`.
+- Backend: `Api/Chat/` (Claude qua SDK chính thức của Anthropic, 6 công cụ chỉ đọc dữ liệu của dự án), migration 007;
+  test `ChatTests`. Bật bằng `ANTHROPIC_API_KEY` (`backend/docs/DEPLOY.md`).
+- App cần làm: màn chat (danh sách hội thoại, khung hỏi đáp, trạng thái "đang trả lời", xử lý các mã lỗi trên).
+
 ## 2026-10-11 · Metrics Prometheus
 - Loại: thêm      Phá tương thích: không
 - Phạm vi: GET /metrics (ngoài /api/v1, nội bộ — Caddy không chuyển ra ngoài)

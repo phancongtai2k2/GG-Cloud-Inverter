@@ -157,6 +157,22 @@ until docker compose exec -T web wget -qO- http://api:8080/healthz/ready >/dev/n
 `.env`: bỏ `API_UPSTREAMS`, `API_HEALTH_URI` (hoặc đặt lại mặc định), giữ `SHARED_PROVIDER` / `STORAGE_PROVIDER` tuỳ ý
 (một instance chạy được với cả memory / local lẫn redis / s3); `docker compose --profile multi stop api2 && docker compose up -d web`.
 
+## Trợ lý chat (Claude)
+
+Bản có migration `007_chat.sql` thêm trợ lý chat (`/api/v1/projects/{projectId}/chat/...`). Tắt cho đến khi có khoá:
+
+1. Tạo API key ở console.anthropic.com (tài khoản của công ty, đặt hạn mức chi tiêu tháng ở mục Billing / Limits).
+2. `.env`: `ANTHROPIC_API_KEY=...`; tuỳ chọn `CHAT_MODEL` (mặc định `claude-opus-5-5`) và `CHAT_MAX_PER_DAY` (câu hỏi mỗi
+   người dùng trong 24 giờ, mặc định 50).
+3. Build và khởi động lại `api` (và `api2` nếu chạy nhiều instance) như một lần deploy bình thường.
+
+Kiểm tra: máy chủ phải ra được `api.anthropic.com:443` và `api.open-meteo.com:443` (thời tiết). Lỗi gọi model nằm trong
+log với dòng `chat model call failed`; app nhận `502 CHAT_UNAVAILABLE`.
+
+Dữ liệu: hội thoại lưu trong PostgreSQL trên máy chủ (bảng `chat_conversations`, `chat_messages`, xoá theo dự án / người
+dùng). Mỗi câu hỏi gửi sang Anthropic câu hỏi đó, lịch sử hội thoại và số liệu thiết bị mà trợ lý tra (không gửi địa chỉ,
+tên, email, số điện thoại của người dùng); Open-Meteo nhận toạ độ dự án làm tròn 2 chữ số thập phân (~1 km).
+
 ## Trạng thái trên máy chủ thật (triển khai 12/10/2026)
 
 Đã bật đủ các bước A5, B1–B7, C2 theo tài liệu này: `api` (api, ingest, jobs) + `api2` (api) sau Caddy, `redis`, `files`
