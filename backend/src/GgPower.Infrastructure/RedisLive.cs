@@ -50,7 +50,8 @@ public sealed class RedisLiveStore(IConnectionMultiplexer redis, RedisKeys keys,
             var i = fetch[k];
             // Not in Redis (not heard from since Redis started): what this instance loaded from the database at start-up.
             var d = Read(serials[i], reads[k].Result) ?? live.Get(serials[i]);
-            _cache[serials[i]] = (d, now + ReadCache);
+            // Misses are not kept: a device that just appeared is visible as soon as its first state is written.
+            if (d is not null) _cache[serials[i]] = (d, now + ReadCache);
             result[i] = d;
         }
         return result;
@@ -147,19 +148,29 @@ public sealed class RedisLiveStore(IConnectionMultiplexer redis, RedisKeys keys,
     }
 }
 
-/// <summary>Writes the shared live state of the devices received here, every 250 ms (Shared:Provider = redis only).</summary>
+/// <summary>
+/// Shared:Provider = redis only: writes the shared live state of the devices received here every 250 ms, and shares the
+/// devices watched here every second (<see cref="RedisRealtimeBus"/>).
+/// </summary>
 public sealed class LiveStoreSync(IServiceProvider services, IOptions<SharedOptions> options) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stop)
     {
         if (options.Value.Provider != "redis") return;
         var store = (RedisLiveStore)services.GetService(typeof(RedisLiveStore))!;
+        var bus = (RedisRealtimeBus)services.GetService(typeof(RedisRealtimeBus))!;
         using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(250));
+        var tick = 0;
         try
         {
-            while (await timer.WaitForNextTickAsync(stop)) await store.FlushAsync();
+            while (await timer.WaitForNextTickAsync(stop))
+            {
+                await store.FlushAsync();
+                if (tick++ % 4 == 0) await bus.RefreshWatchAsync();
+            }
         }
         catch (OperationCanceledException) { }
         await store.FlushAsync();
+        try { await bus.ForgetWatchAsync(); } catch (Exception) { /* Redis down: the entry expires */ }
     }
 }

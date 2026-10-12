@@ -31,6 +31,7 @@ public sealed class RedisKeys(string prefix)
     public RedisKey CommandInterval(string serial) => $"{prefix}cmdlast:{serial.ToUpperInvariant()}";
     public RedisKey CacheVersion(string serial) => $"{prefix}cachever:{serial.ToUpperInvariant()}";
     public RedisKey Device(string serial) => $"{prefix}dev:{serial.ToUpperInvariant()}";
+    public RedisKey Watch => $"{prefix}rtwatch";
     public RedisChannel Channel(string name) => RedisChannel.Literal($"{prefix}{name}");
 }
 
@@ -135,10 +136,19 @@ public sealed class RedisCommandCoordinator(IConnectionMultiplexer redis, RedisK
 
 /// <summary>
 /// Plan B5: device frames go through one Redis channel; every instance pushes them to its own WebSocket clients. The
-/// sender gets its own frames back the same way, so each client receives a frame once.
+/// sender gets its own frames back the same way, so each client receives a frame once. Frames are only built for devices
+/// some client watches on some instance: each instance shares its watched devices every second (hash rtwatch).
 /// </summary>
-public sealed class RedisRealtimeBus(IConnectionMultiplexer redis, RedisKeys keys, RealtimeHub hub, ILogger<RedisRealtimeBus> log) : IRealtimeBus, IRedisSubscriber
+public sealed class RedisRealtimeBus(IConnectionMultiplexer redis, RedisKeys keys, RealtimeHub hub, TimeProvider clock, ILogger<RedisRealtimeBus> log)
+    : IRealtimeBus, IRedisSubscriber
 {
+    /// <summary>A watch list not refreshed for this long belongs to an instance that stopped.</summary>
+    private static readonly TimeSpan WatchExpiry = TimeSpan.FromSeconds(5);
+    private sealed record WatchList(DateTimeOffset At, string[] Serials);
+
+    private readonly string _instance = Guid.NewGuid().ToString("N");
+    private volatile HashSet<string> _watchedAnywhere = new(StringComparer.OrdinalIgnoreCase);
+
     public void Publish(string serial, byte[] message)
     {
         // "<serial>\n<frame>": serials never contain a line break.
@@ -150,8 +160,31 @@ public sealed class RedisRealtimeBus(IConnectionMultiplexer redis, RedisKeys key
         catch (Exception ex) { log.LogDebug("could not publish a frame of {Serial}: {Message}", serial, ex.Message); }
     }
 
-    // Other instances' clients are not known here.
-    public bool MayHaveListeners(string serial) => true;
+    // Building and sending a frame per message for every device cost most of a core at 5.000 devices (LOADTEST B7);
+    // only watched devices need them. A client that just subscribed has its snapshot and gets frames within ~1 s.
+    public bool MayHaveListeners(string serial) => hub.HasListeners(serial) || _watchedAnywhere.Contains(serial);
+
+    /// <summary>Shares this instance's watched devices and reads everyone's; called every second by <see cref="LiveStoreSync"/>.</summary>
+    public async Task RefreshWatchAsync()
+    {
+        var db = redis.GetDatabase();
+        var now = clock.GetUtcNow();
+        try
+        {
+            await db.HashSetAsync(keys.Watch, _instance, JsonSerializer.SerializeToUtf8Bytes(new WatchList(now, hub.Watched)));
+            var all = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var e in await db.HashGetAllAsync(keys.Watch))
+            {
+                if (JsonSerializer.Deserialize<WatchList>((byte[])e.Value!) is not { } w) continue;
+                if (now - w.At > WatchExpiry) { await db.HashDeleteAsync(keys.Watch, e.Name); continue; }
+                all.UnionWith(w.Serials);
+            }
+            _watchedAnywhere = all;
+        }
+        catch (Exception ex) { log.LogDebug("could not share the watched devices: {Message}", ex.Message); }
+    }
+
+    public Task ForgetWatchAsync() => redis.GetDatabase().HashDeleteAsync(keys.Watch, _instance);
 
     public async Task SubscribeAsync()
     {

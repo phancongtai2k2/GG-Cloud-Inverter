@@ -161,6 +161,9 @@ public sealed class RealtimeHub
 
     public bool HasListeners(string serial) => _bySerial.ContainsKey(serial);
 
+    /// <summary>Devices some client of this instance watches.</summary>
+    public string[] Watched => [.. _bySerial.Keys];
+
     public void Publish(string serial, byte[] message)
     {
         if (!_bySerial.TryGetValue(serial, out var subs)) return;

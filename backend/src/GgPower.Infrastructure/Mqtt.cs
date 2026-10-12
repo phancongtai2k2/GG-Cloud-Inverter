@@ -40,7 +40,7 @@ public interface IMqttPublisher
 /// The single MQTT connection of the backend: subscribes to every device's uplink for the configured
 /// tenants and publishes commands. Reconnects with back-off; the broker's certificate is always verified.
 /// </summary>
-public sealed class MqttLink(IOptions<MqttOptions> options, IOptions<IngestOptions> ingest, IngestPipeline pipeline, ILogger<MqttLink> log)
+public sealed class MqttLink(IOptions<MqttOptions> options, IOptions<IngestOptions> ingest, IngestPipeline pipeline, InstanceRoles roles, ILogger<MqttLink> log)
     : BackgroundService, IMqttPublisher
 {
     private readonly MqttOptions _o = options.Value;
@@ -58,20 +58,26 @@ public sealed class MqttLink(IOptions<MqttOptions> options, IOptions<IngestOptio
         : o.PersistentSession ? $"ggpower-backend-{Environment.MachineName}"
         : $"ggpower-backend-{Environment.MachineName}-{Guid.NewGuid():N}"[..40];
 
-    /// <summary>This instance is meant to receive device data (MQTT enabled and a broker configured).</summary>
-    public bool Required => _o.Enabled && !string.IsNullOrWhiteSpace(_o.Host);
+    /// <summary>MQTT enabled and a broker configured.</summary>
+    public bool Configured => _o.Enabled && !string.IsNullOrWhiteSpace(_o.Host);
+
+    /// <summary>This instance is meant to receive device data (role ingest and MQTT configured): readiness needs the link.</summary>
+    public bool Required => Configured && roles.Ingests;
 
     protected override async Task ExecuteAsync(CancellationToken stop)
     {
-        if (!Required)
+        if (!Configured)
         {
-            log.LogWarning("MQTT is not configured (Mqtt:Host empty): no device data will be received");
+            log.LogWarning("MQTT is not configured (Mqtt:Host empty): no device data will be received, no command sent");
             return;
         }
 
+        // Without the ingest role the link only sends commands (plan B7): no subscription, and no session to keep.
+        var subscribe = roles.Ingests;
+        var persistent = _o.PersistentSession && subscribe;
         var client = new MqttFactory().CreateMqttClient();
         _client = client;
-        client.ApplicationMessageReceivedAsync += async e =>
+        if (subscribe) client.ApplicationMessageReceivedAsync += async e =>
         {
             try { await pipeline.HandleAsync(e.ApplicationMessage.Topic, e.ApplicationMessage.PayloadSegment, stop, e.ApplicationMessage.Retain); }
             catch (OperationCanceledException) { }
@@ -80,8 +86,8 @@ public sealed class MqttLink(IOptions<MqttOptions> options, IOptions<IngestOptio
 
         var builder = new MqttClientOptionsBuilder()
             .WithTcpServer(_o.Host, _o.Port)
-            .WithClientId(ClientIdFor(_o))
-            .WithCleanSession(!_o.PersistentSession)
+            .WithClientId(ClientIdFor(persistent ? _o : new MqttOptions { ClientId = _o.ClientId, PersistentSession = false }))
+            .WithCleanSession(!persistent)
             .WithKeepAlivePeriod(TimeSpan.FromSeconds(30))
             .WithTimeout(TimeSpan.FromSeconds(15));
         if (!string.IsNullOrEmpty(_o.Username)) builder = builder.WithCredentials(_o.Username, _o.Password);
@@ -96,13 +102,17 @@ public sealed class MqttLink(IOptions<MqttOptions> options, IOptions<IngestOptio
                 if (!client.IsConnected)
                 {
                     await client.ConnectAsync(clientOptions, stop);
-                    var sub = new MqttClientSubscribeOptionsBuilder();
-                    foreach (var tenant in ingest.Value.ActiveTenants)
-                        sub = sub.WithTopicFilter(f => f.WithTopic($"solar/{tenant}/inverter/+/up/#").WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce));
-                    await client.SubscribeAsync(sub.Build(), stop);
+                    if (subscribe)
+                    {
+                        var sub = new MqttClientSubscribeOptionsBuilder();
+                        foreach (var tenant in ingest.Value.ActiveTenants)
+                            sub = sub.WithTopicFilter(f => f.WithTopic($"solar/{tenant}/inverter/+/up/#").WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce));
+                        await client.SubscribeAsync(sub.Build(), stop);
+                    }
                     ConnectedSince = DateTimeOffset.UtcNow;
                     delay = TimeSpan.FromSeconds(1);
-                    log.LogInformation("MQTT connected to {Host}:{Port}, tenants {Tenants}", _o.Host, _o.Port, string.Join(",", ingest.Value.ActiveTenants));
+                    if (subscribe) log.LogInformation("MQTT connected to {Host}:{Port}, tenants {Tenants}", _o.Host, _o.Port, string.Join(",", ingest.Value.ActiveTenants));
+                    else log.LogInformation("MQTT connected to {Host}:{Port} to send commands only (no ingest role)", _o.Host, _o.Port);
                 }
                 await Task.Delay(TimeSpan.FromSeconds(2), stop);
             }

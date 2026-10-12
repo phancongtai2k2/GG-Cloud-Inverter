@@ -10,7 +10,7 @@ namespace GgPower.Infrastructure;
 /// dedicated, unpooled connection. When it stops, crashes or loses that connection, Postgres releases the lock and the
 /// next instance that asks takes over, within one cycle of its job.
 /// </summary>
-public sealed class JobLeader(Db db, ILogger<JobLeader> log) : IAsyncDisposable
+public sealed class JobLeader(Db db, ILogger<JobLeader> log, InstanceRoles? roles = null) : IAsyncDisposable
 {
     public const string Rollup = "rollup";              // roll-ups, partitions and table clean-up
     public const string DailyReport = "daily-report";
@@ -35,6 +35,8 @@ public sealed class JobLeader(Db db, ILogger<JobLeader> log) : IAsyncDisposable
     public async Task<bool> TryLeadAsync(string job, CancellationToken ct)
     {
         var key = IndexOf(job);
+        // Without the jobs role this instance never takes a job (plan B7).
+        if (roles is { RunsJobs: false }) return false;
         await _gate.WaitAsync(ct);
         try
         {

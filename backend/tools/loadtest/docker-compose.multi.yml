@@ -1,0 +1,67 @@
+# Plan B7, local only: two API instances (the production image) behind Caddy with the production Caddyfile, using the
+# test containers on this machine (PostgreSQL :5433, Mosquitto :1884, Redis :6380, SeaweedFS :8334, see PROGRESS.md 5).
+#   docker compose -f docker-compose.multi.yml up -d --build      then .\run-multi.ps1
+# Ports: 5091 = Caddy (what the app talks to), 5092 = instance 1 directly (counters for the load test).
+name: ggpower-multi
+
+x-api-env: &api-env
+  ASPNETCORE_ENVIRONMENT: Production
+  GGP_ConnectionStrings__Main: "Host=host.docker.internal;Port=5433;Database=ggpower_load;Username=ggpower;Password=devtest;Maximum Pool Size=40"
+  GGP_Security__JwtSigningKey: loadtest-signing-key-loadtest-signing-key-0123
+  GGP_Security__LogOtpCodes: "true"
+  GGP_RateLimits__AuthPerMinute: "100000"
+  GGP_RateLimits__ApiPerMinute: "100000"
+  GGP_Mqtt__Host: host.docker.internal
+  GGP_Mqtt__Port: "1884"
+  GGP_Mqtt__UseTls: "false"
+  GGP_Ingest__Tenants__0: ggp
+  GGP_Shared__Provider: redis
+  GGP_Shared__Redis: host.docker.internal:6380
+  GGP_Shared__KeyPrefix: "ggp-multi:"
+  GGP_Storage__Provider: s3
+  GGP_Storage__S3__ServiceUrl: http://host.docker.internal:8334
+  GGP_Storage__S3__Bucket: ggpower-multi
+  GGP_Storage__S3__AccessKey: test
+  GGP_Storage__S3__SecretKey: test
+  GGP_Logging__LogLevel__GgPower.Infrastructure.RollupService: Debug
+  GGP_Proxy__Known__0: 172.29.0.250
+
+services:
+  api1:
+    build: ../..
+    image: ggpower-api:multi
+    stop_grace_period: 30s
+    environment:
+      <<: *api-env
+      GGP_Roles: api,ingest,jobs
+      GGP_Mqtt__ClientId: ggpower-multi-1
+    ports: ["5092:8080"]
+    networks: [net]
+
+  api2:
+    image: ggpower-api:multi
+    depends_on: [api1]
+    stop_grace_period: 30s
+    environment:
+      <<: *api-env
+      GGP_Roles: api
+    networks: [net]
+
+  web:
+    image: caddy:2-alpine
+    depends_on: [api1, api2]
+    environment:
+      SITE_ADDRESS: ":80"
+      API_UPSTREAMS: "api1:8080 api2:8080"
+      API_HEALTH_URI: /healthz/ready
+    ports: ["5091:80"]
+    volumes:
+      - ../../deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+    networks:
+      net: { ipv4_address: 172.29.0.250 }
+
+networks:
+  net:
+    ipam:
+      config:
+        - subnet: 172.29.0.0/24

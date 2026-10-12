@@ -77,6 +77,8 @@ builder.Services.AddHostedService<LiveStoreSync>();
 builder.Services.AddHostedService<RedisSubscriptions>();
 builder.Services.AddSingleton<BackfillTracker>();
 builder.Services.AddSingleton<RollupTracker>();
+// What this instance does: api, ingest, jobs (plan B7; default all).
+builder.Services.AddSingleton(sp => new InstanceRoles(sp.GetRequiredService<IConfiguration>()["Roles"]));
 // One instance per periodic job (plan B1); disposed after the hosted services stop, which frees its locks.
 builder.Services.AddSingleton<JobLeader>();
 // Registered before MqttLink: hosted services stop in reverse order, so it still writes what MQTT delivered last.
@@ -265,15 +267,20 @@ GgMetrics.Observe(app.Services.GetRequiredService<IngestPipeline>(), app.Service
     app.Services.GetRequiredService<JobLeader>(), app.Services.GetRequiredService<TimeProvider>());
 app.MapPrometheusScrapingEndpoint("/metrics").WithMetadata(new Microsoft.AspNetCore.Routing.HttpMethodMetadata(["GET"])).DisableRateLimiting();
 
-var api = app.MapGroup("/api/v1");
-AuthEndpoints.Map(api);
-ProfileEndpoints.Map(api);
-ProjectEndpoints.Map(api);
-DataEndpoints.Map(api);
-AlertEndpoints.Map(api);
-ConfigEndpoints.Map(api);
-ServiceEndpoints.Map(api);
-RealtimeEndpoints.Map(app, api);
+var roles = app.Services.GetRequiredService<InstanceRoles>();
+app.Logger.LogInformation("roles: {Roles}", roles);
+if (roles.ServesApi)
+{
+    var api = app.MapGroup("/api/v1");
+    AuthEndpoints.Map(api);
+    ProfileEndpoints.Map(api);
+    ProjectEndpoints.Map(api);
+    DataEndpoints.Map(api);
+    AlertEndpoints.Map(api);
+    ConfigEndpoints.Map(api);
+    ServiceEndpoints.Map(api);
+    RealtimeEndpoints.Map(app, api);
+}
 
 app.Run();
 

@@ -34,8 +34,9 @@ public sealed class RedisInstances : IAsyncLifetime
             ["Storage:S3:AccessKey"] = Environment.GetEnvironmentVariable("GGP_TEST_S3_KEY") ?? "test",
             ["Storage:S3:SecretKey"] = Environment.GetEnvironmentVariable("GGP_TEST_S3_SECRET") ?? "test",
         };
-        A = new ExtraHost(settings, 500000);
-        B = new ExtraHost(settings, 600000);
+        // The layout of plan B7: A receives the device data, B only serves the API.
+        A = new ExtraHost(new(settings) { ["Roles"] = "api,ingest" }, 500000);
+        B = new ExtraHost(new(settings) { ["Roles"] = "api" }, 600000);
         // Start both hosts (and their Redis subscriptions) before the tests talk to them.
         _ = A.Server;
         _ = B.Server;
@@ -60,6 +61,15 @@ public partial class MultiInstanceTests(AppFixture app, RedisInstances hosts) : 
     private AppFixture A => hosts.A;
     private AppFixture B => hosts.B;
 
+    /// <summary>A device fed into A becomes visible to B once A has written its shared state (every 250 ms).</summary>
+    private async Task SharedWithB(string serial)
+    {
+        var store = B.Services.GetRequiredService<ILiveStore>();
+        // Complete: an early copy may predate the device's settings or telemetry (and is cached for 500 ms).
+        for (var i = 0; i < 60 && await store.GetAsync(serial) is not { ConfigState: not null, Telemetry: not null }; i++) await Task.Delay(50);
+        Assert.NotNull((await store.GetAsync(serial))?.ConfigState);
+    }
+
     private static async Task<JsonNode> Receive(WebSocket ws, int seconds = 5)
     {
         var buffer = new byte[64 * 1024];
@@ -82,10 +92,21 @@ public partial class MultiInstanceTests(AppFixture app, RedisInstances hosts) : 
         await ws.SendAsync(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new { subscribe = new[] { project } })), WebSocketMessageType.Text, true, CancellationToken.None);
         Assert.Equal(serial, (string)Assert.Single((await Receive(ws))["serials"]!.AsArray())!);
 
-        await A.Feed(serial, "telemetry", AppFixture.Telemetry(serial, pv: 4321));
+        // A builds frames once it knows some instance watches the device (shared every second): keep the data coming.
+        using var done = new CancellationTokenSource();
+        var feeder = Task.Run(async () =>
+        {
+            while (!done.IsCancellationRequested)
+            {
+                await A.Feed(serial, "telemetry", AppFixture.Telemetry(serial, pv: 4321));
+                await Task.Delay(300);
+            }
+        });
         JsonNode frame;
-        do frame = await Receive(ws);
+        do frame = await Receive(ws, 10);
         while ((string?)frame["type"] != "device" || (double?)frame["telemetry"]?["pv_w"] != 4321);
+        done.Cancel();
+        await feeder;
         Assert.Equal(serial, (string)frame["serial"]!);
     }
 
@@ -98,6 +119,7 @@ public partial class MultiInstanceTests(AppFixture app, RedisInstances hosts) : 
         var serial = await A.NewDevice();
         await A.NewProject(owner, serial);
         await app.Allow(serial);
+        await SharedWithB(serial);
         // The device answers B's commands through A.
         B.Devices.State[serial] = A.Devices.State[serial];
         B.Devices.Services = A.Services;
@@ -116,6 +138,7 @@ public partial class MultiInstanceTests(AppFixture app, RedisInstances hosts) : 
         var serial = await A.NewDevice(FakeDevices.Behaviour.Silent);
         await A.NewProject(owner, serial);
         await app.Allow(serial);
+        await SharedWithB(serial);
 
         var version = await A.Version(owner, serial);
         var body = new { group = "operating_mode", based_on_version = version, mode = "self_consumption" };
@@ -192,5 +215,26 @@ public partial class MultiInstanceTests
         Assert.Equal(await A.Version(owner, serial), await B.Version(owner, serial));
         // B never received the device's data itself.
         Assert.False(B.Services.GetRequiredService<LiveStateCache>().Get(serial)?.Fed ?? false);
+    }
+}
+
+public partial class MultiInstanceTests
+{
+    // B7: roles from the setting; an instance without the jobs role never takes a job.
+    [Fact]
+    public async Task RolesDecideWhatAnInstanceDoes()
+    {
+        var all = new InstanceRoles(null);
+        Assert.True(all.ServesApi && all.Ingests && all.RunsJobs);
+        var apiOnly = new InstanceRoles(" API ");
+        Assert.True(apiOnly.ServesApi && !apiOnly.Ingests && !apiOnly.RunsJobs);
+        Assert.Equal("api,jobs", new InstanceRoles("jobs,api").ToString());
+        Assert.Throws<InvalidOperationException>(() => new InstanceRoles("api,worker"));
+
+        Assert.Equal("api", B.Services.GetRequiredService<InstanceRoles>().ToString());
+        var leader = B.Services.GetRequiredService<JobLeader>();
+        Assert.False(await leader.TryLeadAsync(JobLeader.Rollup, CancellationToken.None));
+        Assert.DoesNotContain(JobLeader.Jobs, leader.Holds);
+        Assert.False(B.Services.GetRequiredService<MqttLink>().Required);   // readiness does not wait for MQTT on B
     }
 }

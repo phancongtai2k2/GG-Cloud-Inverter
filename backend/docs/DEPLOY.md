@@ -97,3 +97,58 @@ server S3 tự host **SeaweedFS** (quyết định D4, cập nhật 12/10: image
 
 Quay lại: `GGP_Storage__Provider=local` (file tải lên sau khi chuyển chỉ có trong bucket — chép ngược bằng
 `aws s3 sync s3://ggpower /storage` nếu cần).
+
+## Hai instance API và deploy cuốn chiếu (bước B7)
+
+Cùng một image, chia vai trò bằng `GGP_Roles` (`api`, `ingest`, `jobs`; mặc định cả ba):
+
+| Service | Vai trò | Ghi chú |
+|---|---|---|
+| `api` | `api,ingest,jobs` | Nhận MQTT (phiên lưu trên broker, A5), chạy job định kỳ (leader B1), ghi live state lên Redis (C2) |
+| `api2` (profile `multi`) | `api` | Chỉ phục vụ API / WebSocket; MQTT chỉ để gửi lệnh, tài khoản riêng `backend-api` (ACL chỉ ghi `down/command`) |
+
+### Bật lần đầu
+
+1. Tài khoản MQTT cho `api2`:
+   `docker compose exec -T -u 1883:1883 mqtt mosquitto_passwd -b /mosquitto/config/passwd backend-api <mật khẩu>` rồi
+   `docker compose kill -s HUP mqtt` (ACL `backend-api` đã có trong `mqtt/config/acl`). Mosquitto dùng tên đăng nhập làm
+   client id, nên mỗi instance chỉ-API cần một tài khoản riêng.
+2. `.env` thêm:
+   ```
+   SHARED_PROVIDER=redis
+   STORAGE_PROVIDER=s3
+   S3_SECRET_KEY=<chuỗi ngẫu nhiên dài>
+   MQTT_API_USER=backend-api
+   MQTT_API_PASSWORD=<mật khẩu ở bước 1>
+   API_UPSTREAMS=api:8080 api2:8080
+   API_HEALTH_URI=/healthz/ready
+   ```
+3. `docker compose --profile multi up -d redis files`, chép file cũ: `./storage-to-s3.sh` (mục B6).
+4. `docker compose --profile multi up -d --build` — `api` khởi động lại với Redis / S3, `api2` lên, Caddy nạp upstream mới.
+5. Kiểm tra: `docker compose exec web wget -qO- http://api:8080/healthz/ready` và `http://api2:8080/healthz/ready` đều
+   `ready`; log `api` có `roles: api,ingest,jobs` và bốn dòng `this instance now runs the … job`; log `api2` có
+   `roles: api` và `to send commands only`.
+
+### Deploy cuốn chiếu (không gián đoạn API)
+
+```
+docker compose --profile multi build api api2
+docker compose --profile multi up -d --no-deps api2
+until docker compose exec -T web wget -qO- http://api2:8080/healthz/ready >/dev/null 2>&1; do sleep 2; done
+docker compose --profile multi up -d --no-deps api
+until docker compose exec -T web wget -qO- http://api:8080/healthz/ready >/dev/null 2>&1; do sleep 2; done
+```
+
+- Khi một instance dừng, Caddy thử request trên instance còn lại (`lb_try_duration 5s`) và ngừng gửi tới instance
+  không qua `/healthz/ready` (kiểm tra mỗi 5 s). App đang nối WebSocket vào instance đó tự nối lại (vé dùng được ở instance
+  nào cũng được).
+- Trong lúc `api` khởi động lại: dữ liệu thiết bị chờ ở broker (A5) và được ghi khi `api` lên; job định kỳ tạm dừng
+  (≤ 30 s); số live trên `api2` đứng yên ở giá trị cuối cùng trong Redis; lệnh gửi trong khoảng này trả `GATEWAY_OFFLINE`
+  hoặc hết hạn chờ ack. Muốn không gián đoạn cả phần nhận dữ liệu cần nhiều instance `ingest` — giai đoạn C.
+- Đổi schema (migration): instance khởi động trước áp dụng (khoá advisory, B1); bản cũ còn chạy phải chịu được schema mới —
+  migration chỉ thêm, không xoá / đổi tên cột trong cùng một lần deploy.
+
+### Quay về một instance
+
+`.env`: bỏ `API_UPSTREAMS`, `API_HEALTH_URI` (hoặc đặt lại mặc định), giữ `SHARED_PROVIDER` / `STORAGE_PROVIDER` tuỳ ý
+(một instance chạy được với cả memory / local lẫn redis / s3); `docker compose --profile multi stop api2 && docker compose up -d web`.

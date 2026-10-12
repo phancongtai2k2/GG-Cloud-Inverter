@@ -40,22 +40,49 @@ services:
     depends_on:
       db: { condition: service_healthy }
       mqtt: { condition: service_started }
-    environment:
+    environment: &api-env
       ASPNETCORE_ENVIRONMENT: Production
       GGP_ConnectionStrings__Main: "Host=db;Port=5432;Database=ggpower;Username=ggpower;Password=${POSTGRES_PASSWORD};Maximum Pool Size=40"
       GGP_Security__JwtSigningKey: ${JWT_SIGNING_KEY:?set in .env}
       GGP_Security__LogOtpCodes: ${LOG_OTP_CODES:-false}
+      # This instance receives the device data and runs the periodic jobs (plan B7).
+      GGP_Roles: api,ingest,jobs
       GGP_Mqtt__Host: ${MQTT_HOST}
       GGP_Mqtt__Port: ${MQTT_PORT:-1883}
       GGP_Mqtt__UseTls: ${MQTT_TLS:-false}
       GGP_Mqtt__Username: ${MQTT_USER}
       GGP_Mqtt__Password: ${MQTT_PASSWORD}
       GGP_Ingest__Tenants__0: ${MQTT_TENANT:-ggp}
+      # One instance: memory / local. Several (profile multi): redis / s3, on every instance (backend/docs/DEPLOY.md).
+      GGP_Shared__Provider: ${SHARED_PROVIDER:-memory}
+      GGP_Shared__Redis: redis:6379
+      GGP_Storage__Provider: ${STORAGE_PROVIDER:-local}
       GGP_Storage__Root: /data/storage
+      GGP_Storage__S3__ServiceUrl: http://files:8333
+      GGP_Storage__S3__Bucket: ${S3_BUCKET:-ggpower}
+      GGP_Storage__S3__AccessKey: ${S3_ACCESS_KEY:-ggpower}
+      GGP_Storage__S3__SecretKey: ${S3_SECRET_KEY:-}
       # Client addresses are taken from X-Forwarded-For of the web container only.
       GGP_Proxy__Known__0: 172.28.0.250
     volumes:
       - ./data/storage:/data/storage
+    networks: [internal]
+
+  # Second API instance (profile multi): serves the API only. Its MQTT account may only send commands (mqtt/config/acl).
+  api2:
+    stop_grace_period: 30s
+    build: ./backend
+    profiles: [multi]
+    restart: unless-stopped
+    depends_on:
+      db: { condition: service_healthy }
+      redis: { condition: service_started }
+      files: { condition: service_started }
+    environment:
+      <<: *api-env
+      GGP_Roles: api
+      GGP_Mqtt__Username: ${MQTT_API_USER:-backend-api}
+      GGP_Mqtt__Password: ${MQTT_API_PASSWORD:-}
     networks: [internal]
 
   # ----- Several API instances (plan B, profile "multi": docker compose --profile multi up -d). Not started otherwise. -----
@@ -94,6 +121,9 @@ services:
     depends_on: [api]
     environment:
       SITE_ADDRESS: ${SITE_ADDRESS:?set in .env}
+      # Several API instances: "api:8080 api2:8080" and /healthz/ready (plan B7).
+      API_UPSTREAMS: ${API_UPSTREAMS:-api:8080}
+      API_HEALTH_URI: ${API_HEALTH_URI:-/healthz/live}
     ports:
       - "80:80"
       - "443:443"

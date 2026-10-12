@@ -119,3 +119,28 @@ ghi trạng thái thiết bị (online, last_seen, năng lượng trong pin) m�
   thô ~5.000 dòng/s. Muốn hơn nữa: giai đoạn C (nhiều worker, TimescaleDB).
 - Dung lượng không đổi: ≈ 3,2 MB dữ liệu thô / thiết bị / ngày → 10.000 thiết bị giữ 90 ngày ≈ 2,8 TB — cần C4
   (nén) hoặc giảm thời gian giữ trước khi tới quy mô đó.
+
+## B7 — hai instance sau Caddy (12/10/2026)
+
+`tools/loadtest/docker-compose.multi.yml` (image production, Caddyfile production) + `run-multi.ps1`: instance 1
+`api,ingest,jobs`, instance 2 `api`, Redis + SeaweedFS; 5.000 thiết bị trong 6 phút; một "app" đọc `/overview` qua Caddy
+mỗi 200 ms; **instance 2 bị dừng ở giây 128 và chạy lại ở giây 191**. Mọi thứ chạy trong Docker Desktop (Windows), nên
+số tuyệt đối không so được với các mục trên (đo tiến trình chạy thẳng trên máy); so trong cùng điều kiện ở bảng dưới.
+
+| Cấu hình (trong container) | nhận/s | bỏ | tổng hợp TB | CPU inst. 1 | CPU inst. 2 | CPU PG | CPU Redis | app gọi / lỗi | app p50 / p99 / max |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 1 instance, memory (nền) | 1.264 | 0 | 4,6 s | 46 % | — | 29 % | 1 % | 1.770 / 0 | 15 / 51 / 214 ms |
+| 2 instance, redis, lần 1 | 1.264 | 0 | 6,9 s | 124 % | 42 % | 46 % | 11 % | 1.701 / **0** | 19 / 82 / 3.274 ms |
+| 2 instance, redis, sau sửa | 1.264 | 0 | 8–11 s ¹ | 59 % | 14 % | 48 % | 4 % | 1.719 / **0** | 17 / 99 / 3.293 ms |
+
+CPU tính theo % một lõi. ¹ Bỏ lần quét đầy đủ lúc khởi động (72 s, chồng lên khoá bảng của script seed).
+
+- **Dừng instance 2 giữa chừng: app không lỗi lần nào** (414 lần gọi trong khoảng dừng → chạy lại + 30 s); request đang
+  dở lúc dừng được Caddy thử lại ở instance 1, chậm nhất ~3,3 s (thời gian dừng có trật tự + `lb_try_duration`).
+- **Lỗi tìm thấy và đã sửa**: lần 1, instance nhận dữ liệu dựng và publish frame realtime cho **mọi** bản tin
+  (1.250/s) vì không biết instance khác có ai xem → +0,8 lõi. Sau sửa, mỗi instance chia sẻ danh sách thiết bị đang được
+  xem mỗi giây (`rtwatch`), frame chỉ dựng cho thiết bị đó: chi phí chế độ redis còn ~+0,13 lõi so với memory.
+- Ghi live state lên Redis (C2) ở 5.000 thiết bị: Redis ~4 % một lõi.
+- Chưa rõ: job tổng hợp chậm hơn ở chế độ 2 instance (8–11 s so với 4,6 s), dù không phần nào của Redis chạm vào job này;
+  giữa các lần chạy trong Docker Desktop dao động lớn (6,9 s ở lần 1). Vẫn dưới chu kỳ 30 s; **cần đo lại trên máy chủ
+  thật** trước khi dựa vào con số này cho quy mô > 5.000 thiết bị.
