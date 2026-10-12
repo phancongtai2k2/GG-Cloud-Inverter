@@ -26,6 +26,7 @@ tags:
   - name: projects
   - name: project-data
   - name: alerts
+  - name: chat
   - name: config
   - name: support
   - name: admin
@@ -574,6 +575,76 @@ paths:
         "400": { $ref: "#/components/responses/Error" }
         "404": { $ref: "#/components/responses/Error" }
 
+  /api/v1/projects/{projectId}/chat/messages:
+    parameters:
+      - $ref: "#/components/parameters/ProjectId"
+    post:
+      tags: [chat]
+      summary: Hỏi trợ lý AI của dự án (dữ liệu thiết bị, thời tiết, quy định năng lượng)
+      description: |
+        Trả lời sau khi trợ lý tra xong dữ liệu (có thể mất 5–30 s; app nên đặt timeout đọc ≥ 60 s và hiện trạng thái "đang trả lời").
+        Không gửi `conversation_id` thì tạo hội thoại mới. Câu hỏi chỉ được lưu khi đã có câu trả lời; câu bị từ chối hay lỗi thì không lưu.
+        Lỗi: 503 CHAT_DISABLED (máy chủ chưa bật trợ lý), 404 CONVERSATION_NOT_FOUND, 409 CONVERSATION_FULL (kèm `max_questions`; app mở
+        hội thoại mới), 409 CONVERSATION_BUSY (đang trả lời một câu khác của cùng hội thoại), 429 CHAT_QUOTA_EXCEEDED (kèm
+        `max_questions_per_day`, tính 24 giờ gần nhất), 502 CHAT_UNAVAILABLE (dịch vụ AI lỗi, thử lại sau).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [text]
+              properties:
+                text: { type: string, minLength: 1, maxLength: 2000 }
+                conversation_id: { type: [string, "null"], format: uuid }
+      responses:
+        "200":
+          description: Câu trả lời
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ChatAnswer" }
+        "400": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "502": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /api/v1/projects/{projectId}/chat/conversations:
+    parameters:
+      - $ref: "#/components/parameters/ProjectId"
+    get:
+      tags: [chat]
+      summary: 50 hội thoại gần nhất của người dùng trong dự án, mới nhất trước
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/ChatConversationItem" }
+        "404": { $ref: "#/components/responses/Error" }
+  /api/v1/projects/{projectId}/chat/conversations/{conversationId}:
+    parameters:
+      - $ref: "#/components/parameters/ProjectId"
+      - $ref: "#/components/parameters/ConversationId"
+    get:
+      tags: [chat]
+      summary: Câu hỏi và câu trả lời của một hội thoại, theo thứ tự
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ChatConversation" }
+        "404": { $ref: "#/components/responses/Error" }
+    delete:
+      tags: [chat]
+      summary: Xoá hội thoại
+      responses:
+        "204": { description: Đã xoá }
+        "404": { $ref: "#/components/responses/Error" }
+
   # ---------------------------------------------------------------- config
   /api/v1/devices/{serial}/config:
     parameters:
@@ -956,6 +1027,8 @@ components:
       { name: projectId, in: path, required: true, schema: { type: string, format: uuid } }
     AlertId:
       { name: alertId, in: path, required: true, schema: { type: string, format: uuid } }
+    ConversationId:
+      { name: conversationId, in: path, required: true, schema: { type: string, format: uuid } }
     TicketId:
       { name: ticketId, in: path, required: true, schema: { type: string, format: uuid } }
     Serial:
@@ -1020,7 +1093,8 @@ components:
         CODE_LOCKED, TOKEN_EXPIRED, WRONG_PASSWORD, SERIAL_NOT_FOUND, SERIAL_OWNED, PROJECT_LIMIT, PROJECT_NOT_FOUND,
         ROLE_NOT_PERMITTED, DEVICE_NOT_FOUND, ALERT_NOT_FOUND, COMMAND_NOT_FOUND, TICKET_NOT_FOUND, TICKET_CLOSED,
         ATTACHMENT_LIMIT, GROUP_NOT_IN_ALLOWLIST, DEVICE_READ_ONLY, WRITE_DISABLED_BY_SERVER, GATEWAY_OFFLINE, BMS_NOT_CONNECTED,
-        CONFIG_STALE, COMMAND_IN_PROGRESS, IDEMPOTENCY_KEY_REUSED, RATE_LIMITED.
+        CONFIG_STALE, COMMAND_IN_PROGRESS, IDEMPOTENCY_KEY_REUSED, RATE_LIMITED, CHAT_DISABLED, CONVERSATION_NOT_FOUND,
+        CONVERSATION_FULL, CONVERSATION_BUSY, CHAT_QUOTA_EXCEEDED, CHAT_UNAVAILABLE.
       properties:
         code: { type: string }
         errors:
@@ -1028,6 +1102,8 @@ components:
           description: Khi VALIDATION_FAILED có lỗi theo trường
           items: { $ref: "#/components/schemas/FieldError" }
         retry_after_seconds: { type: integer, description: ACCOUNT_LOCKED, TOO_MANY_REQUESTS, RATE_LIMITED }
+        max_questions: { type: integer, description: CONVERSATION_FULL }
+        max_questions_per_day: { type: integer, description: CHAT_QUOTA_EXCEEDED }
         attempts_left: { type: integer, description: CODE_WRONG }
         current_version: { type: string, description: CONFIG_STALE }
         command_id: { type: string, format: uuid, description: COMMAND_IN_PROGRESS }
@@ -1754,3 +1830,36 @@ components:
         description: { type: string }
         attachments: { type: array, items: { $ref: "#/components/schemas/Attachment" } }
         messages: { type: array, items: { $ref: "#/components/schemas/TicketMessage" } }
+    # ---------- chat
+    ChatAnswer:
+      type: object
+      required: [conversation_id, answer, refused]
+      properties:
+        conversation_id: { type: [string, "null"], format: uuid, description: "null khi câu đầu của hội thoại mới bị từ chối (chưa có gì được lưu)" }
+        answer: { type: [string, "null"], description: "Markdown đơn giản (đoạn, danh sách, **đậm**); null khi refused" }
+        refused: { type: boolean, description: "true: trợ lý từ chối câu hỏi vì lý do an toàn; app tự hiện câu chữ, câu hỏi không được lưu" }
+    ChatConversationItem:
+      type: object
+      required: [id, title, questions, updated_at_utc]
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string, description: Dòng đầu của câu hỏi đầu tiên (≤ 60 ký tự) }
+        questions: { type: integer }
+        updated_at_utc: { type: string, format: date-time }
+    ChatConversation:
+      type: object
+      required: [id, title, questions, can_continue, messages]
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string }
+        questions: { type: integer }
+        can_continue: { type: boolean, description: "false khi đã đủ số câu hỏi; app mở hội thoại mới" }
+        messages:
+          type: array
+          items:
+            type: object
+            required: [role, text, created_at_utc]
+            properties:
+              role: { type: string, enum: [user, assistant] }
+              text: { type: string }
+              created_at_utc: { type: string, format: date-time }

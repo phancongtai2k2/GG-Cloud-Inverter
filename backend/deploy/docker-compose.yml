@@ -68,6 +68,10 @@ services:
       GGP_Storage__S3__SecretKey: ${S3_SECRET_KEY:-}
       # Client addresses are taken from X-Forwarded-For of the web container only.
       GGP_Proxy__Known__0: 172.28.0.250
+      # Chat assistant (Claude). Empty key: the assistant is off (503 CHAT_DISABLED).
+      GGP_Chat__ApiKey: ${ANTHROPIC_API_KEY:-}
+      GGP_Chat__Model: ${CHAT_MODEL:-claude-opus-5-5}
+      GGP_Chat__MaxQuestionsPerUserPerDay: ${CHAT_MAX_PER_DAY:-50}
     volumes:
       - ./data/storage:/data/storage
     networks: [internal]

@@ -11,56 +11,102 @@ public static class DataEndpoints
 {
     private static double? Kw(double? w) => w is { } v ? Math.Round(v / 1000, 3) : null;
 
+    /// <summary>Home screen summary of a project the caller may see (also read by the chat assistant).</summary>
+    public static async Task<object> OverviewAsync(ProjectAccess a, ILiveStore live, StatsService stats, Db db, TimeProvider clock, CancellationToken ct)
+    {
+        var now = clock.GetUtcNow();
+        var d = a.PrimarySerial is { } serial ? await live.GetAsync(serial, ct) : null;
+        var reachable = d?.IsReachable(now) == true;
+        var t = reachable ? d!.Telemetry : null;
+        // Whether there is a battery is the inverter's statement (null: not reported), never derived here.
+        var present = d?.BatteryPresent;
+        var today = stats.Today(a.Zone);
+        var touActive = false;
+        if (d is not null)
+        {
+            await using var c = await db.OpenAsync(ct);
+            touActive = await c.ExecuteScalarAsync<bool?>("SELECT tou_active FROM tou_strategies WHERE serial = @s", new { s = d.Serial }) ?? false;
+        }
+        var yieldToday = t?.YieldToday ?? (d is null ? 0 : await stats.DayYieldAsync(d.Serial, today, ct));
+        return new
+        {
+            project_name = a.Project.Name,
+            serial = d?.Serial,
+            model = d?.Model,
+            status = d is null ? "waiting_connection" : d.StatusName(now),
+            updated_at = d?.LastSeen,
+            unresolved_alerts = d?.Unresolved ?? 0,
+            yield_today_kwh = yieldToday,
+            // Same emission factor as /stats summary.co2_kg; null before the device is bound.
+            co2_today_kg = d is null ? null : LiveJson.Co2Kg(yieldToday),
+            // kWh charged into the battery since local midnight, by source; null without a device or without a battery.
+            battery_charged_today = d is null || present == false ? null : LiveJson.Charged(await stats.DayChargeAsync(d.Serial, today, ct)),
+            yield_yesterday_kwh = d is null ? 0 : await stats.DayYieldAsync(d.Serial, today.AddDays(-1), ct),
+            energy = t is null ? null : new
+            {
+                pv_kw = Kw(t.PvW), grid_kw = Kw(t.GridW), battery_kw = present == false ? null : Kw(t.BattW), load_kw = Kw(t.LoadW),
+                battery_soc_percent = present != false && t.Soc is { } s ? (int?)Math.Round(s) : null,
+            },
+            battery_present = present,
+            mode = ConfigMapping.ReadMode(d?.ConfigState, touActive),
+            backup_soc_percent = ConfigMapping.BackupSoc(d?.ConfigState),
+            battery = d?.BatteryCapacityKwh is > 0 && present != false ? new
+            {
+                capacity_kwh = d.BatteryCapacityKwh, from_pv_kwh = Math.Round(d.BattFromPvKwh, 2), from_grid_kwh = Math.Round(d.BattFromGridKwh, 2),
+            } : null,
+        };
+    }
+
+    /// <summary>The devices of a project the caller may see (also read by the chat assistant).</summary>
+    public static async Task<List<object>> DevicesAsync(ProjectAccess a, ILiveStore live, Db db, TimeProvider clock, CancellationToken ct)
+    {
+        var now = clock.GetUtcNow();
+        await using var c = await db.OpenAsync(ct);
+        var names = (await c.QueryAsync<(string Serial, string Name)>("SELECT serial, name FROM project_devices WHERE project_id = @projectId", new { projectId = a.Project.Id }))
+            .ToDictionary(x => x.Serial, x => x.Name, StringComparer.OrdinalIgnoreCase);
+        var states = await live.GetManyAsync(a.Serials, ct);
+        return a.Serials.Select<string, object>((serial, i) =>
+        {
+            var d = states[i];
+            var reachable = d?.IsReachable(now) == true;
+            var t = reachable ? d!.Telemetry : null;
+            var b = reachable ? d!.Battery : null;
+            // A battery is listed when the inverter reports one. A datalogger that does not report it
+            // (older firmware) leaves the question open, and its battery data is passed on as it is.
+            var present = d?.BatteryPresent;
+            var hasBattery = d?.Battery is not null && present != false;
+            return new
+            {
+                inverter = new
+                {
+                    name = names.GetValueOrDefault(serial, d?.Model ?? "Inverter"), serial,
+                    status = d is null ? "waiting_connection" : d.StatusName(now),
+                    power_kw = Kw(t?.PvW), temperature_c = t?.InvTemp, firmware = d?.InverterFw, logger_firmware = d?.LoggerFw,
+                },
+                battery_present = present,
+                bms_comm = d?.Battery?.BmsComm,
+                datalogger = d is null ? null : LiveJson.Datalogger(d, reachable),
+                battery = !hasBattery ? null : new
+                {
+                    name = d!.Battery!.Model ?? "Battery",
+                    state = b?.CurrentA is not { } cur ? "idle" : cur > 0.5 ? "charging" : cur < -0.5 ? "discharging" : "idle",
+                    hours_remaining = b?.EstMinutes is { } m ? (double?)Math.Round(m / 60, 1) : null,
+                    soc_percent = b?.Soc is { } s ? (int?)Math.Round(s) : null,
+                    power_kw = b is { CurrentA: { } ca, Voltage: { } v } ? (double?)Math.Round(ca * v / 1000, 2) : null,
+                    voltage_v = b?.Voltage,
+                    soh_percent = b?.Soh is { } h ? (int?)Math.Round(h) : null,
+                },
+            };
+        }).ToList();
+    }
+
     public static void Map(RouteGroupBuilder api)
     {
         var g = api.MapGroup("/projects/{projectId:guid}").RequireAuthorization();
 
         // Home screen, first paint. Afterwards the app keeps it fresh from the realtime channel.
         g.MapGet("/overview", async (Guid projectId, HttpContext ctx, AccessService access, ILiveStore live, StatsService stats, Db db, TimeProvider clock, CancellationToken ct) =>
-        {
-            if (await access.ProjectAsync(ctx.User, projectId, ct) is not { } a) return Api.NotFound();
-            var now = clock.GetUtcNow();
-            var d = a.PrimarySerial is { } serial ? await live.GetAsync(serial, ct) : null;
-            var reachable = d?.IsReachable(now) == true;
-            var t = reachable ? d!.Telemetry : null;
-            // Whether there is a battery is the inverter's statement (null: not reported), never derived here.
-            var present = d?.BatteryPresent;
-            var today = stats.Today(a.Zone);
-            var touActive = false;
-            if (d is not null)
-            {
-                await using var c = await db.OpenAsync(ct);
-                touActive = await c.ExecuteScalarAsync<bool?>("SELECT tou_active FROM tou_strategies WHERE serial = @s", new { s = d.Serial }) ?? false;
-            }
-            var yieldToday = t?.YieldToday ?? (d is null ? 0 : await stats.DayYieldAsync(d.Serial, today, ct));
-            return Results.Json(new
-            {
-                project_name = a.Project.Name,
-                serial = d?.Serial,
-                model = d?.Model,
-                status = d is null ? "waiting_connection" : d.StatusName(now),
-                updated_at = d?.LastSeen,
-                unresolved_alerts = d?.Unresolved ?? 0,
-                yield_today_kwh = yieldToday,
-                // Same emission factor as /stats summary.co2_kg; null before the device is bound.
-                co2_today_kg = d is null ? null : LiveJson.Co2Kg(yieldToday),
-                // kWh charged into the battery since local midnight, by source; null without a device or without a battery.
-                battery_charged_today = d is null || present == false ? null : LiveJson.Charged(await stats.DayChargeAsync(d.Serial, today, ct)),
-                yield_yesterday_kwh = d is null ? 0 : await stats.DayYieldAsync(d.Serial, today.AddDays(-1), ct),
-                energy = t is null ? null : new
-                {
-                    pv_kw = Kw(t.PvW), grid_kw = Kw(t.GridW), battery_kw = present == false ? null : Kw(t.BattW), load_kw = Kw(t.LoadW),
-                    battery_soc_percent = present != false && t.Soc is { } s ? (int?)Math.Round(s) : null,
-                },
-                battery_present = present,
-                mode = ConfigMapping.ReadMode(d?.ConfigState, touActive),
-                backup_soc_percent = ConfigMapping.BackupSoc(d?.ConfigState),
-                battery = d?.BatteryCapacityKwh is > 0 && present != false ? new
-                {
-                    capacity_kwh = d.BatteryCapacityKwh, from_pv_kwh = Math.Round(d.BattFromPvKwh, 2), from_grid_kwh = Math.Round(d.BattFromGridKwh, 2),
-                } : null,
-            });
-        });
+            await access.ProjectAsync(ctx.User, projectId, ct) is { } a ? Results.Json(await OverviewAsync(a, live, stats, db, clock, ct)) : Api.NotFound());
 
         g.MapGet("/day-curves", async (Guid projectId, string? date, HttpContext ctx, AccessService access, StatsService stats, CancellationToken ct) =>
         {
@@ -80,47 +126,7 @@ public static class DataEndpoints
         });
 
         g.MapGet("/devices", async (Guid projectId, HttpContext ctx, AccessService access, ILiveStore live, Db db, TimeProvider clock, CancellationToken ct) =>
-        {
-            if (await access.ProjectAsync(ctx.User, projectId, ct) is not { } a) return Api.NotFound();
-            var now = clock.GetUtcNow();
-            await using var c = await db.OpenAsync(ct);
-            var names = (await c.QueryAsync<(string Serial, string Name)>("SELECT serial, name FROM project_devices WHERE project_id = @projectId", new { projectId }))
-                .ToDictionary(x => x.Serial, x => x.Name, StringComparer.OrdinalIgnoreCase);
-            var states = await live.GetManyAsync(a.Serials, ct);
-            return Results.Json(a.Serials.Select((serial, i) =>
-            {
-                var d = states[i];
-                var reachable = d?.IsReachable(now) == true;
-                var t = reachable ? d!.Telemetry : null;
-                var b = reachable ? d!.Battery : null;
-                // A battery is listed when the inverter reports one. A datalogger that does not report it
-                // (older firmware) leaves the question open, and its battery data is passed on as it is.
-                var present = d?.BatteryPresent;
-                var hasBattery = d?.Battery is not null && present != false;
-                return new
-                {
-                    inverter = new
-                    {
-                        name = names.GetValueOrDefault(serial, d?.Model ?? "Inverter"), serial,
-                        status = d is null ? "waiting_connection" : d.StatusName(now),
-                        power_kw = Kw(t?.PvW), temperature_c = t?.InvTemp, firmware = d?.InverterFw, logger_firmware = d?.LoggerFw,
-                    },
-                    battery_present = present,
-                    bms_comm = d?.Battery?.BmsComm,
-                    datalogger = d is null ? null : LiveJson.Datalogger(d, reachable),
-                    battery = !hasBattery ? null : new
-                    {
-                        name = d!.Battery!.Model ?? "Battery",
-                        state = b?.CurrentA is not { } cur ? "idle" : cur > 0.5 ? "charging" : cur < -0.5 ? "discharging" : "idle",
-                        hours_remaining = b?.EstMinutes is { } m ? (double?)Math.Round(m / 60, 1) : null,
-                        soc_percent = b?.Soc is { } s ? (int?)Math.Round(s) : null,
-                        power_kw = b is { CurrentA: { } ca, Voltage: { } v } ? (double?)Math.Round(ca * v / 1000, 2) : null,
-                        voltage_v = b?.Voltage,
-                        soh_percent = b?.Soh is { } h ? (int?)Math.Round(h) : null,
-                    },
-                };
-            }));
-        });
+            await access.ProjectAsync(ctx.User, projectId, ct) is { } a ? Results.Json(await DevicesAsync(a, live, db, clock, ct)) : Api.NotFound());
 
         // Full live snapshot of the project's device (device detail screens, first paint).
         g.MapGet("/telemetry", async (Guid projectId, HttpContext ctx, AccessService access, ILiveStore live, TimeProvider clock, CancellationToken ct) =>

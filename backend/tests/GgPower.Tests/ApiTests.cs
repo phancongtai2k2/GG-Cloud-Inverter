@@ -146,6 +146,8 @@ public class AppFixture : WebApplicationFactory<Program>
 {
     public readonly CapturingOtpSender Otp = new();
     public readonly FakeDevices Devices = new();
+    public readonly ScriptedLlm Llm = new();
+    public readonly FakeWeather Weather = new();
     private int _counter;
     private readonly Dictionary<string, string?> _settings = [];
 
@@ -183,6 +185,8 @@ public class AppFixture : WebApplicationFactory<Program>
                      ["GGP_Commands__AckTimeoutSeconds"] = "1",
                      ["GGP_Commands__ReadbackTimeoutSeconds"] = "2",
                      ["GGP_Storage__Root"] = Path.Combine(Path.GetTempPath(), "ggpower-test-storage"),
+                     ["GGP_Chat__MaxQuestionsPerConversation"] = "2",
+                     ["GGP_Chat__MaxQuestionsPerUserPerDay"] = "3",
                  })
             Environment.SetEnvironmentVariable(k, v);
     }
@@ -197,6 +201,10 @@ public class AppFixture : WebApplicationFactory<Program>
             s.AddSingleton<IOtpSender>(Otp);
             s.RemoveAll<IMqttPublisher>();
             s.AddSingleton<IMqttPublisher>(Devices);
+            s.RemoveAll<GgPower.Api.Chat.ILlmClient>();
+            s.AddSingleton<GgPower.Api.Chat.ILlmClient>(Llm);
+            s.RemoveAll<GgPower.Api.Chat.IWeatherSource>();
+            s.AddSingleton<GgPower.Api.Chat.IWeatherSource>(Weather);
         });
     }
 
