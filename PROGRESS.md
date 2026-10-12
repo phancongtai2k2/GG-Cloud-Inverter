@@ -71,8 +71,9 @@ Còn lại nhỏ: màn Dữ liệu inverter/pin vẫn truyền chuỗi `reg_*` v
 | A6 | Ghi status / cảnh báo / config-state qua hàng đợi | **Xong**: `DeviceEventQueue` (một luồng ghi, giữ thứ tự, thử lại, ghi nốt khi dừng); status / firmware có thể bỏ khi đầy, cảnh báo không | 9d6e504 |
 | A7 | Đo lại, chốt giai đoạn A | **Xong**: 10.000 tb không mất dữ liệu (sửa ghi trạng thái thiết bị một câu lệnh), tổng hợp 7 s / 30 s; trần ước ~20.000 tb | 7e8060a |
 | B0 | Chốt Redis, nơi lưu file (D3, D4) | **Xong**: `redis:7` trong compose; MinIO tự host | — |
-| B1 | Leader cho job định kỳ | **Xong**: `JobLeader` (advisory lock trên kết nối riêng): rollup, báo cáo ngày (+ bảng `daily_reports_sent`), cảnh báo offline, lệnh (TOU 00:00, đóng lệnh bỏ dở sau 5 phút thay vì lúc khởi động); metric `ggpower_jobs_leader` | (commit kế tiếp ghi) |
-| B2–B7 | Upsert cảnh báo, interface + Redis, realtime / ack qua pub/sub, object storage, 2 instance | Chưa làm | |
+| B1 | Leader cho job định kỳ | **Xong**: `JobLeader` (advisory lock trên kết nối riêng): rollup, báo cáo ngày (+ bảng `daily_reports_sent`), cảnh báo offline, lệnh (TOU 00:00, đóng lệnh bỏ dở sau 5 phút thay vì lúc khởi động); metric `ggpower_jobs_leader` | fc18abc |
+| B2 | Tạo cảnh báo an toàn khi chạy song song | **Xong**: migration 006 gộp cảnh báo mở trùng + unique `(serial, code) WHERE ended_at IS NULL`; RaiseAsync trong transaction có khoá theo thiết bị + mã; test 20 lần song song → 1 cảnh báo | (commit kế tiếp ghi) |
+| B3–B7 | interface + Redis, realtime / ack qua pub/sub, object storage, 2 instance | Chưa làm | |
 | C1–C6 | Tách vai trò, live state lên Redis, EMQX + nhiều worker, TimescaleDB, xác thực MQTT, vận hành (D5–D8) | Chưa làm | |
 
 ## 5. Môi trường trên máy này

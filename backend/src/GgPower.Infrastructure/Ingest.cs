@@ -115,14 +115,27 @@ public static class AlertStore
     /// Returns true only when a new alert was created. The same fault (device + code) does not create one
     /// while its alert is still open, and continues the previous alert when it comes back within
     /// <paramref name="reopenWindow"/> of clearing, unless the user marked that alert as resolved.
+    /// Safe when several instances raise the same fault at once: they take turns on a lock for the device and code, and
+    /// the unique index of open alerts (migration 006) rejects a second open one whatever happens.
     /// </summary>
     public static async Task<bool> RaiseAsync(
         NpgsqlConnection c, string serial, string alarmId, string code, string severity, string title, string description,
         DateTimeOffset ts, string? snapshot, TimeSpan reopenWindow)
     {
+        await using var tx = await c.BeginTransactionAsync();
+        await c.ExecuteAsync("SELECT pg_advisory_xact_lock(hashtextextended(@key, 0))", new { key = $"alert|{serial.ToUpperInvariant()}|{code}" }, tx);
+        var created = await RaiseLockedAsync(c, tx, serial, alarmId, code, severity, title, description, ts, snapshot, reopenWindow);
+        await tx.CommitAsync();
+        return created;
+    }
+
+    private static async Task<bool> RaiseLockedAsync(
+        NpgsqlConnection c, NpgsqlTransaction tx, string serial, string alarmId, string code, string severity, string title, string description,
+        DateTimeOffset ts, string? snapshot, TimeSpan reopenWindow)
+    {
         // A datalogger that restarts reports every fault that is still present again, under a new id.
         if (await c.ExecuteScalarAsync<bool>(
-                "SELECT EXISTS (SELECT 1 FROM alerts WHERE serial = @serial AND code = @code AND ended_at IS NULL)", new { serial, code }))
+                "SELECT EXISTS (SELECT 1 FROM alerts WHERE serial = @serial AND code = @code AND ended_at IS NULL)", new { serial, code }, tx))
             return false;
 
         var reopened = await c.ExecuteAsync(
@@ -130,25 +143,25 @@ public static class AlertStore
             UPDATE alerts SET ended_at = NULL, occurrences = occurrences + 1, last_triggered_at = @ts
             WHERE id = (SELECT id FROM alerts WHERE serial = @serial AND code = @code ORDER BY started_at DESC LIMIT 1)
               AND NOT resolved AND ended_at <= @ts AND ended_at >= @since
-            """, new { serial, code, ts, since = ts - reopenWindow });
+            """, new { serial, code, ts, since = ts - reopenWindow }, tx);
         if (reopened > 0) return false;
 
         const string insert =
             """
             INSERT INTO alerts (id, serial, alarm_id, code, severity, title, description, started_at, last_triggered_at, snapshot)
             VALUES (@id, @serial, @alarmId, @code, @severity, @title, @description, @ts, @ts, @snapshot::jsonb)
-            ON CONFLICT (serial, alarm_id) DO NOTHING
+            ON CONFLICT DO NOTHING
             """;
-        if (await c.ExecuteAsync(insert, new { id = Guid.NewGuid(), serial, alarmId, code, severity, title, description, ts, snapshot }) > 0) return true;
+        if (await c.ExecuteAsync(insert, new { id = Guid.NewGuid(), serial, alarmId, code, severity, title, description, ts, snapshot }, tx) > 0) return true;
         // The device's daily counter restarts with the device, so an id can come back for a different
         // event. Same id and same start time is a redelivery; otherwise store it under a unique id.
         if (await c.ExecuteScalarAsync<bool>(
-                "SELECT EXISTS (SELECT 1 FROM alerts WHERE serial = @serial AND alarm_id = @alarmId AND started_at = @ts)", new { serial, alarmId, ts }))
+                "SELECT EXISTS (SELECT 1 FROM alerts WHERE serial = @serial AND alarm_id = @alarmId AND started_at = @ts)", new { serial, alarmId, ts }, tx))
             return false;
         return await c.ExecuteAsync(insert, new
         {
             id = Guid.NewGuid(), serial, alarmId = $"{alarmId}-{ts.ToUnixTimeSeconds()}", code, severity, title, description, ts, snapshot,
-        }) > 0;
+        }, tx) > 0;
     }
 }
 

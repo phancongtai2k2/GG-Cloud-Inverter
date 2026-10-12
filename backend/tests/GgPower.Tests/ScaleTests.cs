@@ -234,6 +234,29 @@ public class ScaleTests(AppFixture app)
         Assert.Equal("writing:", await c.ExecuteScalarAsync<string>(Status, new { id = running }));
     }
 
+    // B2: instances raising the same fault at the same moment create exactly one alert.
+    [Fact]
+    public async Task ConcurrentRaisesOfOneFaultCreateOneAlert()
+    {
+        var serial = await app.NewDevice();
+        var db = app.Service<Db>();
+        var ts = DateTimeOffset.UtcNow;
+        var results = await Task.WhenAll(Enumerable.Range(0, 20).Select(async i =>
+        {
+            await using var c = await db.OpenAsync();
+            // Different ids, as when a restarted datalogger reports a fault that is still present.
+            return await AlertStore.RaiseAsync(c, serial, $"race-{i}", "F-RACE", "error", "Lỗi thử", "", ts.AddMilliseconds(i), null, TimeSpan.FromMinutes(10));
+        }));
+        Assert.Single(results, r => r);
+        await using var check = await db.OpenAsync();
+        Assert.Equal(1, await check.ExecuteScalarAsync<int>("SELECT count(*) FROM alerts WHERE serial = @serial AND code = 'F-RACE'", new { serial }));
+
+        // The database itself refuses a second open alert for the same fault.
+        var ex = await Assert.ThrowsAsync<Npgsql.PostgresException>(() => check.ExecuteAsync(
+            "INSERT INTO alerts (id, serial, alarm_id, code, severity, title, started_at) VALUES (gen_random_uuid(), @serial, 'manual', 'F-RACE', 'error', 'x', now())", new { serial }));
+        Assert.Equal("23505", ex.SqlState);
+    }
+
     // A2: liveness never depends on anything else; readiness checks the database, MQTT (when ingesting) and the queue.
     [Fact]
     public async Task HealthEndpointsReportLiveAndReady()
