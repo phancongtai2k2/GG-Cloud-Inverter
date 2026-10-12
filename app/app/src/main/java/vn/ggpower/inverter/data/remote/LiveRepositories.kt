@@ -520,13 +520,22 @@ class LiveTelemetryRepository @Inject constructor(private val api: ApiClient, pr
                 InverterTelemetry(
                     name = m.str("model") ?: "Inverter", serial = m.str("serial").orEmpty(), status = status(m.str("status")),
                     updatedAt = instant(m.str("updated_at")),
-                    // Trạng thái máy do datalogger báo (0–3); model yêu cầu chuỗi tiếng Việt đã giải mã.
-                    machineState = when (t?.int("inv_status")) {
-                        0 -> "Đang khởi tạo"
+                    // Trạng thái máy: mã MachineState gốc của biến tần SRNE (bảng địa chỉ V2.11), datalogger gửi nguyên giá trị.
+                    // Model yêu cầu chuỗi tiếng Việt đã giải mã; mã ngoài bảng thì hiện kèm số để còn tra được.
+                    machineState = when (val code = t?.int("inv_status")) {
+                        null -> null
+                        0 -> "Trễ khởi động"
                         1 -> "Chờ (standby)"
-                        2 -> "Chạy điện lưới"
-                        3 -> "Chạy inverter"
-                        else -> null
+                        2 -> "Đang khởi tạo"
+                        3 -> "Khởi động mềm"
+                        4 -> "Chạy điện lưới"
+                        5 -> "Chạy inverter"
+                        6 -> "Đang chuyển sang điện lưới"
+                        7 -> "Đang chuyển sang inverter"
+                        8 -> "Đang kích hoạt pin"
+                        9 -> "Đã tắt bằng tay"
+                        10 -> "Lỗi"
+                        else -> "Không xác định ($code)"
                     },
                     pv1VoltageV = t?.num("pv1_v"), pv1CurrentA = t?.num("pv1_a"), pv1PowerW = t?.num("pv1_w"),
                     pv2VoltageV = t?.num("pv2_v"), pv2CurrentA = t?.num("pv2_a"), pv2PowerW = t?.num("pv2_w"),
